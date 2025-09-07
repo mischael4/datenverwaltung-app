@@ -15,7 +15,8 @@
     label { display: block; margin-bottom: 5px; }
     label .hint { font-size: 12px; font-weight: normal; color: #666; }
     input, textarea, select, button { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; box-sizing: border-box; }
-    button { background: #27ae60; color: #fff; border: none; border-radius: 8px; cursor: pointer; }
+    button { background: #27ae60; color: #fff; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
+    button img { height: 18px; }
     button:hover { background: #1f8a4e; }
     .btn-secondary { background: #e9ecef; color: #222; }
     .btn-secondary:hover { background: #dde1e6; }
@@ -52,8 +53,8 @@
       <h2>Datensätze</h2>
       <table id="dataTable"><thead><tr><th>Datum</th><th>Name</th><th>Ort</th><th>Unterstützungsmaßnahmen</th><th>Anmerkungen</th><th>Zeit (h)</th><th>Kilometer</th><th>Aktion</th></tr></thead><tbody id="tableBody"></tbody></table>
       <div id="summenAnzeige" class="summary"></div>
-      <button id="openExportDialogZeit">Als PDF exportieren (Tätigkeitsbericht)</button>
-      <button id="openExportDialogKm">Als PDF exportieren (Fahrtkostenabrechnung)</button>
+      <button id="openExportDialogZeit"><img src="export.png" alt="Export"> Tätigkeitsbericht (PDF)</button>
+      <button id="openExportDialogKm"><img src="export.png" alt="Export"> Fahrtkostenabrechnung (PDF)</button>
     </div>
   </div>
 
@@ -62,7 +63,7 @@
     <form id="exportFormZeit"><div class="form-group"><label for="monatZeit">Monat:</label><input type="text" id="monatZeit" name="monatZeit" required></div>
       <div class="form-group"><label for="datumZeit">Datum:</label><input type="date" id="datumZeit" name="datumZeit" required></div>
       <div class="form-group"><label for="bereichslehrkraftZeit">Bereichslehrkraft:</label><input type="text" id="bereichslehrkraftZeit" name="bereichslehrkraftZeit" required></div>
-      <div class="form-group"><button type="button" id="exportPdfZeit">Exportieren</button><button type="button" id="cancelExportZeit" class="btn-secondary">Abbrechen</button></div>
+      <div class="form-group"><button type="button" id="exportPdfZeit"><img src="pdf.png" alt="PDF"> Exportieren</button><button type="button" id="cancelExportZeit" class="btn-secondary">Abbrechen</button></div>
     </form>
   </div>
 
@@ -71,7 +72,7 @@
     <form id="exportFormKm"><div class="form-group"><label for="monatKm">Monat:</label><input type="text" id="monatKm" name="monatKm" required></div>
       <div class="form-group"><label for="datumKm">Datum:</label><input type="date" id="datumKm" name="datumKm" required></div>
       <div class="form-group"><label for="bereichslehrkraftKm">Bereichslehrkraft:</label><input type="text" id="bereichslehrkraftKm" name="bereichslehrkraftKm" required></div>
-      <div class="form-group"><button type="button" id="exportPdfKm">Exportieren</button><button type="button" id="cancelExportKm" class="btn-secondary">Abbrechen</button></div>
+      <div class="form-group"><button type="button" id="exportPdfKm"><img src="pdf.png" alt="PDF"> Exportieren</button><button type="button" id="cancelExportKm" class="btn-secondary">Abbrechen</button></div>
     </form>
   </div>
 
