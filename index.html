@@ -142,6 +142,7 @@
       overflow: auto;
     }
 
+    /* Unterstützungsmaßnahmen übersichtlicher */
     #tatigkeit {
       height: 240px;
       font-size: 14px;
@@ -306,37 +307,5 @@
     </form>
   </div>
 
-  <script>
-    function formatDateGerman(dateString) {
-      const date = new Date(dateString);
-      return date.toLocaleDateString("de-DE", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric"
-      });
-    }
-
-    document.getElementById("exportPdfZeit").addEventListener("click", () => {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-
-      const datum = document.getElementById("datumZeit").value;
-      const datumDE = formatDateGerman(datum);
-
-      doc.text(`Datum: ${datumDE}`, 14, 20);
-      doc.save("taetigkeitsbericht.pdf");
-    });
-
-    document.getElementById("exportPdfKm").addEventListener("click", () => {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-
-      const datum = document.getElementById("datumKm").value;
-      const datumDE = formatDateGerman(datum);
-
-      doc.text(`Datum: ${datumDE}`, 14, 20);
-      doc.save("fahrtkosten.pdf");
-    });
-  </script>
 </body>
 </html>
