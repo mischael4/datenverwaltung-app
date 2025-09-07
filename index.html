@@ -267,18 +267,6 @@
     <h2>Exportieren (Tätigkeitsbericht)</h2>
     <form id="exportFormZeit" class="export-form">
       <div class="form-group">
-        <label for="monatZeit">Monat:</label>
-        <input type="text" id="monatZeit" name="monatZeit" required>
-      </div>
-      <div class="form-group">
-        <label for="datumZeit">Datum:</label>
-        <input type="date" id="datumZeit" name="datumZeit" required>
-      </div>
-      <div class="form-group">
-        <label for="bereichslehrkraftZeit">Bereichslehrkraft:</label>
-        <input type="text" id="bereichslehrkraftZeit" name="bereichslehrkraftZeit" required>
-      </div>
-      <div class="form-group">
         <button type="button" id="exportPdfZeit">Exportieren</button>
         <button type="button" id="cancelExportZeit" class="btn-secondary">Abbrechen</button>
       </div>
@@ -289,18 +277,6 @@
     <h2>Exportieren (Fahrtkostenabrechnung)</h2>
     <form id="exportFormKm" class="export-form">
       <div class="form-group">
-        <label for="monatKm">Monat:</label>
-        <input type="text" id="monatKm" name="monatKm" required>
-      </div>
-      <div class="form-group">
-        <label for="datumKm">Datum:</label>
-        <input type="date" id="datumKm" name="datumKm" required>
-      </div>
-      <div class="form-group">
-        <label for="bereichslehrkraftKm">Bereichslehrkraft:</label>
-        <input type="text" id="bereichslehrkraftKm" name="bereichslehrkraftKm" required>
-      </div>
-      <div class="form-group">
         <button type="button" id="exportPdfKm">Exportieren</button>
         <button type="button" id="cancelExportKm" class="btn-secondary">Abbrechen</button>
       </div>
@@ -309,5 +285,133 @@
 
   <!-- Skript -->
   <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const form = document.getElementById('dataForm');
+      const tableBody = document.getElementById('tableBody');
+      const summenAnzeige = document.getElementById('summenAnzeige');
+      const exportDialogZeit = document.getElementById('exportDialogZeit');
+      const exportDialogKm = document.getElementById('exportDialogKm');
+      let dataSets = [];
+
+      function loadDataSets() {
+        const savedData = localStorage.getItem('dataSets');
+        if (savedData) {
+          dataSets = JSON.parse(savedData);
+          updateTable();
+        }
+      }
+
+      function saveDataSets() {
+        localStorage.setItem('dataSets', JSON.stringify(dataSets));
+      }
+
+      function formatDateGerman(dateString) {
+        const date = new Date(dateString);
+        if (isNaN(date)) return "";
+        return `${String(date.getDate()).padStart(2, '0')}.${String(date.getMonth() + 1).padStart(2, '0')}.${date.getFullYear()}`;
+      }
+
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const datum = document.getElementById('datum').value;
+        const name = document.getElementById('name').value;
+        const schule = document.getElementById('schule').value;
+        const tatigkeitSelect = document.getElementById('tatigkeit');
+        const tatigkeit = Array.from(tatigkeitSelect.selectedOptions).map(opt => opt.value).join(", ");
+        const anmerkungen = document.getElementById('anmerkungen').value;
+        const zeit = document.getElementById('zeit').value;
+        const km = document.getElementById('km').value;
+        dataSets.push({ datum, name, schule, tatigkeit, anmerkungen, zeit, km });
+        updateTable();
+        saveDataSets();
+        form.reset();
+      });
+
+      function updateTable() {
+        tableBody.innerHTML = '';
+        dataSets.sort((a, b) => new Date(a.datum) - new Date(b.datum));
+        dataSets.forEach((ds, index) => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${formatDateGerman(ds.datum)}</td>
+            <td>${ds.name}</td>
+            <td>${ds.schule}</td>
+            <td>${ds.tatigkeit}</td>
+            <td>${ds.anmerkungen}</td>
+            <td>${ds.zeit}</td>
+            <td>${ds.km}</td>
+            <td><button class="delete-btn" data-index="${index}">Löschen</button></td>
+          `;
+          tableBody.appendChild(row);
+        });
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+          btn.addEventListener('click', function () {
+            dataSets.splice(this.getAttribute('data-index'), 1);
+            updateTable();
+            saveDataSets();
+          });
+        });
+        const sumZeit = dataSets.reduce((acc, ds) => acc + parseFloat(ds.zeit || 0), 0);
+        const sumKm = dataSets.reduce((acc, ds) => acc + parseFloat(ds.km || 0), 0);
+        summenAnzeige.textContent = `Gesamtsumme: Zeit = ${sumZeit.toFixed(1)} h, Kilometer = ${sumKm.toFixed(1)} km`;
+      }
+
+      // Export-Dialoge öffnen/schließen
+      document.getElementById('openExportDialogZeit').addEventListener('click', () => exportDialogZeit.style.display = 'block');
+      document.getElementById('cancelExportZeit').addEventListener('click', () => exportDialogZeit.style.display = 'none');
+      document.getElementById('openExportDialogKm').addEventListener('click', () => exportDialogKm.style.display = 'block');
+      document.getElementById('cancelExportKm').addEventListener('click', () => exportDialogKm.style.display = 'none');
+
+      // PDF Export (Zeitbericht)
+      document.getElementById('exportPdfZeit').addEventListener('click', () => {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ orientation: "landscape" });
+
+        doc.text("Tätigkeitsbericht", 14, 16);
+        doc.autoTable({
+          head: [['Datum', 'Name', 'Ort', 'Unterstützungsmaßnahmen', 'Anmerkungen', 'Zeit (h)']],
+          body: dataSets.map(ds => [
+            formatDateGerman(ds.datum),
+            ds.name,
+            ds.schule,
+            ds.tatigkeit,
+            ds.anmerkungen,
+            ds.zeit
+          ]),
+          startY: 20,
+        });
+
+        doc.save("taetigkeitsbericht.pdf");
+      });
+
+      // PDF Export (Fahrtkosten)
+      document.getElementById('exportPdfKm').addEventListener('click', () => {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ orientation: "landscape" });
+
+        doc.text("Fahrtkostenabrechnung", 14, 16);
+        doc.autoTable({
+          head: [['Datum', 'Name', 'Ort', 'Kilometer']],
+          body: dataSets.map(ds => [
+            formatDateGerman(ds.datum),
+            ds.name,
+            ds.schule,
+            ds.km
+          ]),
+          startY: 20,
+        });
+
+        doc.save("fahrtkosten.pdf");
+      });
+
+      loadDataSets();
+
+      // PWA Service Worker
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("./sw.js");
+      }
+    });
+  </script>
 </body>
 </html>
+
