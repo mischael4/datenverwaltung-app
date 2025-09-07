@@ -6,6 +6,25 @@
   <title>Datenverwaltung - Bereichslehrkräfte Köln</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 10px; }
+    th, td { border: 1px solid #ccc; padding: 6px; text-align: left; }
+    h2, h3 { margin-top: 20px; }
+    button { margin: 5px 0; }
+    .dialog {
+      display: none;
+      position: fixed;
+      top: 30%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #fff;
+      border: 1px solid #aaa;
+      padding: 15px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+      z-index: 1000;
+    }
+  </style>
 </head>
 <body>
   <h2>Datenverwaltung - Bereichslehrkräfte Köln</h2>
@@ -22,7 +41,7 @@
   </form>
 
   <h3>Gespeicherte Datensätze</h3>
-  <table border="1" id="dataTable">
+  <table>
     <thead>
       <tr>
         <th>Datum</th><th>Name</th><th>Ort</th><th>Tätigkeit</th><th>Anmerkungen</th><th>Zeit</th><th>KM</th>
@@ -31,8 +50,28 @@
     <tbody id="tableBody"></tbody>
   </table>
 
-  <button id="exportZeit">Als PDF exportieren (Tätigkeitsbericht)</button>
-  <button id="exportKm">Als PDF exportieren (Fahrtkostenabrechnung)</button>
+  <button id="openDialogZeit">Export: Tätigkeitsbericht</button>
+  <button id="openDialogKm">Export: Fahrtkosten</button>
+
+  <!-- Dialog Tätigkeitsbericht -->
+  <div class="dialog" id="exportDialogZeit">
+    <h3>Export: Tätigkeitsbericht</h3>
+    <label>Monat: <input type="text" id="monatZeit" placeholder="z.B. März 2025"></label><br>
+    <label>Datum: <input type="date" id="datumZeit"></label><br>
+    <label>Bereichslehrkraft: <input type="text" id="bereichslehrkraftZeit"></label><br>
+    <button id="exportPdfZeit">PDF erzeugen</button>
+    <button onclick="document.getElementById('exportDialogZeit').style.display='none'">Abbrechen</button>
+  </div>
+
+  <!-- Dialog Fahrtkosten -->
+  <div class="dialog" id="exportDialogKm">
+    <h3>Export: Fahrtkosten</h3>
+    <label>Monat: <input type="text" id="monatKm" placeholder="z.B. März 2025"></label><br>
+    <label>Datum: <input type="date" id="datumKm"></label><br>
+    <label>Bereichslehrkraft: <input type="text" id="bereichslehrkraftKm"></label><br>
+    <button id="exportPdfKm">PDF erzeugen</button>
+    <button onclick="document.getElementById('exportDialogKm').style.display='none'">Abbrechen</button>
+  </div>
 
   <script>
     const form = document.getElementById("dataForm");
@@ -84,59 +123,73 @@
       form.reset();
     });
 
-    // ---------- PDF Export ----------
-    document.getElementById("exportZeit").addEventListener("click", () => {
+    // ---------- Dialog öffnen ----------
+    document.getElementById("openDialogZeit").addEventListener("click", () => {
+      document.getElementById("exportDialogZeit").style.display = "block";
+    });
+    document.getElementById("openDialogKm").addEventListener("click", () => {
+      document.getElementById("exportDialogKm").style.display = "block";
+    });
+
+    // ---------- PDF Export Tätigkeitsbericht ----------
+    document.getElementById("exportPdfZeit").addEventListener("click", () => {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
 
-      // Titel + Monat
+      const monat = document.getElementById("monatZeit").value;
+      const datum = document.getElementById("datumZeit").value;
+      const bereichslehrkraft = document.getElementById("bereichslehrkraftZeit").value;
+
       doc.setFontSize(14);
       doc.text("Berichtsdokument für Bereichslehrkräfte für reisende Kinder und Jugendliche", 14, 20);
-      const monat = new Date().toLocaleString("de-DE", { month: "long", year: "numeric" });
       doc.text(`Monat: ${monat}`, 14, 28);
+      doc.text(`Datum: ${datum}`, 14, 36);
+      doc.text(`Bereichslehrkraft: ${bereichslehrkraft}`, 14, 44);
 
-      // Tabelle
       const table = dataSets.map(ds => [ds.datum, ds.name, ds.schule, ds.tatigkeit, ds.zeit]);
       doc.autoTable({
         head: [["Datum", "Name", "Ort", "Tätigkeit", "Zeit (h)"]],
         body: table,
-        startY: 38
+        startY: 54
       });
 
-      // Unterschrift mittig
       const pageWidth = doc.internal.pageSize.getWidth();
       doc.text("Bereichslehrkraft - Unterschrift:", pageWidth / 2, doc.lastAutoTable.finalY + 20, { align: "center" });
 
-      doc.save("taetigkeitsbericht.pdf");
+      doc.save(`taetigkeitsbericht_${monat}.pdf`);
+      document.getElementById("exportDialogZeit").style.display = "none";
     });
 
-    document.getElementById("exportKm").addEventListener("click", () => {
+    // ---------- PDF Export Fahrtkosten ----------
+    document.getElementById("exportPdfKm").addEventListener("click", () => {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
 
-      // Titel + Monat
+      const monat = document.getElementById("monatKm").value;
+      const datum = document.getElementById("datumKm").value;
+      const bereichslehrkraft = document.getElementById("bereichslehrkraftKm").value;
+
       doc.setFontSize(14);
       doc.text("Fahrtkostenabrechnung - Bereichslehrkräfte", 14, 20);
-      const monat = new Date().toLocaleString("de-DE", { month: "long", year: "numeric" });
       doc.text(`Monat: ${monat}`, 14, 28);
+      doc.text(`Datum: ${datum}`, 14, 36);
+      doc.text(`Bereichslehrkraft: ${bereichslehrkraft}`, 14, 44);
 
-      // Tabelle
       const table = dataSets.map(ds => [ds.datum, ds.name, ds.schule, ds.km]);
       doc.autoTable({
         head: [["Datum", "Name", "Ort", "KM"]],
         body: table,
-        startY: 38
+        startY: 54
       });
 
-      // Unterschrift mittig
       const pageWidth = doc.internal.pageSize.getWidth();
       doc.text("Bereichslehrkraft - Unterschrift:", pageWidth / 2, doc.lastAutoTable.finalY + 20, { align: "center" });
 
-      doc.save("fahrtkosten.pdf");
+      doc.save(`fahrtkosten_${monat}.pdf`);
+      document.getElementById("exportDialogKm").style.display = "none";
     });
 
     loadData();
   </script>
 </body>
 </html>
-
