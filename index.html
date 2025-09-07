@@ -307,5 +307,62 @@
     </form>
   </div>
 
+  <script>
+    // Hilfsfunktionen
+    function parseNumberDE(text){
+      if(!text) return 0;
+      const t = String(text).trim().replace(/\./g,'').replace(',','.');
+      const n = parseFloat(t);
+      return isNaN(n) ? 0 : n;
+    }
+    function fmtDE(n){ return (Number(n)||0).toFixed(1).replace('.',','); }
+
+    function getSumsFromTable(){
+      let zeit = 0, km = 0;
+      document.querySelectorAll('#tableBody tr').forEach(row => {
+        const cells = row.querySelectorAll('td');
+        if(cells.length >= 7){
+          zeit += parseNumberDE(cells[5].innerText);
+          km   += parseNumberDE(cells[6].innerText);
+        }
+      });
+      return { zeit, km };
+    }
+
+    function exportWithTotals({title, filename}){
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.setFontSize(14);
+      if(title) doc.text(title, 14, 14);
+
+      // Tabelle exportieren
+      const startY = title ? 22 : 14;
+      doc.autoTable({ html: '#dataTable', startY });
+
+      // Summen unterhalb der Tabelle ausgeben
+      const sums = getSumsFromTable();
+      const y = (doc.lastAutoTable && doc.lastAutoTable.finalY ? doc.lastAutoTable.finalY : startY) + 10;
+      doc.setFontSize(11);
+      doc.text(`Gesamtsumme Zeit (h): ${fmtDE(sums.zeit)}`, 14, y);
+      doc.text(`Gesamtsumme Kilometer: ${fmtDE(sums.km)}`, 14, y + 7);
+
+      doc.save(filename);
+    }
+
+    // Event-Handler für die Export-Buttons (in den Modals)
+    const btnZeit = document.getElementById('exportPdfZeit');
+    if(btnZeit){
+      btnZeit.addEventListener('click', () => {
+        exportWithTotals({ title: 'Tätigkeitsbericht', filename: 'taetigkeitsbericht.pdf' });
+      });
+    }
+
+    const btnKm = document.getElementById('exportPdfKm');
+    if(btnKm){
+      btnKm.addEventListener('click', () => {
+        exportWithTotals({ title: 'Fahrtkostenabrechnung', filename: 'fahrtkosten.pdf' });
+      });
+    }
+  </script>
 </body>
 </html>
