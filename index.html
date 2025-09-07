@@ -79,9 +79,64 @@
     function pad2(n){ return String(n).padStart(2,'0'); }
     function isoToGerman(iso){ const p=(iso||'').split('-'); return p.length===3?`${p[2]}.${p[1]}.${p[0]}`:iso; }
     function toGermanDateGuess(s){ const t=(s||'').trim(); if(t.includes('-')){const p=t.split('-'); if(p.length===3) return `${pad2(p[2])}.${pad2(p[1])}.${p[0]}`;} if(t.includes('.')){const p=t.split('.'); if(p.length===3){let y=p[2]; if(y.length===2) y=Number(y)>=70?'19'+y:'20'+y; return `${pad2(p[0])}.${pad2(p[1])}.${y}`;}} return t; }
-    function exportCommon(doc, meta){ doc.setFontSize(14); doc.text(meta.titel,14,14); doc.setFontSize(11); doc.text(`Monat: ${meta.monat||''}`,14,22); doc.text(`Datum: ${isoToGerman(meta.datumISO||'')}`,14,29); doc.text(`Bereichslehrkraft: ${meta.lehrkraft||''}`,14,36); doc.autoTable({html:'#dataTable',startY:44,didParseCell:data=>{if(data.section==='body'&&data.column.index===0){const orig=Array.isArray(data.cell.text)?data.cell.text.join(' '):String(data.cell.text||''); data.cell.text=[toGermanDateGuess(orig)];}}}); }
-    document.getElementById('exportPdfZeit').addEventListener('click',()=>{const{jsPDF}=window.jspdf;const doc=new jsPDF();exportCommon(doc,{titel:'Berichtsdokument für Bereichslehrkräfte für reisende Kinder und Jugendliche',monat:document.getElementById('monatZeit').value,datumISO:document.getElementById('datumZeit').value,lehrkraft:document.getElementById('bereichslehrkraftZeit').value});doc.save('taetigkeitsbericht.pdf');});
-    document.getElementById('exportPdfKm').addEventListener('click',()=>{const{jsPDF}=window.jspdf;const doc=new jsPDF();exportCommon(doc,{titel:'Fahrtkostenabrechnung Bereichslehrkräfte',monat:document.getElementById('monatKm').value,datumISO:document.getElementById('datumKm').value,lehrkraft:document.getElementById('bereichslehrkraftKm').value});doc.save('fahrtkosten.pdf');});
+
+    function calculateSums() {
+      let zeitSum=0, kmSum=0;
+      document.querySelectorAll('#tableBody tr').forEach(row=>{
+        const cells=row.querySelectorAll('td');
+        if(cells.length>=7){
+          zeitSum+=parseFloat(cells[5].innerText)||0;
+          kmSum+=parseFloat(cells[6].innerText)||0;
+        }
+      });
+      return {zeitSum, kmSum};
+    }
+
+    function exportCommon(doc, meta){
+      doc.setFontSize(14);
+      doc.text(meta.titel,14,14);
+      doc.setFontSize(11);
+      doc.text(`Monat: ${meta.monat||''}`,14,22);
+      doc.text(`Datum: ${isoToGerman(meta.datumISO||'')}`,14,29);
+      doc.text(`Bereichslehrkraft: ${meta.lehrkraft||''}`,14,36);
+      doc.text(`Unterschrift:`,14,43);
+      doc.autoTable({
+        html:'#dataTable',
+        startY:50,
+        didParseCell:data=>{
+          if(data.section==='body'&&data.column.index===0){
+            const orig=Array.isArray(data.cell.text)?data.cell.text.join(' '):String(data.cell.text||'');
+            data.cell.text=[toGermanDateGuess(orig)];
+          }
+        }
+      });
+      const sums=calculateSums();
+      let finalY=doc.lastAutoTable.finalY+10;
+      doc.text(`Gesamtsumme Zeit (h): ${sums.zeitSum.toFixed(1)}`,14,finalY);
+      doc.text(`Gesamtsumme Kilometer: ${sums.kmSum.toFixed(1)}`,14,finalY+7);
+    }
+
+    document.getElementById('exportPdfZeit').addEventListener('click',()=>{
+      const{jsPDF}=window.jspdf;const doc=new jsPDF();
+      exportCommon(doc,{
+        titel:'Tätigkeitsbericht',
+        monat:document.getElementById('monatZeit').value,
+        datumISO:document.getElementById('datumZeit').value,
+        lehrkraft:document.getElementById('bereichslehrkraftZeit').value
+      });
+      doc.save('taetigkeitsbericht.pdf');
+    });
+
+    document.getElementById('exportPdfKm').addEventListener('click',()=>{
+      const{jsPDF}=window.jspdf;const doc=new jsPDF();
+      exportCommon(doc,{
+        titel:'Fahrtkostenabrechnung',
+        monat:document.getElementById('monatKm').value,
+        datumISO:document.getElementById('datumKm').value,
+        lehrkraft:document.getElementById('bereichslehrkraftKm').value
+      });
+      doc.save('fahrtkosten.pdf');
+    });
   </script>
 </body>
 </html>
