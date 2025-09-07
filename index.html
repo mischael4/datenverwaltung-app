@@ -1,195 +1,417 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Datenverwaltung - Bereichslehrkräfte Köln</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    table { border-collapse: collapse; width: 100%; margin-top: 10px; }
-    th, td { border: 1px solid #ccc; padding: 6px; text-align: left; }
-    h2, h3 { margin-top: 20px; }
-    button { margin: 5px 0; }
-    .dialog {
-      display: none;
-      position: fixed;
-      top: 30%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: #fff;
-      border: 1px solid #aaa;
-      padding: 15px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.3);
-      z-index: 1000;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Datensatzverwaltung - Bereichslehrkräfte Köln</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .form-container, .table-container {
+            border: 1px solid #ccc;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .export-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .export-form .form-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .delete-btn {
+            background-color: #f44336;
+            color: white;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .delete-btn:hover {
+            background-color: #d32f2f;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            z-index: 1000;
+        }
+        .summary {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
-  <h2>Datenverwaltung - Bereichslehrkräfte Köln</h2>
+    <div class="container">
+        <h1>Datensatzverwaltung - Bereichslehrkräfte Köln</h1>
 
-  <form id="dataForm">
-    <label>Datum: <input type="date" id="datum" required></label><br>
-    <label>Name: <input type="text" id="name" required></label><br>
-    <label>Ort: <input type="text" id="schule" required></label><br>
-    <label>Unterstützungsmaßnahmen: <input type="text" id="tatigkeit" required></label><br>
-    <label>Anmerkungen: <input type="text" id="anmerkungen"></label><br>
-    <label>Zeit (h): <input type="number" id="zeit" step="0.1" required></label><br>
-    <label>Kilometer: <input type="number" id="km" step="0.1" required></label><br>
-    <button type="submit">Speichern</button>
-  </form>
+        <div class="form-container">
+            <h2>Neuen Datensatz hinzufügen</h2>
+            <form id="dataForm">
+                <div class="form-group">
+                    <label for="datum">Datum:</label>
+                    <input type="date" id="datum" name="datum" required>
+                </div>
+                <div class="form-group">
+                    <label for="name">Name:</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="schule">Schule:</label>
+                    <input type="text" id="schule" name="schule" required>
+                </div>
+                <div class="form-group">
+                    <label for="tatigkeit">Tätigkeit:</label>
+                    <input type="text" id="tatigkeit" name="tatigkeit" required>
+                </div>
+                <div class="form-group">
+                    <label for="anmerkungen">Anmerkungen:</label>
+                    <textarea id="anmerkungen" name="anmerkungen" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="zeit">Zeit (in Stunden):</label>
+                    <input type="number" id="zeit" name="zeit" step="0.1" required>
+                </div>
+                <div class="form-group">
+                    <label for="km">Kilometer (km):</label>
+                    <input type="number" id="km" name="km" step="0.1" required>
+                </div>
+                <button type="submit">Datensatz hinzufügen</button>
+            </form>
+        </div>
 
-  <h3>Gespeicherte Datensätze</h3>
-  <table>
-    <thead>
-      <tr>
-        <th>Datum</th><th>Name</th><th>Ort</th><th>Tätigkeit</th><th>Anmerkungen</th><th>Zeit</th><th>KM</th>
-      </tr>
-    </thead>
-    <tbody id="tableBody"></tbody>
-  </table>
+        <div class="table-container">
+            <h2>Datensätze</h2>
+            <table id="dataTable">
+                <thead>
+                    <tr>
+                        <th>Datum</th>
+                        <th>Name</th>
+                        <th>Schule</th>
+                        <th>Tätigkeit</th>
+                        <th>Anmerkungen</th>
+                        <th>Zeit (h)</th>
+                        <th>Kilometer (km)</th>
+                        <th>Aktion</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- Datensätze werden hier eingefügt -->
+                </tbody>
+            </table>
+            <div id="summenAnzeige" class="summary"></div>
+            <button id="openExportDialogZeit">Als PDF exportieren (Tätigkeitsbericht)</button>
+            <button id="openExportDialogKm">Als PDF exportieren (Fahrtkostenabrechnung)</button>
+        </div>
+    </div>
 
-  <button id="openDialogZeit">Export: Tätigkeitsbericht</button>
-  <button id="openDialogKm">Export: Fahrtkosten</button>
+    <!-- Export-Dialog für PDF ohne km -->
+    <div id="exportDialogZeit" class="modal">
+        <h2>Exportieren (Tätigkeitsbericht)</h2>
+        <form id="exportFormZeit" class="export-form">
+            <div class="form-group">
+                <label for="monatZeit">Monat:</label>
+                <input type="text" id="monatZeit" name="monatZeit" required>
+            </div>
+            <div class="form-group">
+                <label for="datumZeit">Datum:</label>
+                <input type="date" id="datumZeit" name="datumZeit" required>
+            </div>
+            <div class="form-group">
+                <label for="bereichslehrkraftZeit">Bereichslehrkraft:</label>
+                <input type="text" id="bereichslehrkraftZeit" name="bereichslehrkraftZeit" required>
+            </div>
+            <div class="form-group">
+                <button type="button" id="exportPdfZeit">Exportieren</button>
+                <button type="button" id="cancelExportZeit">Abbrechen</button>
+            </div>
+        </form>
+    </div>
 
-  <!-- Dialog Tätigkeitsbericht -->
-  <div class="dialog" id="exportDialogZeit">
-    <h3>Export: Tätigkeitsbericht</h3>
-    <label>Monat: <input type="text" id="monatZeit" placeholder="z.B. März 2025"></label><br>
-    <label>Datum: <input type="date" id="datumZeit"></label><br>
-    <label>Bereichslehrkraft: <input type="text" id="bereichslehrkraftZeit"></label><br>
-    <button id="exportPdfZeit">PDF erzeugen</button>
-    <button onclick="document.getElementById('exportDialogZeit').style.display='none'">Abbrechen</button>
-  </div>
+    <!-- Export-Dialog für PDF ohne Zeit -->
+    <div id="exportDialogKm" class="modal">
+        <h2>Exportieren (Fahrtkostenabrechnung)</h2>
+        <form id="exportFormKm" class="export-form">
+            <div class="form-group">
+                <label for="monatKm">Monat:</label>
+                <input type="text" id="monatKm" name="monatKm" required>
+            </div>
+            <div class="form-group">
+                <label for="datumKm">Datum:</label>
+                <input type="date" id="datumKm" name="datumKm" required>
+            </div>
+            <div class="form-group">
+                <label for="bereichslehrkraftKm">Bereichslehrkraft:</label>
+                <input type="text" id="bereichslehrkraftKm" name="bereichslehrkraftKm" required>
+            </div>
+            <div class="form-group">
+                <button type="button" id="exportPdfKm">Exportieren</button>
+                <button type="button" id="cancelExportKm">Abbrechen</button>
+            </div>
+        </form>
+    </div>
 
-  <!-- Dialog Fahrtkosten -->
-  <div class="dialog" id="exportDialogKm">
-    <h3>Export: Fahrtkosten</h3>
-    <label>Monat: <input type="text" id="monatKm" placeholder="z.B. März 2025"></label><br>
-    <label>Datum: <input type="date" id="datumKm"></label><br>
-    <label>Bereichslehrkraft: <input type="text" id="bereichslehrkraftKm"></label><br>
-    <button id="exportPdfKm">PDF erzeugen</button>
-    <button onclick="document.getElementById('exportDialogKm').style.display='none'">Abbrechen</button>
-  </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('dataForm');
+            const tableBody = document.getElementById('tableBody');
+            const openExportDialogZeitBtn = document.getElementById('openExportDialogZeit');
+            const openExportDialogKmBtn = document.getElementById('openExportDialogKm');
+            const exportDialogZeit = document.getElementById('exportDialogZeit');
+            const exportDialogKm = document.getElementById('exportDialogKm');
+            const cancelExportZeitBtn = document.getElementById('cancelExportZeit');
+            const cancelExportKmBtn = document.getElementById('cancelExportKm');
+            const summenAnzeige = document.getElementById('summenAnzeige');
 
-  <script>
-    const form = document.getElementById("dataForm");
-    const tableBody = document.getElementById("tableBody");
-    let dataSets = [];
+            let dataSets = [];
 
-    // ---------- Laden & Speichern ----------
-    function loadData() {
-      const saved = localStorage.getItem("dataSets");
-      if (saved) dataSets = JSON.parse(saved);
-      renderTable();
-    }
+            function loadDataSets() {
+                const savedData = localStorage.getItem('dataSets');
+                if (savedData) {
+                    dataSets = JSON.parse(savedData);
+                    updateTable();
+                }
+            }
 
-    function saveData() {
-      localStorage.setItem("dataSets", JSON.stringify(dataSets));
-    }
+            function saveDataSets() {
+                localStorage.setItem('dataSets', JSON.stringify(dataSets));
+            }
 
-    // ---------- Tabelle ----------
-    function renderTable() {
-      tableBody.innerHTML = "";
-      dataSets.forEach(ds => {
-        const row = `<tr>
-          <td>${ds.datum}</td>
-          <td>${ds.name}</td>
-          <td>${ds.schule}</td>
-          <td>${ds.tatigkeit}</td>
-          <td>${ds.anmerkungen}</td>
-          <td>${ds.zeit}</td>
-          <td>${ds.km}</td>
-        </tr>`;
-        tableBody.insertAdjacentHTML("beforeend", row);
-      });
-    }
+            function formatDateGerman(dateString) {
+                const date = new Date(dateString);
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const year = date.getFullYear();
+                return `${day}.${month}.${year}`;
+            }
 
-    form.addEventListener("submit", e => {
-      e.preventDefault();
-      const newData = {
-        datum: document.getElementById("datum").value,
-        name: document.getElementById("name").value,
-        schule: document.getElementById("schule").value,
-        tatigkeit: document.getElementById("tatigkeit").value,
-        anmerkungen: document.getElementById("anmerkungen").value,
-        zeit: document.getElementById("zeit").value,
-        km: document.getElementById("km").value,
-      };
-      dataSets.push(newData);
-      saveData();
-      renderTable();
-      form.reset();
-    });
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
 
-    // ---------- Dialog öffnen ----------
-    document.getElementById("openDialogZeit").addEventListener("click", () => {
-      document.getElementById("exportDialogZeit").style.display = "block";
-    });
-    document.getElementById("openDialogKm").addEventListener("click", () => {
-      document.getElementById("exportDialogKm").style.display = "block";
-    });
+                const datum = document.getElementById('datum').value;
+                const name = document.getElementById('name').value;
+                const schule = document.getElementById('schule').value;
+                const tatigkeit = document.getElementById('tatigkeit').value;
+                const anmerkungen = document.getElementById('anmerkungen').value;
+                const zeit = document.getElementById('zeit').value;
+                const km = document.getElementById('km').value;
 
-    // ---------- PDF Export Tätigkeitsbericht ----------
-    document.getElementById("exportPdfZeit").addEventListener("click", () => {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
+                const newDataSet = { datum, name, schule, tatigkeit, anmerkungen, zeit, km };
+                dataSets.push(newDataSet);
 
-      const monat = document.getElementById("monatZeit").value;
-      const datum = document.getElementById("datumZeit").value;
-      const bereichslehrkraft = document.getElementById("bereichslehrkraftZeit").value;
+                updateTable();
+                saveDataSets();
+                form.reset();
+            });
 
-      doc.setFontSize(14);
-      doc.text("Berichtsdokument für Bereichslehrkräfte für reisende Kinder und Jugendliche", 14, 20);
-      doc.text(`Monat: ${monat}`, 14, 28);
-      doc.text(`Datum: ${datum}`, 14, 36);
-      doc.text(`Bereichslehrkraft: ${bereichslehrkraft}`, 14, 44);
+            function updateTable() {
+                tableBody.innerHTML = '';
 
-      const table = dataSets.map(ds => [ds.datum, ds.name, ds.schule, ds.tatigkeit, ds.zeit]);
-      doc.autoTable({
-        head: [["Datum", "Name", "Ort", "Tätigkeit", "Zeit (h)"]],
-        body: table,
-        startY: 54
-      });
+                dataSets.sort((a, b) => new Date(a.datum) - new Date(b.datum));
 
-      const pageWidth = doc.internal.pageSize.getWidth();
-      doc.text("Bereichslehrkraft - Unterschrift:", pageWidth / 2, doc.lastAutoTable.finalY + 20, { align: "center" });
+                dataSets.forEach((dataSet, index) => {
+                    const row = document.createElement('tr');
+                    const formattedDate = formatDateGerman(dataSet.datum);
 
-      doc.save(`taetigkeitsbericht_${monat}.pdf`);
-      document.getElementById("exportDialogZeit").style.display = "none";
-    });
+                    row.innerHTML = `
+                        <td>${formattedDate}</td>
+                        <td>${dataSet.name}</td>
+                        <td>${dataSet.schule}</td>
+                        <td>${dataSet.tatigkeit}</td>
+                        <td>${dataSet.anmerkungen}</td>
+                        <td>${dataSet.zeit}</td>
+                        <td>${dataSet.km}</td>
+                        <td><button class="delete-btn" data-index="${index}">Löschen</button></td>
+                    `;
+                    tableBody.appendChild(row);
+                });
 
-    // ---------- PDF Export Fahrtkosten ----------
-    document.getElementById("exportPdfKm").addEventListener("click", () => {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
+                document.querySelectorAll('.delete-btn').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const index = parseInt(this.getAttribute('data-index'));
+                        dataSets.splice(index, 1);
+                        updateTable();
+                        saveDataSets();
+                    });
+                });
 
-      const monat = document.getElementById("monatKm").value;
-      const datum = document.getElementById("datumKm").value;
-      const bereichslehrkraft = document.getElementById("bereichslehrkraftKm").value;
+                const sumZeit = dataSets.reduce((acc, ds) => acc + parseFloat(ds.zeit || 0), 0);
+                const sumKm = dataSets.reduce((acc, ds) => acc + parseFloat(ds.km || 0), 0);
+                summenAnzeige.textContent = `Gesamtsumme: Zeit = ${sumZeit.toFixed(1)} h, Kilometer = ${sumKm.toFixed(1)} km`;
+            }
 
-      doc.setFontSize(14);
-      doc.text("Fahrtkostenabrechnung - Bereichslehrkräfte", 14, 20);
-      doc.text(`Monat: ${monat}`, 14, 28);
-      doc.text(`Datum: ${datum}`, 14, 36);
-      doc.text(`Bereichslehrkraft: ${bereichslehrkraft}`, 14, 44);
+            openExportDialogZeitBtn.addEventListener('click', function() {
+                exportDialogZeit.style.display = 'block';
+            });
 
-      const table = dataSets.map(ds => [ds.datum, ds.name, ds.schule, ds.km]);
-      doc.autoTable({
-        head: [["Datum", "Name", "Ort", "KM"]],
-        body: table,
-        startY: 54
-      });
+            cancelExportZeitBtn.addEventListener('click', function() {
+                exportDialogZeit.style.display = 'none';
+                document.getElementById('exportFormZeit').reset();
+            });
 
-      const pageWidth = doc.internal.pageSize.getWidth();
-      doc.text("Bereichslehrkraft - Unterschrift:", pageWidth / 2, doc.lastAutoTable.finalY + 20, { align: "center" });
+            openExportDialogKmBtn.addEventListener('click', function() {
+                exportDialogKm.style.display = 'block';
+            });
 
-      doc.save(`fahrtkosten_${monat}.pdf`);
-      document.getElementById("exportDialogKm").style.display = "none";
-    });
+            cancelExportKmBtn.addEventListener('click', function() {
+                exportDialogKm.style.display = 'none';
+                document.getElementById('exportFormKm').reset();
+            });
 
-    loadData();
-  </script>
+            // PDF Export Zeit
+            document.getElementById('exportPdfZeit').addEventListener('click', function() {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+
+                const monatZeit = document.getElementById('monatZeit').value;
+                const datumZeit = document.getElementById('datumZeit').value;
+                const bereichslehrkraftZeit = document.getElementById('bereichslehrkraftZeit').value;
+
+                doc.setFontSize(14);
+                doc.text("Bereichslehrkraft – Tätigkeitsbericht", 10, 15);
+
+                doc.setFontSize(12);
+                doc.text(`Monat: ${monatZeit}`, 10, 30);
+                doc.text(`Datum: ${formatDateGerman(datumZeit)}`, 10, 40);
+                doc.text(`Bereichslehrkraft: ${bereichslehrkraftZeit}`, 10, 50);
+
+                const tableData = dataSets.map(ds => [
+                    formatDateGerman(ds.datum),
+                    ds.name,
+                    ds.schule,
+                    ds.tatigkeit,
+                    ds.anmerkungen,
+                    ds.zeit
+                ]);
+
+                const sumZeit = dataSets.reduce((acc, ds) => acc + parseFloat(ds.zeit || 0), 0);
+
+                doc.autoTable({
+                    startY: 60,
+                    head: [["Datum", "Name", "Schule", "Tätigkeit", "Anmerkungen", "Zeit (h)"]],
+                    body: [...tableData, ["", "", "", "", "Summe:", sumZeit.toFixed(1)]],
+                    styles: { fontSize: 10 },
+                    headStyles: { fillColor: [200, 200, 200] }
+                });
+
+                doc.text("Unterschrift:", 10, 270);
+                doc.line(10, 275, 100, 275);
+
+                doc.save("taetigkeitsbericht.pdf");
+                exportDialogZeit.style.display = 'none';
+                document.getElementById('exportFormZeit').reset();
+            });
+
+            // PDF Export Km
+            document.getElementById('exportPdfKm').addEventListener('click', function() {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+
+                const monatKm = document.getElementById('monatKm').value;
+                const datumKm = document.getElementById('datumKm').value;
+                const bereichslehrkraftKm = document.getElementById('bereichslehrkraftKm').value;
+
+                doc.setFontSize(14);
+                doc.text("Bereichslehrkraft – Fahrtkostenabrechnung", 10, 15);
+
+                doc.setFontSize(12);
+                doc.text(`Monat: ${monatKm}`, 10, 30);
+                doc.text(`Datum: ${formatDateGerman(datumKm)}`, 10, 40);
+                doc.text(`Bereichslehrkraft: ${bereichslehrkraftKm}`, 10, 50);
+
+                const tableData = dataSets.map(ds => [
+                    formatDateGerman(ds.datum),
+                    ds.name,
+                    ds.schule,
+                    ds.tatigkeit,
+                    ds.anmerkungen,
+                    ds.km
+                ]);
+
+                const sumKm = dataSets.reduce((acc, ds) => acc + parseFloat(ds.km || 0), 0);
+
+                doc.autoTable({
+                    startY: 60,
+                    head: [["Datum", "Name", "Schule", "Tätigkeit", "Anmerkungen", "Kilometer (km)"]],
+                    body: [...tableData, ["", "", "", "", "Summe:", sumKm.toFixed(1)]],
+                    styles: { fontSize: 10 },
+                    headStyles: { fillColor: [200, 200, 200] }
+                });
+
+                doc.text("Unterschrift:", 10, 270);
+                doc.line(10, 275, 100, 275);
+
+                doc.save("fahrtkosten.pdf");
+                exportDialogKm.style.display = 'none';
+                document.getElementById('exportFormKm').reset();
+            });
+
+            loadDataSets();
+        });
+    </script>
 </body>
 </html>
