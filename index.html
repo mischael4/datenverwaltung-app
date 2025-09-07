@@ -15,19 +15,28 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 
   <style>
+    :root { --brand: #27ae60; --brand-d: #1f8a4e; }
     body { font-family: Arial, sans-serif; margin: 10px; background: #fafafa; }
     h2, h4, label { font-size: 16px; font-weight: 600; color: #222; }
     .container { display: flex; flex-direction: column; gap: 20px; }
-    .form-container, .table-container { background: white; border: 1px solid #ccc; padding: 15px; border-radius: 8px; }
+    .form-container, .table-container { background: white; border: 1px solid #ccc; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,.05); }
     .form-group { margin-bottom: 15px; }
     label { display: block; margin-bottom: 5px; }
-    input, textarea, select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 6px; }
-    button { background: #27ae60; color: white; padding: 10px; border: none; border-radius: 6px; cursor: pointer; }
-    button:hover { background: #1f8a4e; }
+    label .hint { font-size: 12px; font-weight: normal; color: #666; display: block; margin-top: 2px; }
+    input, textarea, select { width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; }
+    button { background-color: var(--brand); color: white; padding: 12px 16px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; }
+    button:hover { background-color: var(--brand-d); }
+    .btn-secondary { background: #e9ecef; color: #222; }
+    .btn-secondary:hover { background: #dde1e6; }
     table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-    th, td { border: 1px solid #ddd; padding: 6px; font-size: 14px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 14px; }
     th { background-color: #f2f2f2; }
+    tr:nth-child(even) { background-color: #f9f9f9; }
     .summary { margin-top: 10px; font-weight: bold; text-align: right; }
+    .modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border: 1px solid #ccc; border-radius: 10px; z-index: 1000; width: min(600px, 92vw); max-height: 90vh; overflow: auto; }
+    #tatigkeit { height: 240px; font-size: 14px; line-height: 1.4; padding: 6px; }
+    #tatigkeit option { padding: 4px 6px; border-bottom: 1px solid #eee; }
+    #tatigkeit option:last-child { border-bottom: none; }
   </style>
 </head>
 <body>
@@ -51,18 +60,43 @@
           <input type="text" id="schule" name="schule" required>
         </div>
         <div class="form-group">
-          <label for="tatigkeit">Unterstützungsmaßnahmen</label>
+          <label for="tatigkeit">
+            Unterstützungsmaßnahmen
+            <span class="hint">(Mehrfachauswahl mit STRG (Windows) oder CMD (Mac))</span>
+          </label>
           <select id="tatigkeit" name="tatigkeit" multiple required>
             <option>Förderunterricht</option>
+            <option>Anmeldung durchreisender SchülerInnen an örtlichen Stammschulen</option>
+            <option>Beratung von Bereichslehrkräften</option>
+            <option>Beratung einer Stamm- oder Stützpunktschule</option>
             <option>Beratung von Eltern, Kindern und Schulen</option>
+            <option>Beratung von Lehrkräften</option>
+            <option>Beratung zur schulischen Perspektive</option>
+            <option>Datenerfassung DigLu - Anmeldung, Aktualisierung, Pflege und Registrierung</option>
+            <option>Dienstbesprechung bei der Bezirksregierung</option>
+            <option>Dienstbesprechung</option>
             <option>Dokumentation</option>
+            <option>Entwicklung und Mitwirkung an innovativen Unterrichtsverfahren</option>
+            <option>geregelte Übergabe von SchülerInnen an andere Schulen und Bereichslehrkräfte</option>
+            <option>Herstellung von Kontakten zwischen Eltern und Schulen</option>
+            <option>Kontrolle der Lernstandsberichte, Einträge Schultagebuch (DigLu)</option>
+            <option>Organisation von Medien und Unterrichtsmaterialien für den Online-Unterricht</option>
+            <option>Organisation von Medien und Unterrichtsmaterialien für die Reise</option>
+            <option>Sammlung und Entwicklung von Unterrichtsmaterial</option>
+            <option>Sprechstundenbereitschaft</option>
+            <option>Teilnahme an der BuFo für BLK</option>
+            <option>Teilnahme BLK Landestreffen</option>
+            <option>terminliche Koordination</option>
+            <option>Unterstützung von SchülerInnen bei der Vorbereitung auf zentrale Prüfungen</option>
+            <option>Vorbereitung der Stützpunktschulen auf den Schulbesuch</option>
+            <option>besondere Koordinatorentätigkeiten</option>
             <option>sonstiges</option>
             <option>erkrankt</option>
           </select>
         </div>
         <div class="form-group">
           <label for="anmerkungen">Anmerkungen:</label>
-          <textarea id="anmerkungen" name="anmerkungen"></textarea>
+          <textarea id="anmerkungen" name="anmerkungen" rows="3"></textarea>
         </div>
         <div class="form-group">
           <label for="zeit">Zeit (in Stunden):</label>
@@ -95,39 +129,88 @@
         <tbody id="tableBody"></tbody>
       </table>
       <div id="summenAnzeige" class="summary"></div>
+      <button id="openExportDialogZeit">Als PDF exportieren (Tätigkeitsbericht)</button>
+      <button id="openExportDialogKm">Als PDF exportieren (Fahrtkostenabrechnung)</button>
     </div>
   </div>
 
-  <script>
-    const form = document.getElementById("dataForm");
-    const tableBody = document.getElementById("tableBody");
-    const summenAnzeige = document.getElementById("summenAnzeige");
+  <!-- Modals -->
+  <div id="exportDialogZeit" class="modal">
+    <h2>Exportieren (Tätigkeitsbericht)</h2>
+    <form id="exportFormZeit" class="export-form">
+      <div class="form-group">
+        <label for="monatZeit">Monat:</label>
+        <input type="text" id="monatZeit" name="monatZeit" required>
+      </div>
+      <div class="form-group">
+        <label for="datumZeit">Datum:</label>
+        <input type="date" id="datumZeit" name="datumZeit" required>
+      </div>
+      <div class="form-group">
+        <label for="bereichslehrkraftZeit">Bereichslehrkraft:</label>
+        <input type="text" id="bereichslehrkraftZeit" name="bereichslehrkraftZeit" required>
+      </div>
+      <div class="form-group">
+        <button type="button" id="exportPdfZeit">Exportieren</button>
+        <button type="button" id="cancelExportZeit" class="btn-secondary">Abbrechen</button>
+      </div>
+    </form>
+  </div>
 
-    function updateSummen() {
-      let gesZeit = 0, gesKm = 0;
-      tableBody.querySelectorAll("tr").forEach(row => {
-        const z = parseFloat(row.children[5].textContent) || 0;
-        const k = parseFloat(row.children[6].textContent) || 0;
-        gesZeit += z;
-        gesKm += k;
-      });
-      summenAnzeige.textContent =
-        `Summe Zeit (h): ${gesZeit.toFixed(1)} | Summe Kilometer: ${gesKm.toFixed(1)}`;
+  <div id="exportDialogKm" class="modal">
+    <h2>Exportieren (Fahrtkostenabrechnung)</h2>
+    <form id="exportFormKm" class="export-form">
+      <div class="form-group">
+        <label for="monatKm">Monat:</label>
+        <input type="text" id="monatKm" name="monatKm" required>
+      </div>
+      <div class="form-group">
+        <label for="datumKm">Datum:</label>
+        <input type="date" id="datumKm" name="datumKm" required>
+      </div>
+      <div class="form-group">
+        <label for="bereichslehrkraftKm">Bereichslehrkraft:</label>
+        <input type="text" id="bereichslehrkraftKm" name="bereichslehrkraftKm" required>
+      </div>
+      <div class="form-group">
+        <button type="button" id="exportPdfKm">Exportieren</button>
+        <button type="button" id="cancelExportKm" class="btn-secondary">Abbrechen</button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    // --- Datensatz hinzufügen & Summen aktualisieren ---
+    const form = document.getElementById('dataForm');
+    const tableBody = document.getElementById('tableBody');
+    const summenAnzeige = document.getElementById('summenAnzeige');
+
+    function parseNumberDE(text){
+      if(!text) return 0; const t = String(text).trim().replace(/\./g,'').replace(',','.');
+      const n = parseFloat(t); return isNaN(n)?0:n;
     }
 
-    form.addEventListener("submit", (e) => {
+    function updateSummen(){
+      let gesZeit = 0, gesKm = 0;
+      tableBody.querySelectorAll('tr').forEach(row => {
+        const z = parseNumberDE(row.children[5]?.textContent);
+        const k = parseNumberDE(row.children[6]?.textContent);
+        gesZeit += z; gesKm += k;
+      });
+      summenAnzeige.textContent = `Summe Zeit (h): ${gesZeit.toFixed(1)} | Summe Kilometer: ${gesKm.toFixed(1)}`;
+    }
+
+    form.addEventListener('submit', (e) => {
       e.preventDefault();
+      const datum = document.getElementById('datum').value;
+      const name = document.getElementById('name').value;
+      const schule = document.getElementById('schule').value;
+      const tatigkeiten = Array.from(document.getElementById('tatigkeit').selectedOptions).map(o=>o.text).join(', ');
+      const anmerkungen = document.getElementById('anmerkungen').value;
+      const zeit = document.getElementById('zeit').value;
+      const km = document.getElementById('km').value;
 
-      const datum = document.getElementById("datum").value;
-      const name = document.getElementById("name").value;
-      const schule = document.getElementById("schule").value;
-      const tatigkeiten = Array.from(document.getElementById("tatigkeit").selectedOptions)
-        .map(o => o.text).join(", ");
-      const anmerkungen = document.getElementById("anmerkungen").value;
-      const zeit = document.getElementById("zeit").value;
-      const km = document.getElementById("km").value;
-
-      const row = document.createElement("tr");
+      const row = document.createElement('tr');
       row.innerHTML = `
         <td>${datum}</td>
         <td>${name}</td>
@@ -136,19 +219,79 @@
         <td>${anmerkungen}</td>
         <td>${zeit}</td>
         <td>${km}</td>
-        <td><button type="button" class="deleteBtn">Löschen</button></td>
-      `;
-
+        <td><button type="button" class="deleteBtn">Löschen</button></td>`;
       tableBody.appendChild(row);
       updateSummen();
       form.reset();
     });
 
-    tableBody.addEventListener("click", (e) => {
-      if (e.target.classList.contains("deleteBtn")) {
-        e.target.closest("tr").remove();
+    tableBody.addEventListener('click', (e) => {
+      if (e.target.classList.contains('deleteBtn')) {
+        e.target.closest('tr').remove();
         updateSummen();
       }
+    });
+
+    // --- Export-Dialoge öffnen/schließen ---
+    const dlgZeit = document.getElementById('exportDialogZeit');
+    const dlgKm = document.getElementById('exportDialogKm');
+
+    document.getElementById('openExportDialogZeit').addEventListener('click',()=>{ dlgZeit.style.display='block'; });
+    document.getElementById('openExportDialogKm').addEventListener('click',()=>{ dlgKm.style.display='block'; });
+    document.getElementById('cancelExportZeit').addEventListener('click',()=>{ dlgZeit.style.display='none'; });
+    document.getElementById('cancelExportKm').addEventListener('click',()=>{ dlgKm.style.display='none'; });
+
+    // --- PDF Export inkl. Gesamtsummen unter der Tabelle ---
+    function getSumsFromTable(){
+      let zeit = 0, km = 0;
+      tableBody.querySelectorAll('tr').forEach(row=>{
+        zeit += parseNumberDE(row.children[5]?.textContent);
+        km   += parseNumberDE(row.children[6]?.textContent);
+      });
+      return { zeit, km };
+    }
+
+    function exportWithTotals(meta){
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      let y = 14;
+      doc.setFontSize(14);
+      doc.text(meta.title, 14, y); y += 8;
+      doc.setFontSize(11);
+      if(meta.monat) { doc.text(`Monat: ${meta.monat}`, 14, y); y += 7; }
+      if(meta.datum) { doc.text(`Datum: ${meta.datum}`, 14, y); y += 7; }
+      if(meta.lehrkraft) { doc.text(`Bereichslehrkraft: ${meta.lehrkraft}`, 14, y); y += 7; }
+
+      doc.autoTable({ html: '#dataTable', startY: y });
+
+      const sums = getSumsFromTable();
+      const sumY = (doc.lastAutoTable?.finalY || y) + 10;
+      doc.text(`Gesamtsumme Zeit (h): ${sums.zeit.toFixed(1)}`, 14, sumY);
+      doc.text(`Gesamtsumme Kilometer: ${sums.km.toFixed(1)}`, 14, sumY + 7);
+
+      doc.save(meta.filename);
+    }
+
+    document.getElementById('exportPdfZeit').addEventListener('click',()=>{
+      exportWithTotals({
+        title:'Tätigkeitsbericht',
+        filename:'taetigkeitsbericht.pdf',
+        monat: document.getElementById('monatZeit').value,
+        datum: document.getElementById('datumZeit').value,
+        lehrkraft: document.getElementById('bereichslehrkraftZeit').value
+      });
+      dlgZeit.style.display='none';
+    });
+
+    document.getElementById('exportPdfKm').addEventListener('click',()=>{
+      exportWithTotals({
+        title:'Fahrtkostenabrechnung',
+        filename:'fahrtkosten.pdf',
+        monat: document.getElementById('monatKm').value,
+        datum: document.getElementById('datumKm').value,
+        lehrkraft: document.getElementById('bereichslehrkraftKm').value
+      });
+      dlgKm.style.display='none';
     });
   </script>
 </body>
