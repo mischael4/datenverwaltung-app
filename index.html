@@ -160,6 +160,59 @@
     }
   </style>
 </head>
+  <script>
+  const form = document.getElementById("dataForm");
+  const tableBody = document.getElementById("tableBody");
+  const summenAnzeige = document.getElementById("summenAnzeige");
+
+  function updateSummen() {
+    let gesZeit = 0, gesKm = 0;
+    tableBody.querySelectorAll("tr").forEach(row => {
+      const z = parseFloat(row.children[5].textContent) || 0;
+      const k = parseFloat(row.children[6].textContent) || 0;
+      gesZeit += z;
+      gesKm += k;
+    });
+    summenAnzeige.textContent =
+      `Summe Zeit (h): ${gesZeit.toFixed(1)} | Summe Kilometer: ${gesKm.toFixed(1)}`;
+  }
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    const datum = document.getElementById("datum").value;
+    const name = document.getElementById("name").value;
+    const schule = document.getElementById("schule").value;
+    const tatigkeiten = Array.from(document.getElementById("tatigkeit").selectedOptions).map(o => o.text).join(", ");
+    const anmerkungen = document.getElementById("anmerkungen").value;
+    const zeit = document.getElementById("zeit").value;
+    const km = document.getElementById("km").value;
+
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${datum}</td>
+      <td>${name}</td>
+      <td>${schule}</td>
+      <td>${tatigkeiten}</td>
+      <td>${anmerkungen}</td>
+      <td>${zeit}</td>
+      <td>${km}</td>
+      <td><button type="button" class="deleteBtn">Löschen</button></td>
+    `;
+
+    tableBody.appendChild(row);
+    updateSummen();
+    form.reset();
+  });
+
+  tableBody.addEventListener("click", (e) => {
+    if (e.target.classList.contains("deleteBtn")) {
+      e.target.closest("tr").remove();
+      updateSummen();
+    }
+  });
+</script>
+
 <body>
   <div class="container">
     <h2>Datenverwaltung - Bereichslehrkräfte Köln</h2>
