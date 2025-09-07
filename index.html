@@ -88,26 +88,50 @@
     document.getElementById("exportZeit").addEventListener("click", () => {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
+
+      // Titel + Monat
       doc.setFontSize(14);
       doc.text("Berichtsdokument für Bereichslehrkräfte für reisende Kinder und Jugendliche", 14, 20);
+      const monat = new Date().toLocaleString("de-DE", { month: "long", year: "numeric" });
+      doc.text(`Monat: ${monat}`, 14, 28);
 
+      // Tabelle
       const table = dataSets.map(ds => [ds.datum, ds.name, ds.schule, ds.tatigkeit, ds.zeit]);
-      doc.autoTable({ head: [["Datum", "Name", "Ort", "Tätigkeit", "Zeit (h)"]], body: table, startY: 30 });
+      doc.autoTable({
+        head: [["Datum", "Name", "Ort", "Tätigkeit", "Zeit (h)"]],
+        body: table,
+        startY: 38
+      });
 
-      doc.text("Unterschrift:", 14, doc.lastAutoTable.finalY + 20);
+      // Unterschrift mittig
+      const pageWidth = doc.internal.pageSize.getWidth();
+      doc.text("Bereichslehrkraft - Unterschrift:", pageWidth / 2, doc.lastAutoTable.finalY + 20, { align: "center" });
+
       doc.save("taetigkeitsbericht.pdf");
     });
 
     document.getElementById("exportKm").addEventListener("click", () => {
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF();
+
+      // Titel + Monat
       doc.setFontSize(14);
-      doc.text("Bereichslehrkräfte - Fahrtkostenabrechnung", 14, 20);
+      doc.text("Fahrtkostenabrechnung - Bereichslehrkräfte", 14, 20);
+      const monat = new Date().toLocaleString("de-DE", { month: "long", year: "numeric" });
+      doc.text(`Monat: ${monat}`, 14, 28);
 
+      // Tabelle
       const table = dataSets.map(ds => [ds.datum, ds.name, ds.schule, ds.km]);
-      doc.autoTable({ head: [["Datum", "Name", "Ort", "KM"]], body: table, startY: 30 });
+      doc.autoTable({
+        head: [["Datum", "Name", "Ort", "KM"]],
+        body: table,
+        startY: 38
+      });
 
-      doc.text("Unterschrift:", 14, doc.lastAutoTable.finalY + 20);
+      // Unterschrift mittig
+      const pageWidth = doc.internal.pageSize.getWidth();
+      doc.text("Bereichslehrkraft - Unterschrift:", pageWidth / 2, doc.lastAutoTable.finalY + 20, { align: "center" });
+
       doc.save("fahrtkosten.pdf");
     });
 
@@ -115,3 +139,4 @@
   </script>
 </body>
 </html>
+
