@@ -15,149 +15,28 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 
   <style>
-    :root {
-      --brand: #27ae60;
-      --brand-d: #1f8a4e;
-    }
-
-    body {
-      font-family: Arial, sans-serif;
-      margin: 10px;
-      background: #fafafa;
-    }
-
-    h2, h4, label {
-      font-size: 16px;
-      font-weight: 600;
-      color: #222;
-    }
-
-    .container {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
-
-    .form-container,
-    .table-container {
-      background: white;
-      border: 1px solid #ccc;
-      padding: 15px;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, .05);
-    }
-
-    .form-group {
-      margin-bottom: 15px;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 5px;
-    }
-
-    label .hint {
-      font-size: 12px;
-      font-weight: normal;
-      color: #666;
-      display: block;
-      margin-top: 2px;
-    }
-
-    input,
-    textarea,
-    select {
-      width: 100%;
-      padding: 10px;
-      box-sizing: border-box;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 16px;
-    }
-
-    button {
-      background-color: var(--brand);
-      color: white;
-      padding: 12px 16px;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 16px;
-      width: 100%;
-    }
-
-    button:hover {
-      background-color: var(--brand-d);
-    }
-
-    .btn-secondary {
-      background: #e9ecef;
-      color: #222;
-    }
-
-    .btn-secondary:hover {
-      background: #dde1e6;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 15px;
-    }
-
-    th, td {
-      border: 1px solid #ddd;
-      padding: 8px;
-      text-align: left;
-      font-size: 14px;
-    }
-
-    th {
-      background-color: #f2f2f2;
-    }
-
-    tr:nth-child(even) {
-      background-color: #f9f9f9;
-    }
-
-    .summary {
-      margin-top: 10px;
-      font-weight: bold;
-      text-align: right;
-    }
-
-    .modal {
-      display: none;
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: white;
-      padding: 20px;
-      border: 1px solid #ccc;
-      border-radius: 10px;
-      z-index: 1000;
-      width: min(600px, 92vw);
-      max-height: 90vh;
-      overflow: auto;
-    }
-
-    /* Unterstützungsmaßnahmen übersichtlicher */
-    #tatigkeit {
-      height: 240px;
-      font-size: 14px;
-      line-height: 1.4;
-      padding: 6px;
-    }
-
-    #tatigkeit option {
-      padding: 4px 6px;
-      border-bottom: 1px solid #eee;
-    }
-
-    #tatigkeit option:last-child {
-      border-bottom: none;
-    }
+    :root { --brand: #27ae60; --brand-d: #1f8a4e; }
+    body { font-family: Arial, sans-serif; margin: 10px; background: #fafafa; }
+    h2, h4, label { font-size: 16px; font-weight: 600; color: #222; }
+    .container { display: flex; flex-direction: column; gap: 20px; }
+    .form-container, .table-container { background: white; border: 1px solid #ccc; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,.05); }
+    .form-group { margin-bottom: 15px; }
+    label { display: block; margin-bottom: 5px; }
+    label .hint { font-size: 12px; font-weight: normal; color: #666; display: block; margin-top: 2px; }
+    input, textarea, select { width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; }
+    button { background-color: var(--brand); color: white; padding: 12px 16px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; width: 100%; }
+    button:hover { background-color: var(--brand-d); }
+    .btn-secondary { background: #e9ecef; color: #222; }
+    .btn-secondary:hover { background: #dde1e6; }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 14px; }
+    th { background-color: #f2f2f2; }
+    tr:nth-child(even) { background-color: #f9f9f9; }
+    .summary { margin-top: 10px; font-weight: bold; text-align: right; }
+    .modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border: 1px solid #ccc; border-radius: 10px; z-index: 1000; width: min(600px, 92vw); max-height: 90vh; overflow: auto; }
+    #tatigkeit { height: 240px; font-size: 14px; line-height: 1.4; padding: 6px; }
+    #tatigkeit option { padding: 4px 6px; border-bottom: 1px solid #eee; }
+    #tatigkeit option:last-child { border-bottom: none; }
   </style>
 </head>
 <body>
@@ -267,6 +146,18 @@
     <h2>Exportieren (Tätigkeitsbericht)</h2>
     <form id="exportFormZeit" class="export-form">
       <div class="form-group">
+        <label for="monatZeit">Monat:</label>
+        <input type="text" id="monatZeit" name="monatZeit" required>
+      </div>
+      <div class="form-group">
+        <label for="datumZeit">Datum:</label>
+        <input type="date" id="datumZeit" name="datumZeit" required>
+      </div>
+      <div class="form-group">
+        <label for="bereichslehrkraftZeit">Bereichslehrkraft:</label>
+        <input type="text" id="bereichslehrkraftZeit" name="bereichslehrkraftZeit" required>
+      </div>
+      <div class="form-group">
         <button type="button" id="exportPdfZeit">Exportieren</button>
         <button type="button" id="cancelExportZeit" class="btn-secondary">Abbrechen</button>
       </div>
@@ -276,6 +167,18 @@
   <div id="exportDialogKm" class="modal">
     <h2>Exportieren (Fahrtkostenabrechnung)</h2>
     <form id="exportFormKm" class="export-form">
+      <div class="form-group">
+        <label for="monatKm">Monat:</label>
+        <input type="text" id="monatKm" name="monatKm" required>
+      </div>
+      <div class="form-group">
+        <label for="datumKm">Datum:</label>
+        <input type="date" id="datumKm" name="datumKm" required>
+      </div>
+      <div class="form-group">
+        <label for="bereichslehrkraftKm">Bereichslehrkraft:</label>
+        <input type="text" id="bereichslehrkraftKm" name="bereichslehrkraftKm" required>
+      </div>
       <div class="form-group">
         <button type="button" id="exportPdfKm">Exportieren</button>
         <button type="button" id="cancelExportKm" class="btn-secondary">Abbrechen</button>
@@ -294,15 +197,19 @@
       let dataSets = [];
 
       function loadDataSets() {
-        const savedData = localStorage.getItem('dataSets');
-        if (savedData) {
-          dataSets = JSON.parse(savedData);
-          updateTable();
-        }
+        try {
+          const savedData = localStorage.getItem('dataSets');
+          if (savedData) {
+            dataSets = JSON.parse(savedData);
+          }
+        } catch (e) { console.error('Fehler beim Laden aus localStorage', e); }
+        updateTable();
       }
 
       function saveDataSets() {
-        localStorage.setItem('dataSets', JSON.stringify(dataSets));
+        try {
+          localStorage.setItem('dataSets', JSON.stringify(dataSets));
+        } catch (e) { console.error('Fehler beim Speichern in localStorage', e); }
       }
 
       function formatDateGerman(dateString) {
@@ -321,9 +228,10 @@
         const anmerkungen = document.getElementById('anmerkungen').value;
         const zeit = document.getElementById('zeit').value;
         const km = document.getElementById('km').value;
+
         dataSets.push({ datum, name, schule, tatigkeit, anmerkungen, zeit, km });
-        updateTable();
         saveDataSets();
+        updateTable();
         form.reset();
       });
 
@@ -347,10 +255,11 @@
         document.querySelectorAll('.delete-btn').forEach(btn => {
           btn.addEventListener('click', function () {
             dataSets.splice(this.getAttribute('data-index'), 1);
-            updateTable();
             saveDataSets();
+            updateTable();
           });
         });
+
         const sumZeit = dataSets.reduce((acc, ds) => acc + parseFloat(ds.zeit || 0), 0);
         const sumKm = dataSets.reduce((acc, ds) => acc + parseFloat(ds.km || 0), 0);
         summenAnzeige.textContent = `Gesamtsumme: Zeit = ${sumZeit.toFixed(1)} h, Kilometer = ${sumKm.toFixed(1)} km`;
@@ -362,46 +271,86 @@
       document.getElementById('openExportDialogKm').addEventListener('click', () => exportDialogKm.style.display = 'block');
       document.getElementById('cancelExportKm').addEventListener('click', () => exportDialogKm.style.display = 'none');
 
-      // PDF Export (Zeitbericht)
-      document.getElementById('exportPdfZeit').addEventListener('click', () => {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF({ orientation: "landscape" });
+      // --- PDF Export: Tätigkeitsbericht (Zeit) ---
+      document.getElementById("exportPdfZeit").addEventListener("click", function () {
+        try {
+          const { jsPDF } = window.jspdf || {};
+          if (!jsPDF) { alert("PDF-Bibliothek nicht geladen. Bitte Internetverbindung prüfen."); return; }
+          const doc = new jsPDF({ orientation: "landscape" });
 
-        doc.text("Tätigkeitsbericht", 14, 16);
-        doc.autoTable({
-          head: [['Datum', 'Name', 'Ort', 'Unterstützungsmaßnahmen', 'Anmerkungen', 'Zeit (h)']],
-          body: dataSets.map(ds => [
+          const monat = document.getElementById("monatZeit").value;
+          const datum = document.getElementById("datumZeit").value;
+          const lehrkraft = document.getElementById("bereichslehrkraftZeit").value;
+
+          doc.setFontSize(14);
+          doc.text(`Tätigkeitsbericht - ${monat}`, 14, 20);
+          doc.setFontSize(11);
+          doc.text(`Datum: ${datum}`, 14, 28);
+          doc.text(`Bereichslehrkraft: ${lehrkraft}`, 14, 34);
+
+          const tableData = dataSets.map(ds => [
             formatDateGerman(ds.datum),
             ds.name,
             ds.schule,
             ds.tatigkeit,
             ds.anmerkungen,
             ds.zeit
-          ]),
-          startY: 20,
-        });
+          ]);
 
-        doc.save("taetigkeitsbericht.pdf");
+          if (typeof doc.autoTable !== "function") { alert("AutoTable-Plugin nicht geladen."); return; }
+          doc.autoTable({
+            head: [["Datum", "Name", "Ort", "Tätigkeit", "Anmerkungen", "Zeit (h)"]],
+            body: tableData,
+            startY: 42,
+            styles: { fontSize: 9, cellPadding: 2 }
+          });
+
+          doc.save(`taetigkeitsbericht_${monat || "export"}.pdf`);
+          exportDialogZeit.style.display = "none";
+        } catch (err) {
+          console.error(err);
+          alert("PDF-Erstellung fehlgeschlagen. Siehe Konsole.");
+        }
       });
 
-      // PDF Export (Fahrtkosten)
-      document.getElementById('exportPdfKm').addEventListener('click', () => {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF({ orientation: "landscape" });
+      // --- PDF Export: Fahrtkostenabrechnung (Km) ---
+      document.getElementById("exportPdfKm").addEventListener("click", function () {
+        try {
+          const { jsPDF } = window.jspdf || {};
+          if (!jsPDF) { alert("PDF-Bibliothek nicht geladen. Bitte Internetverbindung prüfen."); return; }
+          const doc = new jsPDF({ orientation: "landscape" });
 
-        doc.text("Fahrtkostenabrechnung", 14, 16);
-        doc.autoTable({
-          head: [['Datum', 'Name', 'Ort', 'Kilometer']],
-          body: dataSets.map(ds => [
+          const monat = document.getElementById("monatKm").value;
+          const datum = document.getElementById("datumKm").value;
+          const lehrkraft = document.getElementById("bereichslehrkraftKm").value;
+
+          doc.setFontSize(14);
+          doc.text(`Fahrtkostenabrechnung - ${monat}`, 14, 20);
+          doc.setFontSize(11);
+          doc.text(`Datum: ${datum}`, 14, 28);
+          doc.text(`Bereichslehrkraft: ${lehrkraft}`, 14, 34);
+
+          const tableData = dataSets.map(ds => [
             formatDateGerman(ds.datum),
             ds.name,
             ds.schule,
             ds.km
-          ]),
-          startY: 20,
-        });
+          ]);
 
-        doc.save("fahrtkosten.pdf");
+          if (typeof doc.autoTable !== "function") { alert("AutoTable-Plugin nicht geladen."); return; }
+          doc.autoTable({
+            head: [["Datum", "Name", "Ort", "Kilometer"]],
+            body: tableData,
+            startY: 42,
+            styles: { fontSize: 9, cellPadding: 2 }
+          });
+
+          doc.save(`fahrtkosten_${monat || "export"}.pdf`);
+          exportDialogKm.style.display = "none";
+        } catch (err) {
+          console.error(err);
+          alert("PDF-Erstellung fehlgeschlagen. Siehe Konsole.");
+        }
       });
 
       loadDataSets();
@@ -414,4 +363,3 @@
   </script>
 </body>
 </html>
-
