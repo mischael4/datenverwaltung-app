@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
@@ -17,6 +17,9 @@
   <!-- PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+  <!-- Excel -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
   <link id="favicon" rel="icon" type="image/png" href="icon-192.png">
   <link id="appleIcon" rel="apple-touch-icon" href="icon-512.png">
@@ -40,6 +43,7 @@
     button {
       background:var(--brand); color:white; padding:10px 15px;
       border:none; border-radius:8px; cursor:pointer; font-size:16px;
+      margin:4px 2px;
     }
     button:hover { background:var(--brand-d); }
     .btn-secondary { background:#e9ecef; color:#222; }
@@ -127,8 +131,8 @@
       <tr><th>Datum</th><th>Name</th><th>Ort</th><th>Unterstützungsmaßnahmen</th><th>Anmerkungen</th><th>Zeit</th><th>Km</th><th>Aktion</th></tr>
     </thead><tbody id="tableBody"></tbody></table>
     <div id="summenAnzeige" class="summary"></div>
-    <button id="openExportDialogZeit">Als PDF exportieren (Tätigkeitsbericht)</button><br><br>
-    <button id="openExportDialogKm">Als PDF exportieren (Fahrtkostenabrechnung)</button>
+    <button id="openExportDialogZeit">Exportieren (Tätigkeitsbericht)</button><br><br>
+    <button id="openExportDialogKm">Exportieren (Fahrtkostenabrechnung)</button>
   </div>
 </div>
 
@@ -139,7 +143,13 @@
     <div class="form-group"><label for="monatZeit">Monat:</label><input type="text" id="monatZeit" required></div>
     <div class="form-group"><label for="datumZeit">Datum:</label><input type="date" id="datumZeit" required></div>
     <div class="form-group"><label for="bereichslehrkraftZeit">Bereichslehrkraft:</label><input type="text" id="bereichslehrkraftZeit" required></div>
-    <div class="form-group"><button type="button" id="exportPdfZeit">Exportieren</button><br><br><button type="button" id="cancelExportZeit">Abbrechen</button></div>
+    <div class="form-group">
+      <button type="button" id="exportPdfZeit">Als PDF</button>
+      <button type="button" id="exportCsvZeit">Als CSV</button>
+      <button type="button" id="exportExcelZeit">Als Excel</button>
+      <br><br>
+      <button type="button" id="cancelExportZeit">Abbrechen</button>
+    </div>
   </form>
 </div>
 
@@ -149,7 +159,13 @@
     <div class="form-group"><label for="monatKm">Monat:</label><input type="text" id="monatKm" required></div>
     <div class="form-group"><label for="datumKm">Datum:</label><input type="date" id="datumKm" required></div>
     <div class="form-group"><label for="bereichslehrkraftKm">Bereichslehrkraft:</label><input type="text" id="bereichslehrkraftKm" required></div>
-    <div class="form-group"><button type="button" id="exportPdfKm">Exportieren</button><button type="button" id="cancelExportKm">Abbrechen</button></div>
+    <div class="form-group">
+      <button type="button" id="exportPdfKm">Als PDF</button>
+      <button type="button" id="exportCsvKm">Als CSV</button>
+      <button type="button" id="exportExcelKm">Als Excel</button>
+      <br><br>
+      <button type="button" id="cancelExportKm">Abbrechen</button>
+    </div>
   </form>
 </div>
 
@@ -168,6 +184,11 @@ document.addEventListener('DOMContentLoaded',()=>{
       const monatJahr=d.toLocaleString('de-DE',{month:'long',year:'numeric'});
       return monatJahr.toLowerCase().trim()===monthInput.toLowerCase().trim();
     });
+  }
+
+  function getCurrentMonthYear(){
+    const now=new Date();
+    return now.toLocaleString('de-DE',{month:'long',year:'numeric'});
   }
 
   $('dataForm').onsubmit=e=>{
@@ -211,19 +232,73 @@ document.addEventListener('DOMContentLoaded',()=>{
     doc.save(`${type}_${month}_${teacher}.pdf`.replace(/\s+/g,"_"));
   }
 
-  $('openExportDialogZeit').onclick=()=>$('exportDialogZeit').style.display='block';
+  function exportTable(type, month, date, teacher, format) {
+    const filtered = filterByMonth(dataSets, month);
+    const key = type === "taetigkeitsbericht" ? "zeit" : "km";
+    const colName = type === "taetigkeitsbericht" ? "Zeit (h)" : "Kilometer (km)";
+
+    const titles = {
+      taetigkeitsbericht: "Berichtsdokument für Bereichslehrkräfte für reisende Kinder und Jugendliche",
+      fahrtkostenabrechnung: "Bereichslehrkräfte für reisende Kinder und Jugendliche – Fahrtkostenabrechnung"
+    };
+
+    const meta = [
+      [titles[type]],
+      [`Monat: ${month}`],
+      [`Datum: ${formatDateGerman(date)}`],
+      [`Bereichslehrkraft: ${teacher}`],
+      []
+    ];
+
+    const headers = ["Datum","Name","Ort der Beschulung/ Besprechung",
+      "Unterstützungsmaßnahmen (s. Rd. Erl. vom 14.10.2005 BASS 15-05 Nr. 21)",
+      "Anmerkungen", colName];
+
+    const tableData = filtered.map(ds => [
+      formatDateGerman(ds.datum), ds.name, ds.schule, ds.tatigkeit, ds.anmerkungen, ds[key]
+    ]);
+
+    tableData.push(["","","","","Summe:", sumByKey(filtered, key).toFixed(1)]);
+
+    if (format === "csv") {
+      let csv = meta.map(row => row.join(";")).join("\n") + "\n";
+      csv += headers.join(";") + "\n";
+      tableData.forEach(row => { csv += row.map(v => `"${(v || "").toString().replace(/"/g, '""')}"`).join(";") + "\n"; });
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `${type}_${month}_${teacher}.csv`.replace(/\s+/g,"_");
+      link.click();
+    }
+
+    if (format === "xlsx") {
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet([...meta, headers, ...tableData]);
+      XLSX.utils.book_append_sheet(wb, ws, "Export");
+      XLSX.writeFile(wb, `${type}_${month}_${teacher}.xlsx`.replace(/\s+/g,"_"));
+    }
+  }
+
+  // Dialog öffnen mit automatischem Monatswert
+  $('openExportDialogZeit').onclick=()=>{
+    $('monatZeit').value=getCurrentMonthYear();
+    $('exportDialogZeit').style.display='block';
+  };
   $('cancelExportZeit').onclick=()=>{ $('exportDialogZeit').style.display='none'; $('exportFormZeit').reset(); };
-  $('openExportDialogKm').onclick=()=>$('exportDialogKm').style.display='block';
+
+  $('openExportDialogKm').onclick=()=>{
+    $('monatKm').value=getCurrentMonthYear();
+    $('exportDialogKm').style.display='block';
+  };
   $('cancelExportKm').onclick=()=>{ $('exportDialogKm').style.display='none'; $('exportFormKm').reset(); };
 
-  $('exportPdfZeit').onclick=()=>{
-    exportPdf("taetigkeitsbericht",$('monatZeit').value,$('datumZeit').value,$('bereichslehrkraftZeit').value);
-    $('exportDialogZeit').style.display='none'; $('exportFormZeit').reset();
-  };
-  $('exportPdfKm').onclick=()=>{
-    exportPdf("fahrtkostenabrechnung",$('monatKm').value,$('datumKm').value,$('bereichslehrkraftKm').value);
-    $('exportDialogKm').style.display='none'; $('exportFormKm').reset();
-  };
+  $('exportPdfZeit').onclick=()=>exportPdf("taetigkeitsbericht",$('monatZeit').value,$('datumZeit').value,$('bereichslehrkraftZeit').value);
+  $('exportCsvZeit').onclick=()=>exportTable("taetigkeitsbericht",$('monatZeit').value,$('datumZeit').value,$('bereichslehrkraftZeit').value,"csv");
+  $('exportExcelZeit').onclick=()=>exportTable("taetigkeitsbericht",$('monatZeit').value,$('datumZeit').value,$('bereichslehrkraftZeit').value,"xlsx");
+
+  $('exportPdfKm').onclick=()=>exportPdf("fahrtkostenabrechnung",$('monatKm').value,$('datumKm').value,$('bereichslehrkraftKm').value);
+  $('exportCsvKm').onclick=()=>exportTable("fahrtkostenabrechnung",$('monatKm').value,$('datumKm').value,$('bereichslehrkraftKm').value,"csv");
+  $('exportExcelKm').onclick=()=>exportTable("fahrtkostenabrechnung",$('monatKm').value,$('datumKm').value,$('bereichslehrkraftKm').value,"xlsx");
 
   loadData();
 });
