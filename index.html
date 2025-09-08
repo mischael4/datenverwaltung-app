@@ -324,7 +324,10 @@
       </table>
       <div id="summenAnzeige" class="summary"></div>
       <button id="openExportDialogZeit">Als PDF exportieren (Tätigkeitsbericht)</button><br><br>
-      <button id="openExportDialogKm">Als PDF exportieren (Fahrtkostenabrechnung)</button>
+      <button id="openExportDialogKm">Als PDF exportieren (Fahrtkostenabrechnung)</button><br><br>
+			  <!-- Buttons (unterhalb der PDF Buttons einfügen) -->
+<button id="exportCsvZeit">Als CSV exportieren (Tätigkeitsbericht)</button><br><br>
+<button id="exportCsvKm">Als CSV exportieren (Fahrtkostenabrechnung)</button>
     </div>
   </div>
 
@@ -562,6 +565,52 @@
         exportDialogKm.style.display = 'none';
         document.getElementById('exportFormKm').reset();
       });
+
+		// Hilfsfunktion zum CSV-Download
+function downloadCSV(filename, rows) {
+  const csvContent = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(";")).join("\n");
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  link.click();
+}
+
+// CSV Export Zeit
+document.getElementById('exportCsvZeit').addEventListener('click', function () {
+  const header = ["Datum", "Name", "Ort der Beschulung/ Besprechung", "Unterstützungsmaßnahmen", "Anmerkungen", "Zeit (h)"];
+  const rows = dataSets.map(ds => [
+    formatDateGerman(ds.datum),
+    ds.name,
+    ds.schule,
+    ds.tatigkeit,
+    ds.anmerkungen,
+    ds.zeit
+  ]);
+
+  const sumZeit = dataSets.reduce((acc, ds) => acc + parseFloat(ds.zeit || 0), 0);
+  rows.push(["", "", "", "", "Summe", sumZeit.toFixed(1)]);
+
+  downloadCSV("taetigkeitsbericht.csv", [header, ...rows]);
+});
+
+// CSV Export Km
+document.getElementById('exportCsvKm').addEventListener('click', function () {
+  const header = ["Datum", "Name", "Ort der Beschulung/ Besprechung", "Unterstützungsmaßnahmen", "Anmerkungen", "Kilometer (km)"];
+  const rows = dataSets.map(ds => [
+    formatDateGerman(ds.datum),
+    ds.name,
+    ds.schule,
+    ds.tatigkeit,
+    ds.anmerkungen,
+    ds.km
+  ]);
+
+  const sumKm = dataSets.reduce((acc, ds) => acc + parseFloat(ds.km || 0), 0);
+  rows.push(["", "", "", "", "Summe", sumKm.toFixed(1)]);
+
+  downloadCSV("fahrtkosten.csv", [header, ...rows]);
+});
 
       loadDataSets();
     });
