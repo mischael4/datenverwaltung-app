@@ -4,9 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- PWA Manifest -->
-  <link rel="manifest" href="manifest.json" />
+  <!-- Mobile Optimization -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Datensatzverwaltung" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="theme-color" content="#27ae60" />
+  <meta name="touch-action" content="manipulation" />
+  <link rel="manifest" href="manifest.json" />
 
   <title>Datenverwaltung - Bereichslehrkräfte Köln</title>
 
@@ -14,31 +19,210 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 
+  <!-- Icons -->
+  <link id="favicon" rel="icon" type="image/png" href="icon-192.png">
+  <link id="appleIcon" rel="apple-touch-icon" href="icon-512.png">
+
   <style>
-    :root { --brand: #27ae60; --brand-d: #1f8a4e; }
-    body { font-family: Arial, sans-serif; margin: 10px; background: #fafafa; }
-    h2, h4, label { font-size: 16px; font-weight: 600; color: #222; }
-    .container { display: flex; flex-direction: column; gap: 20px; }
-    .form-container, .table-container { background: white; border: 1px solid #ccc; padding: 15px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,.05); }
-    .form-group { margin-bottom: 15px; }
-    label { display: block; margin-bottom: 5px; }
-    label .hint { font-size: 12px; font-weight: normal; color: #666; display: block; margin-top: 2px; }
-    input, textarea, select { width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; }
-    button { background-color: var(--brand); color: white; padding: 12px 16px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; }
-    button:hover { background-color: var(--brand-d); }
-    .btn-secondary { background: #e9ecef; color: #222; }
-    .btn-secondary:hover { background: #dde1e6; }
-    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 14px; }
-    th { background-color: #f2f2f2; }
-    tr:nth-child(even) { background-color: #f9f9f9; }
-    .summary { margin-top: 10px; font-weight: bold; text-align: right; }
-    .modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border: 1px solid #ccc; border-radius: 10px; z-index: 1000; width: min(600px, 92vw); max-height: 90vh; overflow: auto; }
-    #tatigkeit { height: 240px; font-size: 14px; line-height: 1.4; padding: 6px; }
-    #tatigkeit option { padding: 4px 6px; border-bottom: 1px solid #eee; }
-    #tatigkeit option:last-child { border-bottom: none; }
+    :root {
+      --brand: #27ae60;
+      --brand-d: #1f8a4e;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+
+    h2, h4, label {
+      font-size: 15px;
+      font-weight: 600;
+      color: #222;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .form-container,
+    .table-container {
+      border: 1px solid #ccc;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, .04);
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    label .hint {
+      font-size: 12px;
+      font-weight: normal;
+      color: #666;
+      display: block;
+      margin-top: 2px;
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      padding: 10px;
+      box-sizing: border-box;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    button {
+      background-color: var(--brand);
+      color: white;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    button:hover {
+      background-color: var(--brand-d);
+    }
+
+    .btn-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .btn-secondary {
+      background: #e9ecef;
+      color: #222;
+    }
+
+    .btn-secondary:hover {
+      background: #dde1e6;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f2f2f2;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+
+    .export-form {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .delete-btn {
+      background-color: #e74c3c;
+    }
+
+    .delete-btn:hover {
+      background-color: #c0392b;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      z-index: 1000;
+      width: min(700px, 92vw);
+      max-height: 90vh;
+      overflow: auto;
+    }
+
+    .summary {
+      margin-top: 10px;
+      font-weight: bold;
+      text-align: right;
+    }
+
+    /* Mobile */
+    @media (max-width: 768px) {
+      body {
+        margin: 10px;
+        font-size: 16px;
+      }
+
+      .form-container,
+      .table-container {
+        padding: 15px;
+      }
+
+      input,
+      textarea,
+      button {
+        font-size: 16px;
+      }
+
+      button {
+        width: 100%;
+        padding: 14px;
+        font-size: 18px;
+      }
+
+      table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+      }
+
+      th, td {
+        font-size: 14px;
+        padding: 6px;
+      }
+    }
+
+/* Unterstützungsmaßnahmen übersichtlicher */
+#tatigkeit {
+  height: 260px;         /* zeigt alle oder die meisten Optionen ohne Scrollen */
+  font-size: 13px;       /* etwas kleinere Schrift für bessere Übersicht */
+  line-height: 1.4;      /* mehr Zeilenabstand */
+  padding: 6px;
+}
+
+#tatigkeit option {
+  padding: 4px 6px;
+  border-bottom: 1px solid #eee; /* leichte Trennlinien */
+}
+
+#tatigkeit option:last-child {
+  border-bottom: none;
+}
   </style>
 </head>
+
 <body>
   <div class="container">
     <h2>Datenverwaltung - Bereichslehrkräfte Köln</h2>
@@ -47,23 +231,30 @@
     <div class="form-container">
       <h4>Neuen Datensatz hinzufügen</h4>
       <form id="dataForm">
+        
         <div class="form-group">
           <label for="datum">Datum:</label>
           <input type="date" id="datum" name="datum" required>
         </div>
+
         <div class="form-group">
           <label for="name">Name:</label>
           <input type="text" id="name" name="name" required>
         </div>
+
         <div class="form-group">
           <label for="schule">Ort der Beschulung/ Besprechung:</label>
           <input type="text" id="schule" name="schule" required>
         </div>
+
         <div class="form-group">
-          <label for="tatigkeit">Unterstützungsmaßnahmen</label>
+          <label for="tatigkeit">
+            Unterstützungsmaßnahmen
+            <span class="hint">(Mehrfachauswahl mit STRG (Windows) oder CMD (Mac))</span>
+          </label>
           <select id="tatigkeit" name="tatigkeit" multiple required>
             <option>Förderunterricht</option>
-            <option>Anmeldung durchreisender SchülerInnen an örtlichen Stammschulen</option>
+	    <option>Anmeldung durchreisender SchülerInnen an örtlichen Stammschulen</option>
             <option>Beratung von Bereichslehrkräften</option>
             <option>Beratung einer Stamm- oder Stützpunktschule</option>
             <option>Beratung von Eltern, Kindern und Schulen</option>
@@ -91,18 +282,22 @@
             <option>erkrankt</option>
           </select>
         </div>
+
         <div class="form-group">
           <label for="anmerkungen">Anmerkungen:</label>
           <textarea id="anmerkungen" name="anmerkungen" rows="3"></textarea>
         </div>
+
         <div class="form-group">
           <label for="zeit">Zeit (in Stunden):</label>
           <input type="number" id="zeit" name="zeit" step="0.1" required>
         </div>
+
         <div class="form-group">
           <label for="km">Kilometer (km):</label>
           <input type="number" id="km" name="km" step="0.1" required>
         </div>
+
         <button type="submit">Datensatz hinzufügen</button>
       </form>
     </div>
@@ -115,20 +310,21 @@
           <tr>
             <th>Datum</th>
             <th>Name</th>
-            <th>Ort</th>
+            <th>Ort der Beschulung/ Besprechung</th>
             <th>Unterstützungsmaßnahmen</th>
             <th>Anmerkungen</th>
             <th>Zeit (h)</th>
-            <th>Kilometer</th>
+            <th>Kilometer (km)</th>
             <th>Aktion</th>
           </tr>
         </thead>
-        <tbody id="tableBody"></tbody>
+        <tbody id="tableBody">
+          <!-- Datensätze werden hier eingefügt -->
+        </tbody>
       </table>
       <div id="summenAnzeige" class="summary"></div>
-      <button id="openExportDialogZeit">Als PDF exportieren (Tätigkeitsbericht)</button><br>
-      <button id="openExportDialogKm">Als PDF exportieren (Fahrtkostenabrechnung)</button><br>
-      <button id="clearAllData" class="btn-secondary">Alle Daten löschen</button>
+      <button id="openExportDialogZeit">Als PDF exportieren (Tätigkeitsbericht)</button>
+      <button id="openExportDialogKm">Als PDF exportieren (Fahrtkostenabrechnung)</button>
     </div>
   </div>
 
@@ -150,7 +346,7 @@
       </div>
       <div class="form-group">
         <button type="button" id="exportPdfZeit">Exportieren</button>
-        <button type="button" id="cancelExportZeit" class="btn-secondary">Abbrechen</button>
+        <button type="button" id="cancelExportZeit">Abbrechen</button>
       </div>
     </form>
   </div>
@@ -171,171 +367,203 @@
         <input type="text" id="bereichslehrkraftKm" name="bereichslehrkraftKm" required>
       </div>
       <div class="form-group">
-        <button type="button" id="exportPdfKm"><img src="pdf.png" alt="PDF" style="height:18px;vertical-align:middle;margin-right:6px;">Speichern</button>
-        <button type="button" id="cancelExportKm" class="btn-secondary">Abbrechen</button>
+        <button type="button" id="exportPdfKm">Exportieren</button>
+        <button type="button" id="cancelExportKm">Abbrechen</button>
       </div>
     </form>
   </div>
 
+  <!-- Skript -->
   <script>
-    const form = document.getElementById('dataForm');
-    const tableBody = document.getElementById('tableBody');
-    const summenAnzeige = document.getElementById('summenAnzeige');
+    document.addEventListener('DOMContentLoaded', function () {
+      const form = document.getElementById('dataForm');
+      const tableBody = document.getElementById('tableBody');
+      const summenAnzeige = document.getElementById('summenAnzeige');
 
-    // ---------- Lokale Speicherung ----------
-    function saveToLocalStorage() {
-      const rows = [];
-      tableBody.querySelectorAll('tr').forEach(row => {
-        rows.push({
-          datum: row.children[0].textContent,
-          name: row.children[1].textContent,
-          schule: row.children[2].textContent,
-          tatigkeit: row.children[3].textContent,
-          anmerkungen: row.children[4].textContent,
-          zeit: row.children[5].textContent,
-          km: row.children[6].textContent
+      const exportDialogZeit = document.getElementById('exportDialogZeit');
+      const exportDialogKm = document.getElementById('exportDialogKm');
+
+      let dataSets = [];
+
+      function loadDataSets() {
+        const savedData = localStorage.getItem('dataSets');
+        if (savedData) {
+          dataSets = JSON.parse(savedData);
+          updateTable();
+        }
+      }
+
+      function saveDataSets() {
+        localStorage.setItem('dataSets', JSON.stringify(dataSets));
+      }
+
+      function formatDateGerman(dateString) {
+        const date = new Date(dateString);
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        return `${day}.${month}.${year}`;
+      }
+
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const datum = document.getElementById('datum').value;
+        const name = document.getElementById('name').value;
+        const schule = document.getElementById('schule').value;
+        const tatigkeitSelect = document.getElementById('tatigkeit');
+        const tatigkeit = Array.from(tatigkeitSelect.selectedOptions).map(opt => opt.value).join(", ");
+        const anmerkungen = document.getElementById('anmerkungen').value;
+        const zeit = document.getElementById('zeit').value;
+        const km = document.getElementById('km').value;
+
+        const newDataSet = { datum, name, schule, tatigkeit, anmerkungen, zeit, km };
+        dataSets.push(newDataSet);
+
+        updateTable();
+        saveDataSets();
+        form.reset();
+      });
+
+      function updateTable() {
+        tableBody.innerHTML = '';
+        dataSets.sort((a, b) => new Date(a.datum) - new Date(b.datum));
+
+        dataSets.forEach((ds, index) => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${formatDateGerman(ds.datum)}</td>
+            <td>${ds.name}</td>
+            <td>${ds.schule}</td>
+            <td>${ds.tatigkeit}</td>
+            <td>${ds.anmerkungen}</td>
+            <td>${ds.zeit}</td>
+            <td>${ds.km}</td>
+            <td><button class="delete-btn" data-index="${index}">Löschen</button></td>
+          `;
+          tableBody.appendChild(row);
         });
-      });
-      localStorage.setItem("datensaetze", JSON.stringify(rows));
-    }
 
-    function loadFromLocalStorage() {
-      const data = JSON.parse(localStorage.getItem("datensaetze") || "[]");
-      data.forEach(ds => addRow(ds, false));
-      updateSummen();
-    }
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+          btn.addEventListener('click', function () {
+            const i = parseInt(this.getAttribute('data-index'));
+            dataSets.splice(i, 1);
+            updateTable();
+            saveDataSets();
+          });
+        });
 
-    // ---------- Tabelle & Summen ----------
-    function parseNumberDE(text) {
-      if (!text) return 0;
-      const t = String(text).trim().replace(/\./g,'').replace(',','.');
-      const n = parseFloat(t);
-      return isNaN(n) ? 0 : n;
-    }
-
-    function updateSummen(){
-      let gesZeit = 0, gesKm = 0;
-      tableBody.querySelectorAll('tr').forEach(row => {
-        gesZeit += parseNumberDE(row.children[5]?.textContent);
-        gesKm   += parseNumberDE(row.children[6]?.textContent);
-      });
-      summenAnzeige.textContent = `Summe Zeit (h): ${gesZeit.toFixed(1)} | Summe Kilometer: ${gesKm.toFixed(1)}`;
-    }
-
-    // ---------- Zeilen hinzufügen ----------
-    function addRow(ds, save = true) {
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td>${ds.datum}</td>
-        <td>${ds.name}</td>
-        <td>${ds.schule}</td>
-        <td>${ds.tatigkeit}</td>
-        <td>${ds.anmerkungen}</td>
-        <td>${ds.zeit}</td>
-        <td>${ds.km}</td>
-        <td><button type="button" class="deleteBtn">Löschen</button></td>`;
-      tableBody.appendChild(row);
-      updateSummen();
-      if (save) saveToLocalStorage();
-    }
-
-    // ---------- Formular absenden ----------
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const ds = {
-        datum: document.getElementById('datum').value,
-        name: document.getElementById('name').value,
-        schule: document.getElementById('schule').value,
-        tatigkeit: Array.from(document.getElementById('tatigkeit').selectedOptions).map(o=>o.text).join(', '),
-        anmerkungen: document.getElementById('anmerkungen').value,
-        zeit: document.getElementById('zeit').value,
-        km: document.getElementById('km').value
-      };
-      addRow(ds, true);
-      form.reset();
-    });
-
-    // ---------- Löschen einzelner Zeilen ----------
-    tableBody.addEventListener('click', (e) => {
-      if (e.target.classList.contains('deleteBtn')) {
-        e.target.closest('tr').remove();
-        updateSummen();
-        saveToLocalStorage();
+        const sumZeit = dataSets.reduce((acc, ds) => acc + parseFloat(ds.zeit || 0), 0);
+        const sumKm = dataSets.reduce((acc, ds) => acc + parseFloat(ds.km || 0), 0);
+        summenAnzeige.textContent = `Gesamtsumme: Zeit = ${sumZeit.toFixed(1)} h, Kilometer = ${sumKm.toFixed(1)} km`;
       }
-    });
 
-    // ---------- Alles löschen ----------
-    document.getElementById('clearAllData').addEventListener('click', () => {
-      if (confirm("Möchten Sie wirklich alle gespeicherten Datensätze löschen?")) {
-        tableBody.innerHTML = "";
-        updateSummen();
-        localStorage.removeItem("datensaetze");
-      }
-    });
-
-    // ---------- Seite starten ----------
-    loadFromLocalStorage();
-
-    // ---------- Export-Dialoge öffnen/schließen ----------
-    const dlgZeit = document.getElementById('exportDialogZeit');
-    const dlgKm = document.getElementById('exportDialogKm');
-
-    document.getElementById('openExportDialogZeit').addEventListener('click',()=>{ dlgZeit.style.display='block'; });
-    document.getElementById('openExportDialogKm').addEventListener('click',()=>{ dlgKm.style.display='block'; });
-    document.getElementById('cancelExportZeit').addEventListener('click',()=>{ dlgZeit.style.display='none'; });
-    document.getElementById('cancelExportKm').addEventListener('click',()=>{ dlgKm.style.display='none'; });
-
-    // ---------- PDF Export inkl. Gesamtsummen ----------
-    function getSumsFromTable(){
-      let zeit = 0, km = 0;
-      tableBody.querySelectorAll('tr').forEach(row=>{
-        zeit += parseNumberDE(row.children[5]?.textContent);
-        km   += parseNumberDE(row.children[6]?.textContent);
+      // Export-Dialoge öffnen/schließen
+      document.getElementById('openExportDialogZeit').addEventListener('click', () => {
+        exportDialogZeit.style.display = 'block';
       });
-      return { zeit, km };
-    }
-
-    function exportWithTotals(meta){
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      let y = 14;
-      doc.setFontSize(14);
-      doc.text(meta.title, 14, y); y += 8;
-      doc.setFontSize(11);
-      if(meta.monat) { doc.text(`Monat: ${meta.monat}`, 14, y); y += 7; }
-      if(meta.datum) { doc.text(`Datum: ${meta.datum}`, 14, y); y += 7; }
-      if(meta.lehrkraft) { doc.text(`Bereichslehrkraft: ${meta.lehrkraft}`, 14, y); y += 7; }
-
-      doc.autoTable({ html: '#dataTable', startY: y });
-
-      const sums = getSumsFromTable();
-      const sumY = (doc.lastAutoTable?.finalY || y) + 10;
-      doc.text(`Gesamtsumme Zeit (h): ${sums.zeit.toFixed(1)}`, 14, sumY);
-      doc.text(`Gesamtsumme Kilometer: ${sums.km.toFixed(1)}`, 14, sumY + 7);
-
-      doc.save(meta.filename);
-    }
-
-    document.getElementById('exportPdfZeit').addEventListener('click',()=>{
-      exportWithTotals({
-        title:'Tätigkeitsbericht',
-        filename:'taetigkeitsbericht.pdf',
-        monat: document.getElementById('monatZeit').value,
-        datum: document.getElementById('datumZeit').value,
-        lehrkraft: document.getElementById('bereichslehrkraftZeit').value
+      document.getElementById('cancelExportZeit').addEventListener('click', () => {
+        exportDialogZeit.style.display = 'none';
+        document.getElementById('exportFormZeit').reset();
       });
-      dlgZeit.style.display='none';
-    });
 
-    document.getElementById('exportPdfKm').addEventListener('click',()=>{
-      exportWithTotals({
-        title:'Fahrtkostenabrechnung',
-        filename:'fahrtkosten.pdf',
-        monat: document.getElementById('monatKm').value,
-        datum: document.getElementById('datumKm').value,
-        lehrkraft: document.getElementById('bereichslehrkraftKm').value
+      document.getElementById('openExportDialogKm').addEventListener('click', () => {
+        exportDialogKm.style.display = 'block';
       });
-      dlgKm.style.display='none';
+      document.getElementById('cancelExportKm').addEventListener('click', () => {
+        exportDialogKm.style.display = 'none';
+        document.getElementById('exportFormKm').reset();
+      });
+
+                  // PDF Export Zeit
+      document.getElementById('exportPdfZeit').addEventListener('click', function () {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+
+        const monatZeit = document.getElementById('monatZeit').value;
+        const datumZeit = document.getElementById('datumZeit').value;
+        const bereichslehrkraftZeit = document.getElementById('bereichslehrkraftZeit').value;
+
+        doc.setFontSize(14);
+        doc.text("Berichtsdokument für Bereichslehrkräfte für reisende Kinder und Jugendliche", 10, 15);
+
+        doc.setFontSize(12);
+        doc.text(`Monat: ${monatZeit}`, 10, 30);
+        doc.text(`Datum: ${formatDateGerman(datumZeit)}`, 10, 40);
+        doc.text(`Bereichslehrkraft: ${bereichslehrkraftZeit}`, 10, 50);
+
+        // Unterschrift rechts neben Bereichslehrkraft
+        doc.text("Unterschrift:", 150, 50);
+
+        const tableData = dataSets.map(ds => [
+          formatDateGerman(ds.datum),
+          ds.name,
+          ds.schule,
+          ds.tatigkeit,
+          ds.anmerkungen,
+          ds.zeit
+        ]);
+
+        const sumZeit = dataSets.reduce((acc, ds) => acc + parseFloat(ds.zeit || 0), 0);
+
+        doc.autoTable({
+          startY: 60,
+          head: [["Datum", "Name", "Ort der Beschulung/ Besprechung", "Unterstützungsmaßnahmen", "Anmerkungen", "Zeit (h)"]],
+          body: [...tableData, ["", "", "", "", "Summe:", sumZeit.toFixed(1)]],
+          styles: { fontSize: 10 },
+          headStyles: { fillColor: [200, 200, 200] }
+        });
+
+        doc.save("taetigkeitsbericht.pdf");
+        exportDialogZeit.style.display = 'none';
+        document.getElementById('exportFormZeit').reset();
+      });
+
+      // PDF Export Km
+      document.getElementById('exportPdfKm').addEventListener('click', function () {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+
+        const monatKm = document.getElementById('monatKm').value;
+        const datumKm = document.getElementById('datumKm').value;
+        const bereichslehrkraftKm = document.getElementById('bereichslehrkraftKm').value;
+
+        doc.setFontSize(14);
+        doc.text("Bereichslehrkräfte für reisende Kinder und Jugendliche – Fahrtkostenabrechnung", 10, 15);
+
+        doc.setFontSize(12);
+        doc.text(`Monat: ${monatKm}`, 10, 30);
+        doc.text(`Datum: ${formatDateGerman(datumKm)}`, 10, 40);
+        doc.text(`Bereichslehrkraft: ${bereichslehrkraftKm}`, 10, 50);
+
+        // Unterschrift rechts neben Bereichslehrkraft
+        doc.text("Unterschrift:", 150, 50);
+
+        const tableData = dataSets.map(ds => [
+          formatDateGerman(ds.datum),
+          ds.name,
+          ds.schule,
+          ds.tatigkeit,
+          ds.anmerkungen,
+          ds.km
+        ]);
+
+        const sumKm = dataSets.reduce((acc, ds) => acc + parseFloat(ds.km || 0), 0);
+
+        doc.autoTable({
+          startY: 60,
+          head: [["Datum", "Name", "Ort der Beschulung/ Besprechung", "Unterstützungsmaßnahmen", "Anmerkungen", "Kilometer (km)"]],
+          body: [...tableData, ["", "", "", "", "Summe:", sumKm.toFixed(1)]],
+          styles: { fontSize: 10 },
+          headStyles: { fillColor: [200, 200, 200] }
+        });
+
+        doc.save("fahrtkosten.pdf");
+        exportDialogKm.style.display = 'none';
+        document.getElementById('exportFormKm').reset();
+      });
+
+      loadDataSets();
     });
   </script>
 </body>
