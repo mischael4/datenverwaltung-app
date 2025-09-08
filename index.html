@@ -60,9 +60,7 @@
           <input type="text" id="schule" name="schule" required>
         </div>
         <div class="form-group">
-          <label for="tatigkeit">
-            Unterstützungsmaßnahmen
-          </label>
+          <label for="tatigkeit">Unterstützungsmaßnahmen</label>
           <select id="tatigkeit" name="tatigkeit" multiple required>
             <option>Förderunterricht</option>
             <option>Anmeldung durchreisender SchülerInnen an örtlichen Stammschulen</option>
@@ -129,7 +127,8 @@
       </table>
       <div id="summenAnzeige" class="summary"></div>
       <button id="openExportDialogZeit">Als PDF exportieren (Tätigkeitsbericht)</button><br>
-      <button id="openExportDialogKm">Als PDF exportieren (Fahrtkostenabrechnung)</button>
+      <button id="openExportDialogKm">Als PDF exportieren (Fahrtkostenabrechnung)</button><br>
+      <button id="clearAllData" class="btn-secondary">Alle Daten löschen</button>
     </div>
   </div>
 
@@ -179,59 +178,105 @@
   </div>
 
   <script>
-    // --- Datensatz hinzufügen & Summen aktualisieren ---
     const form = document.getElementById('dataForm');
     const tableBody = document.getElementById('tableBody');
     const summenAnzeige = document.getElementById('summenAnzeige');
 
-    function parseNumberDE(text){
-      if(!text) return 0; const t = String(text).trim().replace(/\./g,'').replace(',','.');
-      const n = parseFloat(t); return isNaN(n)?0:n;
+    // ---------- Lokale Speicherung ----------
+    function saveToLocalStorage() {
+      const rows = [];
+      tableBody.querySelectorAll('tr').forEach(row => {
+        rows.push({
+          datum: row.children[0].textContent,
+          name: row.children[1].textContent,
+          schule: row.children[2].textContent,
+          tatigkeit: row.children[3].textContent,
+          anmerkungen: row.children[4].textContent,
+          zeit: row.children[5].textContent,
+          km: row.children[6].textContent
+        });
+      });
+      localStorage.setItem("datensaetze", JSON.stringify(rows));
+    }
+
+    function loadFromLocalStorage() {
+      const data = JSON.parse(localStorage.getItem("datensaetze") || "[]");
+      data.forEach(ds => addRow(ds, false));
+      updateSummen();
+    }
+
+    // ---------- Tabelle & Summen ----------
+    function parseNumberDE(text) {
+      if (!text) return 0;
+      const t = String(text).trim().replace(/\./g,'').replace(',','.');
+      const n = parseFloat(t);
+      return isNaN(n) ? 0 : n;
     }
 
     function updateSummen(){
       let gesZeit = 0, gesKm = 0;
       tableBody.querySelectorAll('tr').forEach(row => {
-        const z = parseNumberDE(row.children[5]?.textContent);
-        const k = parseNumberDE(row.children[6]?.textContent);
-        gesZeit += z; gesKm += k;
+        gesZeit += parseNumberDE(row.children[5]?.textContent);
+        gesKm   += parseNumberDE(row.children[6]?.textContent);
       });
       summenAnzeige.textContent = `Summe Zeit (h): ${gesZeit.toFixed(1)} | Summe Kilometer: ${gesKm.toFixed(1)}`;
     }
 
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const datum = document.getElementById('datum').value;
-      const name = document.getElementById('name').value;
-      const schule = document.getElementById('schule').value;
-      const tatigkeiten = Array.from(document.getElementById('tatigkeit').selectedOptions).map(o=>o.text).join(', ');
-      const anmerkungen = document.getElementById('anmerkungen').value;
-      const zeit = document.getElementById('zeit').value;
-      const km = document.getElementById('km').value;
-
+    // ---------- Zeilen hinzufügen ----------
+    function addRow(ds, save = true) {
       const row = document.createElement('tr');
       row.innerHTML = `
-        <td>${datum}</td>
-        <td>${name}</td>
-        <td>${schule}</td>
-        <td>${tatigkeiten}</td>
-        <td>${anmerkungen}</td>
-        <td>${zeit}</td>
-        <td>${km}</td>
+        <td>${ds.datum}</td>
+        <td>${ds.name}</td>
+        <td>${ds.schule}</td>
+        <td>${ds.tatigkeit}</td>
+        <td>${ds.anmerkungen}</td>
+        <td>${ds.zeit}</td>
+        <td>${ds.km}</td>
         <td><button type="button" class="deleteBtn">Löschen</button></td>`;
       tableBody.appendChild(row);
       updateSummen();
+      if (save) saveToLocalStorage();
+    }
+
+    // ---------- Formular absenden ----------
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const ds = {
+        datum: document.getElementById('datum').value,
+        name: document.getElementById('name').value,
+        schule: document.getElementById('schule').value,
+        tatigkeit: Array.from(document.getElementById('tatigkeit').selectedOptions).map(o=>o.text).join(', '),
+        anmerkungen: document.getElementById('anmerkungen').value,
+        zeit: document.getElementById('zeit').value,
+        km: document.getElementById('km').value
+      };
+      addRow(ds, true);
       form.reset();
     });
 
+    // ---------- Löschen einzelner Zeilen ----------
     tableBody.addEventListener('click', (e) => {
       if (e.target.classList.contains('deleteBtn')) {
         e.target.closest('tr').remove();
         updateSummen();
+        saveToLocalStorage();
       }
     });
 
-    // --- Export-Dialoge öffnen/schließen ---
+    // ---------- Alles löschen ----------
+    document.getElementById('clearAllData').addEventListener('click', () => {
+      if (confirm("Möchten Sie wirklich alle gespeicherten Datensätze löschen?")) {
+        tableBody.innerHTML = "";
+        updateSummen();
+        localStorage.removeItem("datensaetze");
+      }
+    });
+
+    // ---------- Seite starten ----------
+    loadFromLocalStorage();
+
+    // ---------- Export-Dialoge öffnen/schließen ----------
     const dlgZeit = document.getElementById('exportDialogZeit');
     const dlgKm = document.getElementById('exportDialogKm');
 
@@ -240,7 +285,7 @@
     document.getElementById('cancelExportZeit').addEventListener('click',()=>{ dlgZeit.style.display='none'; });
     document.getElementById('cancelExportKm').addEventListener('click',()=>{ dlgKm.style.display='none'; });
 
-    // --- PDF Export inkl. Gesamtsummen unter der Tabelle ---
+    // ---------- PDF Export inkl. Gesamtsummen ----------
     function getSumsFromTable(){
       let zeit = 0, km = 0;
       tableBody.querySelectorAll('tr').forEach(row=>{
@@ -293,5 +338,8 @@
       dlgKm.style.display='none';
     });
   </script>
+</body>
+</html>
+
 </body>
 </html>
