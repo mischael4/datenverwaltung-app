@@ -476,92 +476,113 @@
       });
 
                   // PDF Export Zeit
-      document.getElementById('exportPdfZeit').addEventListener('click', function () {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+document.getElementById('exportPdfZeit').addEventListener('click', function () {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
 
-        const monatZeit = document.getElementById('monatZeit').value;
-        const datumZeit = document.getElementById('datumZeit').value;
-        const bereichslehrkraftZeit = document.getElementById('bereichslehrkraftZeit').value;
+  const monatZeit = document.getElementById('monatZeit').value;
+  const datumZeit = document.getElementById('datumZeit').value;
+  const bereichslehrkraftZeit = document.getElementById('bereichslehrkraftZeit').value;
 
-        doc.setFontSize(14);
-        doc.text("Berichtsdokument für Bereichslehrkräfte für reisende Kinder und Jugendliche", 10, 15);
+  doc.setFontSize(14);
+  doc.text("Berichtsdokument für Bereichslehrkräfte für reisende Kinder und Jugendliche", 10, 15);
 
-        doc.setFontSize(12);
-        doc.text(`Monat: ${monatZeit}`, 10, 30);
-        doc.text(`Datum: ${formatDateGerman(datumZeit)}`, 10, 40);
-        doc.text(`Bereichslehrkraft: ${bereichslehrkraftZeit}`, 10, 50);
+  doc.setFontSize(12);
+  doc.text(`Monat: ${monatZeit}`, 10, 30);
+  doc.text(`Datum: ${formatDateGerman(datumZeit)}`, 10, 40);
+  doc.text(`Bereichslehrkraft: ${bereichslehrkraftZeit}`, 10, 50);
 
-        // Unterschrift rechts neben Bereichslehrkraft
-        doc.text("Unterschrift:", 150, 50);
+  // Unterschrift rechts neben Bereichslehrkraft
+  doc.text("Unterschrift:", 150, 50);
 
-        const tableData = dataSets.map(ds => [
-          formatDateGerman(ds.datum),
-          ds.name,
-          ds.schule,
-          ds.tatigkeit,
-          ds.anmerkungen,
-          ds.zeit
-        ]);
+  // 🔹 Filter nach Monat
+  const filteredData = dataSets.filter(ds => {
+    const d = new Date(ds.datum);
+    const monatJahr = d.toLocaleString('de-DE', { month: 'long', year: 'numeric' });
+    return monatJahr.toLowerCase() === monatZeit.toLowerCase();
+  });
 
-        const sumZeit = dataSets.reduce((acc, ds) => acc + parseFloat(ds.zeit || 0), 0);
+  const tableData = filteredData.map(ds => [
+    formatDateGerman(ds.datum),
+    ds.name,
+    ds.schule,
+    ds.tatigkeit,
+    ds.anmerkungen,
+    ds.zeit
+  ]);
 
-        doc.autoTable({
-          startY: 60,
-          head: [["Datum", "Name", "Ort der Beschulung/ Besprechung", "Unterstützungsmaßnahmen (s. Rd. Erl. vom 14.10.2005 BASS 15-05 Nr. 21)", "Anmerkungen", "Zeit (h)"]],
-          body: [...tableData, ["", "", "", "", "Summe:", sumZeit.toFixed(1)]],
-          styles: { fontSize: 10 },
-          headStyles: { fillColor: [200, 200, 200] }
-        });
+  const sumZeit = filteredData.reduce((acc, ds) => acc + parseFloat(ds.zeit || 0), 0);
 
-        doc.save("taetigkeitsbericht.pdf");
-        exportDialogZeit.style.display = 'none';
-        document.getElementById('exportFormZeit').reset();
-      });
+  doc.autoTable({
+    startY: 60,
+    head: [["Datum", "Name", "Ort der Beschulung/ Besprechung", "Unterstützungsmaßnahmen (s. Rd. Erl. vom 14.10.2005 BASS 15-05 Nr. 21)", "Anmerkungen", "Zeit (h)"]],
+    body: [...tableData, ["", "", "", "", "Summe:", sumZeit.toFixed(1)]],
+    styles: { fontSize: 10 },
+    headStyles: { fillColor: [200, 200, 200] }
+  });
+
+  // 🔹 Dynamischer Dateiname
+  const filename = `taetigkeitsbericht_${monatZeit}_${bereichslehrkraftZeit}.pdf`.replace(/\s+/g, "_");
+  doc.save(filename);
+
+  exportDialogZeit.style.display = 'none';
+  document.getElementById('exportFormZeit').reset();
+});
 
       // PDF Export Km
-      document.getElementById('exportPdfKm').addEventListener('click', function () {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+document.getElementById('exportPdfKm').addEventListener('click', function () {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
 
-        const monatKm = document.getElementById('monatKm').value;
-        const datumKm = document.getElementById('datumKm').value;
-        const bereichslehrkraftKm = document.getElementById('bereichslehrkraftKm').value;
+  const monatKm = document.getElementById('monatKm').value;
+  const datumKm = document.getElementById('datumKm').value;
+  const bereichslehrkraftKm = document.getElementById('bereichslehrkraftKm').value;
 
-        doc.setFontSize(14);
-        doc.text("Bereichslehrkräfte für reisende Kinder und Jugendliche – Fahrtkostenabrechnung", 10, 15);
+  doc.setFontSize(14);
+  doc.text("Bereichslehrkräfte für reisende Kinder und Jugendliche – Fahrtkostenabrechnung", 10, 15);
 
-        doc.setFontSize(12);
-        doc.text(`Monat: ${monatKm}`, 10, 30);
-        doc.text(`Datum: ${formatDateGerman(datumKm)}`, 10, 40);
-        doc.text(`Bereichslehrkraft: ${bereichslehrkraftKm}`, 10, 50);
+  doc.setFontSize(12);
+  doc.text(`Monat: ${monatKm}`, 10, 30);
+  doc.text(`Datum: ${formatDateGerman(datumKm)}`, 10, 40);
+  doc.text(`Bereichslehrkraft: ${bereichslehrkraftKm}`, 10, 50);
 
-        // Unterschrift rechts neben Bereichslehrkraft
-        doc.text("Unterschrift:", 150, 50);
+  // Unterschrift rechts neben Bereichslehrkraft
+  doc.text("Unterschrift:", 150, 50);
 
-        const tableData = dataSets.map(ds => [
-          formatDateGerman(ds.datum),
-          ds.name,
-          ds.schule,
-          ds.tatigkeit,
-          ds.anmerkungen,
-          ds.km
-        ]);
+  // 🔹 Filter nach Monat
+  const filteredData = dataSets.filter(ds => {
+    const d = new Date(ds.datum);
+    const monatJahr = d.toLocaleString('de-DE', { month: 'long', year: 'numeric' });
+    return monatJahr.toLowerCase() === monatKm.toLowerCase();
+  });
 
-        const sumKm = dataSets.reduce((acc, ds) => acc + parseFloat(ds.km || 0), 0);
+  const tableData = filteredData.map(ds => [
+    formatDateGerman(ds.datum),
+    ds.name,
+    ds.schule,
+    ds.tatigkeit,
+    ds.anmerkungen,
+    ds.km
+  ]);
 
-        doc.autoTable({
-          startY: 60,
-          head: [["Datum", "Name", "Ort der Beschulung/ Besprechung", "Unterstützungsmaßnahmen (s. Rd. Erl. vom 14.10.2005 BASS 15-05 Nr. 21)", "Anmerkungen", "Kilometer (km)"]],
-          body: [...tableData, ["", "", "", "", "Summe:", sumKm.toFixed(1)]],
-          styles: { fontSize: 10 },
-          headStyles: { fillColor: [200, 200, 200] }
-        });
+  const sumKm = filteredData.reduce((acc, ds) => acc + parseFloat(ds.km || 0), 0);
 
-        doc.save("fahrtkosten.pdf");
-        exportDialogKm.style.display = 'none';
-        document.getElementById('exportFormKm').reset();
-      });
+  doc.autoTable({
+    startY: 60,
+    head: [["Datum", "Name", "Ort der Beschulung/ Besprechung", "Unterstützungsmaßnahmen (s. Rd. Erl. vom 14.10.2005 BASS 15-05 Nr. 21)", "Anmerkungen", "Kilometer (km)"]],
+    body: [...tableData, ["", "", "", "", "Summe:", sumKm.toFixed(1)]],
+    styles: { fontSize: 10 },
+    headStyles: { fillColor: [200, 200, 200] }
+  });
+
+  // 🔹 Dynamischer Dateiname
+  const filename = `fahrtkosten_${monatKm}_${bereichslehrkraftKm}.pdf`.replace(/\s+/g, "_");
+  doc.save(filename);
+
+  exportDialogKm.style.display = 'none';
+  document.getElementById('exportFormKm').reset();
+});
+
 
       loadDataSets();
     });
