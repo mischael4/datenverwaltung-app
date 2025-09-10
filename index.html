@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
@@ -82,7 +82,7 @@
 
   <!-- Formular -->
   <div class="form-container">
-    <h4>Neuen Datensatz hinzufügen</h4>
+    <h4 id="formTitle">Neuen Datensatz hinzufügen</h4>
     <form id="dataForm">
       <div class="form-group"><label for="datum">Datum:</label><input type="date" id="datum" required></div>
       <div class="form-group"><label for="name">Name:</label><input type="text" id="name" required></div>
@@ -120,6 +120,7 @@
         </select>
       </div>
       <div class="form-group"><label for="anmerkungen">Anmerkungen:</label><textarea id="anmerkungen" rows="3"></textarea></div>
+      <div class="form-group"><label for="strecke">Strecke:</label><input type="text" id="strecke"></div>
       <div class="form-group"><label for="zeit">Zeit (h):</label><input type="number" id="zeit" step="0.1" required></div>
       <div class="form-group"><label for="km">Kilometer (km):</label><input type="number" id="km" step="0.1" required></div>
       <button type="submit" id="submitBtn">Datensatz hinzufügen</button>
@@ -130,7 +131,7 @@
   <div class="table-container">
     <h2>Datensätze</h2>
     <table><thead>
-      <tr><th>Datum</th><th>Name</th><th>Ort</th><th>Unterstützungsmaßnahmen</th><th>Anmerkungen</th><th>Zeit</th><th>Km</th><th>Aktion</th></tr>
+      <tr><th>Datum</th><th>Name</th><th>Ort</th><th>Unterstützungsmaßnahmen</th><th>Anmerkungen</th><th>Strecke</th><th>Zeit</th><th>Km</th><th>Aktion</th></tr>
     </thead><tbody id="tableBody"></tbody></table>
     <div id="summenAnzeige" class="summary"></div>
     <button id="openExportDialogZeit">Exportieren (Tätigkeitsbericht)</button><br><br>
@@ -138,7 +139,8 @@
   </div>
 </div>
 
-<!-- Modals -->
+<!-- Export-Dialoge bleiben gleich wie in deiner Datei -->
+
 <div id="exportDialogZeit" class="modal">
   <h2>Exportieren (Tätigkeitsbericht)</h2>
   <form id="exportFormZeit" class="export-form">
@@ -198,13 +200,15 @@ document.addEventListener('DOMContentLoaded',()=>{
     const ds={
       datum:$('datum').value, name:$('name').value, schule:$('schule').value,
       tatigkeit:Array.from($('tatigkeit').selectedOptions).map(o=>o.value).join(", "),
-      anmerkungen:$('anmerkungen').value, zeit:$('zeit').value, km:$('km').value
+      anmerkungen:$('anmerkungen').value, strecke:$('strecke').value,
+      zeit:$('zeit').value, km:$('km').value
     };
 
     if (e.target.dataset.editIndex !== undefined) {
       dataSets[e.target.dataset.editIndex] = ds;
       delete e.target.dataset.editIndex;
       $('submitBtn').textContent = "Datensatz hinzufügen";
+      $('formTitle').textContent = "Neuen Datensatz hinzufügen";
     } else {
       dataSets.push(ds);
     }
@@ -223,6 +227,7 @@ document.addEventListener('DOMContentLoaded',()=>{
           <td>${ds.schule}</td>
           <td>${ds.tatigkeit}</td>
           <td>${ds.anmerkungen}</td>
+          <td>${ds.strecke||""}</td>
           <td>${ds.zeit}</td>
           <td>${ds.km}</td>
           <td>
@@ -246,17 +251,17 @@ document.addEventListener('DOMContentLoaded',()=>{
           opt.selected=ds.tatigkeit.split(", ").includes(opt.value);
         });
         $('anmerkungen').value=ds.anmerkungen;
+        $('strecke').value=ds.strecke||"";
         $('zeit').value=ds.zeit;
         $('km').value=ds.km;
         $('dataForm').dataset.editIndex=btn.dataset.i;
         $('submitBtn').textContent = "Änderungen speichern";
+        $('formTitle').textContent = "Datensatz bearbeiten";
       };
     });
 
     $('summenAnzeige').textContent=`Gesamtsumme (alle Monate): Zeit=${sumByKey(dataSets,"zeit").toFixed(1)} h, Kilometer=${sumByKey(dataSets,"km").toFixed(1)} km`;
   }
-
-  // Export-Funktionen bleiben unverändert (wie in deiner Version) ...
 
   function exportPdf(type,month,date,teacher){
     const { jsPDF }=window.jspdf; const doc=new jsPDF({orientation:"landscape",unit:"mm",format:"a4"});
@@ -269,8 +274,10 @@ document.addEventListener('DOMContentLoaded',()=>{
     doc.text(`Monat: ${month}`,10,30); doc.text(`Datum: ${formatDateGerman(date)}`,10,40); doc.text(`Bereichslehrkraft: ${teacher}`,10,50);
     doc.text("Unterschrift:",150,50);
     const filtered=filterByMonth(dataSets,month); const key=type==="taetigkeitsbericht"?"zeit":"km"; const colName=type==="taetigkeitsbericht"?"Zeit (h)":"Kilometer (km)";
-    const tableData=filtered.map(ds=>[formatDateGerman(ds.datum),ds.name,ds.schule,ds.tatigkeit,ds.anmerkungen,ds[key]]);
-    doc.autoTable({startY:60,head:[["Datum","Name","Ort der Beschulung/ Besprechung","Unterstützungsmaßnahmen (s. Rd. Erl. vom 14.10.2005 BASS 15-05 Nr. 21)","Anmerkungen",colName]],body:[...tableData,["","","","","Summe:",sumByKey(filtered,key).toFixed(1)]],styles:{fontSize:10},headStyles:{fillColor:[200,200,200]}});
+    const tableData=filtered.map(ds=>[formatDateGerman(ds.datum),ds.name,ds.schule,ds.tatigkeit,ds.anmerkungen,ds.strecke||"",ds[key]]);
+    const headers=["Datum","Name","Ort der Beschulung/ Besprechung","Unterstützungsmaßnahmen","Anmerkungen","Strecke",colName];
+    const sumRow=["","","","","Summe:","",sumByKey(filtered,key).toFixed(1)];
+    doc.autoTable({startY:60,head:[headers],body:[...tableData,sumRow],styles:{fontSize:10},headStyles:{fillColor:[200,200,200]}});
     doc.save(`${type}_${month}_${teacher}.pdf`.replace(/\s+/g,"_"));
   }
 
@@ -281,35 +288,24 @@ document.addEventListener('DOMContentLoaded',()=>{
 
     const titles = {
       taetigkeitsbericht: "Berichtsdokument für Bereichslehrkräfte für reisende Kinder und Jugendliche",
-      fahrtkostenabrechnung: "Bereichslehrkräfte für reisende Kinder und Jugendliche – Fahrtkostenabrechnung"
+      fahrtkostenabrechnung: "Bereichslehrkräfte für reisende Kinder und Jugendliche – Fahrtkostenabrechnung",
     };
+    const meta = [[titles[type]], [`Monat: ${month}`], [`Datum: ${formatDateGerman(date)}`], [`Bereichslehrkraft: ${teacher}`]];
 
-    const meta = [
-      [titles[type]],
-      [`Monat: ${month}`],
-      [`Datum: ${formatDateGerman(date)}`],
-      [`Bereichslehrkraft: ${teacher}`],
-      []
-    ];
-
-    const headers = ["Datum","Name","Ort der Beschulung/ Besprechung",
-      "Unterstützungsmaßnahmen (s. Rd. Erl. vom 14.10.2005 BASS 15-05 Nr. 21)",
-      "Anmerkungen", colName];
-
-    const tableData = filtered.map(ds => [
-      formatDateGerman(ds.datum), ds.name, ds.schule, ds.tatigkeit, ds.anmerkungen, ds[key]
-    ]);
-
-    tableData.push(["","","","","Summe:", sumByKey(filtered,key).toFixed(1)]);
+    const headers = ["Datum", "Name", "Ort", "Unterstützungsmaßnahmen", "Anmerkungen","Strecke", colName];
+    const tableData = filtered.map(ds => [formatDateGerman(ds.datum), ds.name, ds.schule, ds.tatigkeit, ds.anmerkungen, ds.strecke||"", ds[key]]);
+    tableData.push(["", "", "", "", "Summe:", "", sumByKey(filtered, key).toFixed(1)]);
 
     if (format === "csv") {
       let csv = meta.map(m => m[0]).join("\n") + "\n";
       csv += headers.join(";") + "\n";
-      tableData.forEach(row => { csv += row.map(v => `"${(v || "").toString().replace(/"/g, '""')}"`).join(";") + "\n"; });
+      tableData.forEach(row => {
+        csv += row.map(v => `"${(v || "").toString().replace(/"/g, '""')}"`).join(";") + "\n";
+      });
       const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
-      link.download = `${type}_${month}_${teacher}.csv`.replace(/\s+/g,"_");
+      link.download = `${type}_${month}_${teacher}.csv`.replace(/\s+/g, "_");
       link.click();
     }
 
@@ -317,20 +313,17 @@ document.addEventListener('DOMContentLoaded',()=>{
       const wb = XLSX.utils.book_new();
       const ws = XLSX.utils.aoa_to_sheet([...meta, headers, ...tableData]);
       XLSX.utils.book_append_sheet(wb, ws, "Export");
-      XLSX.writeFile(wb, `${type}_${month}_${teacher}.xlsx`.replace(/\s+/g,"_"));
+      XLSX.writeFile(wb, `${type}_${month}_${teacher}.xlsx`.replace(/\s+/g, "_"));
     }
   }
 
   $('openExportDialogZeit').onclick=()=>{ $('monatZeit').value=getCurrentMonthYear(); $('exportDialogZeit').style.display='block'; };
   $('cancelExportZeit').onclick=()=>{ $('exportDialogZeit').style.display='none'; $('exportFormZeit').reset(); };
-
   $('openExportDialogKm').onclick=()=>{ $('monatKm').value=getCurrentMonthYear(); $('exportDialogKm').style.display='block'; };
   $('cancelExportKm').onclick=()=>{ $('exportDialogKm').style.display='none'; $('exportFormKm').reset(); };
-
   $('exportPdfZeit').onclick=()=>exportPdf("taetigkeitsbericht",$('monatZeit').value,$('datumZeit').value,$('bereichslehrkraftZeit').value);
   $('exportCsvZeit').onclick=()=>exportTable("taetigkeitsbericht",$('monatZeit').value,$('datumZeit').value,$('bereichslehrkraftZeit').value,"csv");
   $('exportExcelZeit').onclick=()=>exportTable("taetigkeitsbericht",$('monatZeit').value,$('datumZeit').value,$('bereichslehrkraftZeit').value,"xlsx");
-
   $('exportPdfKm').onclick=()=>exportPdf("fahrtkostenabrechnung",$('monatKm').value,$('datumKm').value,$('bereichslehrkraftKm').value);
   $('exportCsvKm').onclick=()=>exportTable("fahrtkostenabrechnung",$('monatKm').value,$('datumKm').value,$('bereichslehrkraftKm').value,"csv");
   $('exportExcelKm').onclick=()=>exportTable("fahrtkostenabrechnung",$('monatKm').value,$('datumKm').value,$('bereichslehrkraftKm').value,"xlsx");
