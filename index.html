@@ -22,40 +22,47 @@ h4 { font-size:16px; color:#333; margin-bottom:15px; }
 .form-group { margin-bottom:15px; }
 label { display:block; margin-bottom:5px; font-weight:600; color:#555; }
 label .hint { font-size:12px; font-weight:normal; color:#999; display:block; margin-top:2px; }
-input,textarea,select { width:100%; padding:10px; box-sizing:border-box; border:1px solid #ccc; border-radius:6px; background:#fafafa; transition: all 0.2s; }
+input, textarea, select {
+  width: 100%;
+  padding:10px;
+  box-sizing:border-box;
+  border:1px solid #ccc;
+  border-radius:6px;
+  background:#fafafa;
+  transition: all 0.2s;
+}
 input:focus, textarea:focus, select:focus { border-color:var(--brand); outline:none; background:white; }
 
-button { background:var(--brand); color:white; padding:10px 20px; border:none; border-radius:8px; cursor:pointer; font-size:16px; transition: all 0.2s; }
+button { background:var(--brand); color:white; padding:10px 20px; border:none; border-radius:8px; cursor:pointer; font-size:16px; transition: all 0.2s; width:100%; margin-bottom:10px; }
 button:hover { background:var(--brand-d); }
 button.cancel-btn { background:#e74c3c; }
 button.cancel-btn:hover { background:#c0392b; }
 
-/* Sekundäre Buttons (grau) mit Abstand unten */
-.btn-secondary { 
-  background:#e9ecef; 
-  color:#222; 
-  margin-bottom:10px; /* Abstand zwischen Buttons */
-}
-.btn-secondary:hover { background:#dde1e6; }
+/* Datensatz Buttons grau */
+button#backupBtn, button#restoreBtn { background:#e9ecef; color:#222; }
+button#backupBtn:hover, button#restoreBtn:hover { background:#dde1e6; }
 
 table { width:100%; border-collapse:collapse; margin-top:20px; font-size:14px; }
-th,td { border:1px solid #eee; padding:10px; text-align:left; vertical-align:top; }
+th, td { border:1px solid #eee; padding:10px; text-align:left; vertical-align:top; }
 th { background:#f1f1f1; font-weight:600; color:#333; }
 tr:nth-child(even){ background:#fcfcfc; }
-.summary { margin-top:10px; font-weight:bold; text-align:right; color:#444; font-size:13px; }
+.summary { margin-top:10px; margin-bottom:15px; font-weight:bold; text-align:right; color:#444; font-size:13px; }
+
 .edit-btn { background:#f39c12; padding:4px 6px; font-size:12px; margin-bottom:4px; width:60%; }
 .edit-btn:hover { background:#d68910; }
 .delete-btn { background:#e74c3c; padding:4px 6px; font-size:12px; width:60%; }
 .delete-btn:hover { background:#c0392b; }
+
 .modal { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; padding:25px; border:1px solid #ccc; border-radius:12px; z-index:1000; width:min(700px,90vw); max-height:90vh; overflow:auto; box-shadow:0 10px 30px rgba(0,0,0,0.1); }
+
 @media (max-width:768px) {
   body { margin:10px; font-size:16px; }
   .form-container, .table-container { padding:15px; }
   input,textarea,button { font-size:16px; }
-  button { width:100%; padding:14px; font-size:18px; }
   table { display:block; overflow-x:auto; white-space:nowrap; }
   th,td { font-size:14px; padding:6px; }
 }
+
 #tatigkeit { height:260px; font-size:13px; line-height:1.4; padding:6px; border-radius:6px; }
 #tatigkeit option { padding:4px 6px; border-bottom:1px solid #eee; }
 #tatigkeit option:last-child { border-bottom:none; }
@@ -65,6 +72,7 @@ tr:nth-child(even){ background:#fcfcfc; }
 <div class="container">
   <h2>Datenverwaltung - Bereichslehrkräfte Köln</h2>
 
+  <!-- Formular -->
   <div class="form-container">
     <h4>Neuen Datensatz hinzufügen</h4>
     <form id="dataForm">
@@ -110,6 +118,7 @@ tr:nth-child(even){ background:#fcfcfc; }
     </form>
   </div>
 
+  <!-- Tabelle -->
   <div class="table-container">
     <h2>Datensätze</h2>
     <table>
@@ -122,14 +131,15 @@ tr:nth-child(even){ background:#fcfcfc; }
       <tbody id="tableBody"></tbody>
     </table>
     <div id="summenAnzeige" class="summary"></div>
-    <button id="openExportDialogZeit">Exportieren (Tätigkeitsbericht)</button><br><br>
-    <button id="openExportDialogKm">Exportieren (Fahrtkostenabrechnung)</button><br><br>
-    <button id="backupBtn" class="btn-secondary">Datensätze sichern</button>
+    <button id="openExportDialogZeit">Exportieren (Tätigkeitsbericht)</button>
+    <button id="openExportDialogKm">Exportieren (Fahrtkostenabrechnung)</button>
+    <button id="backupBtn">Datensätze sichern</button>
     <input type="file" id="restoreInput" style="display:none" />
-    <button id="restoreBtn" class="btn-secondary">Datensätze laden</button>
+    <button id="restoreBtn">Datensätze laden</button>
   </div>
 </div>
 
+<!-- PDF-Export Modals -->
 <div id="exportDialogZeit" class="modal">
   <h2>Exportieren (Tätigkeitsbericht)</h2>
   <form>
@@ -153,8 +163,8 @@ tr:nth-child(even){ background:#fcfcfc; }
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded',()=>{
-  const $=id=>document.getElementById(id);
+document.addEventListener('DOMContentLoaded',()=> {
+  const $ = id => document.getElementById(id);
   let dataSets=[];
   const formatDateGerman=s=>{ const d=new Date(s); return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`; };
   const sumByKey=(data,key)=>data.reduce((a,ds)=>a+(+ds[key]||0),0);
@@ -192,43 +202,30 @@ document.addEventListener('DOMContentLoaded',()=>{
     $('summenAnzeige').textContent=`Gesamtsumme (alle Monate): Zeit=${sumByKey(dataSets,"zeit").toFixed(1)} h, Kilometer=${sumByKey(dataSets,"km").toFixed(1)} km`;
   }
 
-  function exportPdf(type, month, date, teacher){
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ orientation:"landscape", unit:"mm", format:"a4" });
-    const titles = {
-      taetigkeitsbericht: "Berichtsdokument für Bereichslehrkräfte für reisende Kinder und Jugendliche",
-      fahrtkostenabrechnung: "Bereichslehrkräfte für reisende Kinder und Jugendliche – Fahrtkostenabrechnung"
-    };
-    doc.setFontSize(14); 
-    doc.text(titles[type],10,15);
-    doc.setFontSize(12);
-    doc.text(`Monat: ${month}`,10,30);
-    doc.text(`Datum: ${formatDateGerman(date)}`,10,40);
-    doc.text(`Bereichslehrkraft: ${teacher}`,10,50);
-    doc.text("Unterschrift:",150,50);
+  function exportPdf(type,month,date,teacher){
+    const { jsPDF }=window.jspdf; const doc=new jsPDF({orientation:"landscape",unit:"mm",format:"a4"});
+    const titles={taetigkeitsbericht:"Berichtsdokument für Bereichslehrkräfte für reisende Kinder und Jugendliche", fahrtkostenabrechnung:"Bereichslehrkräfte für reisende Kinder und Jugendliche – Fahrtkostenabrechnung"};
+    doc.setFontSize(14); doc.text(titles[type],10,15); doc.setFontSize(12);
+    doc.text(`Monat: ${month}`,10,30); doc.text(`Datum: ${formatDateGerman(date)}`,10,40);
+    doc.text(`Bereichslehrkraft: ${teacher}`,10,50); doc.text("Unterschrift:",150,50);
+    const filtered=filterByMonth(dataSets,month); const key=type==="taetigkeitsbericht"?"zeit":"km";
 
-    const filtered = filterByMonth(dataSets, month);
-    const key = type==="taetigkeitsbericht"?"zeit":"km";
-    const colName = key==="zeit"?"Zeit (h)":"Kilometer (km)";
-    const tableData = filtered.map(ds=>[formatDateGerman(ds.datum), ds.name, ds.schule, ds.tatigkeit, ds.anmerkungen, ds[key]]);
+    // Summen
+    const sumKey=sumByKey(filtered,key).toFixed(1);
 
     doc.autoTable({
-      startY: 60,
-      head: [["Datum","Name","Ort","Unterstützungsmaßnahmen","Anmerkungen",colName]],
-      body: tableData,
-      columnStyles: {0:{cellWidth:25}},
-      styles: { fontSize: 12 }
+      startY:60,
+      head:[["Datum","Name","Ort","Unterstützungsmaßnahmen","Anmerkungen",key==="zeit"?"Zeit (h)":"Kilometer (km)"]],
+      body:filtered.map(ds=>[formatDateGerman(ds.datum),ds.name,ds.schule,ds.tatigkeit,ds.anmerkungen,ds[key]]),
+      didDrawPage: function (data) {
+        const finalY = data.cursor.y;
+        if(filtered.length>0){
+          doc.setFont(undefined,'bold');
+          doc.text(`${key==="zeit"?"Gesamtzeit":"Gesamt-Km"}: ${sumKey}`, data.settings.margin.left + 400, finalY + 6);
+          doc.setFont(undefined,'normal');
+        }
+      }
     });
-
-    const total = sumByKey(filtered, key);
-    const finalY = doc.lastAutoTable.finalY || 60;
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const marginLeft = 10;
-    const tableWidth = pageWidth - marginLeft*2;
-    const colWidth = tableWidth / 6;
-    const xPos = marginLeft + colWidth*5;
-    doc.text(total.toFixed(1), xPos, finalY + 6, { align: "right" });
-
     doc.save(`${type}_${month}_${teacher}.pdf`.replace(/\s+/g,"_"));
   }
 
@@ -240,9 +237,9 @@ document.addEventListener('DOMContentLoaded',()=>{
   $('cancelExportKm').onclick=()=>{$('exportDialogKm').style.display="none";};
   $('exportPdfKm').onclick=()=>{ exportPdf("fahrtkostenabrechnung",$('monatKm').value,$('datumKm').value,$('bereichslehrkraftKm').value); };
 
-  $('backupBtn').onclick=()=>{ const data=JSON.stringify(dataSets); const a=document.createElement('a'); a.href='data:text/json;charset=utf-8,'+encodeURIComponent(data); a.download='data_backup.json'; a.click(); };
+  $('backupBtn').onclick=()=>{ const a=document.createElement('a'); a.href='data:text/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(dataSets)); a.download='data_backup.json'; a.click(); };
   $('restoreBtn').onclick=()=>{$('restoreInput').click();};
-  $('restoreInput').onchange=e=>{ const file=e.target.files[0]; const reader=new FileReader(); reader.onload=fe=>{ dataSets=JSON.parse(fe.target.result); updateTable(); saveData(); }; reader.readAsText(file); };
+  $('restoreInput').onchange=e=>{ const reader=new FileReader(); reader.onload=fe=>{ dataSets=JSON.parse(fe.target.result); updateTable(); saveData(); }; reader.readAsText(e.target.files[0]); };
 
   loadData(); updateTable();
 });
