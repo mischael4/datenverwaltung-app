@@ -154,10 +154,9 @@ tr:nth-child(even){ background:#fcfcfc; }
 document.addEventListener('DOMContentLoaded',()=>{
   const $=id=>document.getElementById(id);
 
-  // --- NEU: Lehrkraft-Name nach erster Eingabe festlegen ---
+  // --- Lehrkraft-Name nach erster Eingabe festlegen ---
   const savedName = localStorage.getItem('lehrkraftName');
   if(savedName) $('name').value = savedName;
-  // -----------------------------------------------------------
 
   let dataSets=[];
   const formatDateGerman=s=>{ const d=new Date(s); return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`; };
@@ -175,12 +174,11 @@ document.addEventListener('DOMContentLoaded',()=>{
     e.preventDefault();
     const nameValue = $('name').value;
 
-    // --- NEU: Name speichern, falls noch nicht gesetzt ---
+    // Name speichern, falls noch nicht gesetzt
     if(!localStorage.getItem('lehrkraftName')) {
       localStorage.setItem('lehrkraftName', nameValue);
     }
     $('name').value = localStorage.getItem('lehrkraftName');
-    // -----------------------------------------------------
 
     const ds={
       datum:$('datum').value, name:nameValue, schule:$('schule').value,
@@ -209,12 +207,12 @@ document.addEventListener('DOMContentLoaded',()=>{
   }
 
   function exportPdf(type,month,date,teacher){
-    const { jsPDF }=window.jspdf;
-    const doc=new jsPDF({orientation:"landscape",unit:"mm",format:"a4"});
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({orientation:"landscape",unit:"mm",format:"a4"});
 
-    const titles={
-      taetigkeitsbericht:"Berichtsdokument für Bereichslehrkräfte für reisende Kinder und Jugendliche",
-      fahrtkostenabrechnung:"Bereichslehrkräfte für reisende Kinder und Jugendliche – Fahrtkostenabrechnung"
+    const titles = {
+      taetigkeitsbericht: "Berichtsdokument für Bereichslehrkräfte für reisende Kinder und Jugendliche",
+      fahrtkostenabrechnung: "Bereichslehrkräfte für reisende Kinder und Jugendliche – Fahrtkostenabrechnung"
     };
     doc.setFontSize(14);
     doc.text(titles[type],10,15);
@@ -224,34 +222,41 @@ document.addEventListener('DOMContentLoaded',()=>{
     doc.text(`Bereichslehrkraft: ${teacher}`,10,50);
     doc.text("Unterschrift:",150,50);
 
-    const filtered=filterByMonth(dataSets,month);
-    const body=filtered.map(ds=>[
-      formatDateGerman(ds.datum),
-      ds.name,
-      ds.schule,
-      ds.tatigkeit,
-      ds.anmerkungen,
-      ds.strecke,
-      ds.zeit,
-      ds.km
-    ]);
+    const filtered = filterByMonth(dataSets, month);
+
+    let head, body;
+    if(type === "taetigkeitsbericht"){
+      head = [["Datum","Name","Ort","Unterstützungsmaßnahmen","Anmerkungen","Strecke","Zeit (h)"]];
+      body = filtered.map(ds=>[
+        formatDateGerman(ds.datum), ds.name, ds.schule, ds.tatigkeit, ds.anmerkungen, ds.strecke, ds.zeit
+      ]);
+    } else {
+      head = [["Datum","Name","Ort","Unterstützungsmaßnahmen","Anmerkungen","Strecke","Km"]];
+      body = filtered.map(ds=>[
+        formatDateGerman(ds.datum), ds.name, ds.schule, ds.tatigkeit, ds.anmerkungen, ds.strecke, ds.km
+      ]);
+    }
 
     doc.autoTable({
       startY:60,
-      head:[["Datum","Name","Ort","Unterstützungsmaßnahmen","Anmerkungen","Strecke","Zeit (h)","Km"]],
-      body:body,
+      head: head,
+      body: body,
       theme:"grid",
       styles:{fontSize:12}
     });
 
+    const finalY = doc.lastAutoTable.finalY + 5;
     const sumZeit = sumByKey(filtered,"zeit").toFixed(1);
     const sumKm   = sumByKey(filtered,"km").toFixed(1);
-    const finalY = doc.lastAutoTable.finalY + 8;
-    doc.setFont(undefined, "bold");
-    if(type==="taetigkeitsbericht") doc.text(`Gesamtzeit: ${sumZeit}`, 257, finalY, { align: "right" });
-    if(type==="fahrtkostenabrechnung") doc.text(`Gesamtkilometer: ${sumKm}`, 279, finalY, { align: "right" });
-    doc.setFont(undefined, "normal");
 
+    doc.setFont(undefined,"bold");
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const offsetRight = 20; // Abstand vom rechten Rand, jetzt etwas eingerückt
+
+    if(type==="taetigkeitsbericht") doc.text(`Gesamtzeit: ${sumZeit}`, pageWidth - offsetRight, finalY, { align: "right" });
+    if(type==="fahrtkostenabrechnung") doc.text(`Gesamtkilometer: ${sumKm}`, pageWidth - offsetRight, finalY, { align: "right" });
+
+    doc.setFont(undefined,"normal");
     doc.save(`${type}_${month}_${teacher}.pdf`.replace(/\s+/g,"_"));
   }
 
