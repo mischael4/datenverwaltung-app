@@ -5,6 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Datenverwaltung - Bereichslehrkräfte Köln</title>
 
+<!-- PWA Manifest -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#27ae60">
+<!-- Apple PWA Support -->
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
 <!-- PDF -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
@@ -151,6 +159,13 @@ tr:nth-child(even){ background:#fcfcfc; }
 </div>
 
 <script>
+// --- Service Worker Registrierung ---
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').then(() => {
+    console.log('Service Worker registriert');
+  }).catch(err => console.log('Service Worker Fehler:', err));
+}
+
 document.addEventListener('DOMContentLoaded',()=>{
   const $=id=>document.getElementById(id);
 
@@ -251,7 +266,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 
     doc.setFont(undefined,"bold");
     const pageWidth = doc.internal.pageSize.getWidth();
-    const offsetRight = 20; // Abstand vom rechten Rand, jetzt etwas eingerückt
+    const offsetRight = 20;
 
     if(type==="taetigkeitsbericht") doc.text(`Gesamtzeit: ${sumZeit}`, pageWidth - offsetRight, finalY, { align: "right" });
     if(type==="fahrtkostenabrechnung") doc.text(`Gesamtkilometer: ${sumKm}`, pageWidth - offsetRight, finalY, { align: "right" });
