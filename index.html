@@ -42,29 +42,52 @@ input,textarea,select {
   transition: all 0.2s;
 }
 input:focus, textarea:focus, select:focus { border-color:var(--brand); outline:none; background:white; }
+
+/* Standard Buttons (inkl. Datensatz hinzufügen, Export Buttons) */
 button {
   background:var(--brand); color:white; padding:10px 20px; border:none; border-radius:8px;
   cursor:pointer; font-size:16px; transition: all 0.2s;
 }
 button:hover { background:var(--brand-d); }
-.btn-secondary { background:#e9ecef; color:#222; }
-.btn-secondary:hover { background:#dde1e6; }
-#backupBtn,#restoreBtn { background:#3498db; }
-#backupBtn:hover,#restoreBtn:hover { background:#2980b9; }
+
+/* Neutrale Buttons (Sichern / Laden) */
+.btn-secondary { 
+  background:#e9ecef; 
+  color:#222; 
+}
+.btn-secondary:hover { 
+  background:#dde1e6; 
+}
+
+/* Abbrechen Buttons im Modal */
+.btn-cancel { 
+  background:#e74c3c; 
+  color:white; 
+}
+.btn-cancel:hover { 
+  background:#c0392b; 
+}
+
+/* Tabelle */
 table { width:100%; border-collapse:collapse; margin-top:20px; font-size:14px; }
 th,td { border:1px solid #eee; padding:10px; text-align:left; vertical-align:top; }
 th { background:#f1f1f1; font-weight:600; color:#333; }
 tr:nth-child(even){ background:#fcfcfc; }
-.summary { margin-top:10px; font-weight:bold; text-align:right; color:#444; font-size:12px; }
-.delete-btn { background:#e74c3c; }
-.delete-btn:hover { background:#c0392b; }
-.edit-btn { background:#f39c12; }
+
+.summary { margin-top:10px; font-weight:bold; text-align:right; color:#444; font-size:13px; }
+
+/* Edit/Delete Buttons */
+.edit-btn { background:#f39c12; padding:4px 6px; font-size:12px; margin-bottom:4px; width:60%; }  /* Orange, schmaler */
 .edit-btn:hover { background:#d68910; }
+.delete-btn { background:#e74c3c; padding:4px 6px; font-size:12px; width:60%; }  /* Rot, schmaler */
+.delete-btn:hover { background:#c0392b; }
+
 .modal {
   display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
   background:white; padding:25px; border:1px solid #ccc; border-radius:12px;
   z-index:1000; width:min(700px,90vw); max-height:90vh; overflow:auto; box-shadow:0 10px 30px rgba(0,0,0,0.1);
 }
+
 @media (max-width:768px) {
   body { margin:10px; font-size:16px; }
   .form-container, .table-container { padding:15px; }
@@ -73,10 +96,12 @@ tr:nth-child(even){ background:#fcfcfc; }
   table { display:block; overflow-x:auto; white-space:nowrap; }
   th,td { font-size:14px; padding:6px; }
 }
-#tatigkeit { height:260px; font-size:14px; line-height:1.5; padding:6px; border-radius:6px; }
-#tatigkeit option { padding:6px 8px; border-bottom:1px solid #eee; }
+
+#tatigkeit { height:260px; font-size:13px; line-height:1.4; padding:6px; border-radius:6px; }
+#tatigkeit option { padding:4px 6px; border-bottom:1px solid #eee; }
 #tatigkeit option:last-child { border-bottom:none; }
 </style>
+
 </head>
 <body>
 <div class="container">
@@ -143,9 +168,9 @@ tr:nth-child(even){ background:#fcfcfc; }
     <div id="summenAnzeige" class="summary"></div>
     <button id="openExportDialogZeit">Exportieren (Tätigkeitsbericht)</button><br><br>
     <button id="openExportDialogKm">Exportieren (Fahrtkostenabrechnung)</button><br><br>
-    <button id="backupBtn">Datensätze sichern</button>
+    <button id="backupBtn" class="btn-secondary">Datensätze sichern</button>
     <input type="file" id="restoreInput" style="display:none" />
-    <button id="restoreBtn">Datensätze laden</button>
+    <button id="restoreBtn" class="btn-secondary">Datensätze laden</button>
   </div>
 </div>
 
@@ -161,7 +186,7 @@ tr:nth-child(even){ background:#fcfcfc; }
       <button type="button" id="exportCsvZeit">Als CSV</button>
       <button type="button" id="exportExcelZeit">Als Excel</button>
       <br><br>
-      <button type="button" id="cancelExportZeit">Abbrechen</button>
+      <button type="button" id="cancelExportZeit" class="btn-cancel">Abbrechen</button>
     </div>
   </form>
 </div>
@@ -177,7 +202,7 @@ tr:nth-child(even){ background:#fcfcfc; }
       <button type="button" id="exportCsvKm">Als CSV</button>
       <button type="button" id="exportExcelKm">Als Excel</button>
       <br><br>
-      <button type="button" id="cancelExportKm">Abbrechen</button>
+      <button type="button" id="cancelExportKm" class="btn-cancel">Abbrechen</button>
     </div>
   </form>
 </div>
@@ -200,8 +225,10 @@ document.addEventListener('DOMContentLoaded',()=>{
   }
   function getCurrentMonthYear(){ const now=new Date(); return now.toLocaleString('de-DE',{month:'long',year:'numeric'}); }
 
-  // Auto fill current date
+  // Datum automatisch setzen
   $('datum').valueAsDate = new Date();
+  $('monatZeit').value = getCurrentMonthYear();
+  $('monatKm').value = getCurrentMonthYear();
 
   $('dataForm').onsubmit=e=>{
     e.preventDefault();
@@ -217,8 +244,7 @@ document.addEventListener('DOMContentLoaded',()=>{
       $('submitBtn').textContent = "Datensatz hinzufügen";
     } else { dataSets.push(ds); }
 
-    updateTable(); saveData(); e.target.reset();
-    $('datum').valueAsDate = new Date(); // reset to current date
+    updateTable(); saveData(); e.target.reset(); $('datum').valueAsDate = new Date();
   };
 
   function updateTable(){
@@ -261,47 +287,21 @@ document.addEventListener('DOMContentLoaded',()=>{
   }
 
   function exportPdf(type,month,date,teacher){
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ orientation:"landscape", unit:"mm", format:"a4" });
-
-    const titles = {
-        taetigkeitsbericht: "Berichtsdokument für Bereichslehrkräfte für reisende Kinder und Jugendliche",
-        fahrtkostenabrechnung: "Bereichslehrkräfte für reisende Kinder und Jugendliche – Fahrtkostenabrechnung"
-    };
-
-    doc.setFontSize(14);
-    doc.text(titles[type], 10, 15);
-    doc.setFontSize(12);
-    doc.text(`Monat: ${month}`, 10, 30);
-    doc.text(`Datum: ${formatDateGerman(date)}`, 10, 40);
-    doc.text(`Bereichslehrkraft: ${teacher}`, 10, 50);
-    doc.text("Unterschrift:", 150, 50);
-
-    const filtered = filterByMonth(dataSets, month);
-    const key = type === "taetigkeitsbericht" ? "zeit" : "km";
-    const colName = type === "taetigkeitsbericht" ? "Zeit (h)" : "Kilometer (km)";
-
-    const tableData = filtered.map(ds => [
-        formatDateGerman(ds.datum),
-        ds.name,
-        ds.schule,
-        ds.tatigkeit,
-        ds.anmerkungen,
-        ds[key]
-    ]);
-
-    // Gesamtsumme ans Ende der Tabelle
-    tableData.push(["", "", "", "", "Summe:", sumByKey(filtered,key).toFixed(1)]);
-
+    const { jsPDF }=window.jspdf; const doc=new jsPDF({orientation:"landscape",unit:"mm",format:"a4"});
+    const titles={taetigkeitsbericht:"Berichtsdokument für Bereichslehrkräfte für reisende Kinder und Jugendliche",
+                  fahrtkostenabrechnung:"Bereichslehrkräfte für reisende Kinder und Jugendliche – Fahrtkostenabrechnung"};
+    doc.setFontSize(14); doc.text(titles[type],10,15); doc.setFontSize(12);
+    doc.text(`Monat: ${month}`,10,30); doc.text(`Datum: ${formatDateGerman(date)}`,10,40);
+    doc.text(`Bereichslehrkraft: ${teacher}`,10,50); doc.text("Unterschrift:",150,50);
+    const filtered=filterByMonth(dataSets,month); const key=type==="taetigkeitsbericht"?"zeit":"km";
+    const colName=type==="taetigkeitsbericht"?"Zeit (h)":"Kilometer (km)";
+    const tableData=filtered.map(ds=>[formatDateGerman(ds.datum),ds.name,ds.schule,ds.tatigkeit,ds.anmerkungen,ds[key]]);
     doc.autoTable({
-        startY: 60,
-        head: [["Datum","Name","Ort der Beschulung/ Besprechung","Unterstützungsmaßnahmen","Anmerkungen", colName]],
-        body: tableData,
-        styles: { fontSize: 10 },
-        headStyles: { fillColor: [200,200,200] },
-        columnStyles: { 0: { cellWidth: 25 } }
+      startY:60,
+      head:[["Datum","Name","Ort der Beschulung/ Besprechung","Unterstützungsmaßnahmen","Anmerkungen",colName]],
+      body:tableData,
+      columnStyles:{0:{cellWidth:25}}
     });
-
     doc.save(`${type}_${month}_${teacher}.pdf`.replace(/\s+/g,"_"));
   }
 
@@ -311,50 +311,42 @@ document.addEventListener('DOMContentLoaded',()=>{
     const colName = type === "taetigkeitsbericht" ? "Zeit (h)" : "Kilometer (km)";
     const titles = {taetigkeitsbericht:"Berichtsdokument für Bereichslehrkräfte für reisende Kinder und Jugendliche",
                     fahrtkostenabrechnung:"Bereichslehrkräfte für reisende Kinder und Jugendliche – Fahrtkostenabrechnung"};
-    const meta = [[titles[type]],[`Monat: ${month}`],[`Datum: ${formatDateGerman(date)}`],[`Bereichslehrkraft: ${teacher}`],[]];
-    const headers = ["Datum","Name","Ort der Beschulung/ Besprechung","Unterstützungsmaßnahmen","Anmerkungen", colName];
-    const rows = filtered.map(ds => [formatDateGerman(ds.datum), ds.name, ds.schule, ds.tatigkeit, ds.anmerkungen, ds[key]]);
-    rows.push(["","","","","Summe:", sumByKey(filtered,key).toFixed(1)]);
+    const meta = [[titles[type]],[`Monat: ${month}`],[`Datum: ${formatDateGerman(date)}`],[`Bereichslehrkraft: ${teacher}`],[""]];
+    const data = filtered.map(ds=>[formatDateGerman(ds.datum),ds.name,ds.schule,ds.tatigkeit,ds.anmerkungen,ds[key]]);
     if(format==="csv"){
-      const csvContent=[...meta.flat(), headers.join(";"), ...rows.map(r => r.join(";"))].join("\n");
-      const blob = new Blob([csvContent], {type:"text/csv;charset=utf-8;"});
-      const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
+      const all=[...meta,["Datum","Name","Ort","Unterstützungsmaßnahmen","Anmerkungen",colName],...data];
+      const csv = all.map(r=>r.map(c=>`"${c}"`).join(";")).join("\r\n");
+      const a=document.createElement('a'); a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
       a.download=`${type}_${month}_${teacher}.csv`.replace(/\s+/g,"_"); a.click();
     } else if(format==="excel"){
-      const ws=XLSX.utils.aoa_to_sheet([...meta, headers, ...rows]);
-      const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Daten");
-      XLSX.writeFile(wb, `${type}_${month}_${teacher}.xlsx`.replace(/\s+/g,"_"));
+      const wb=XLSX.utils.book_new();
+      const ws=XLSX.utils.aoa_to_sheet([...meta,[["Datum","Name","Ort","Unterstützungsmaßnahmen","Anmerkungen",colName]],...data]);
+      XLSX.utils.book_append_sheet(wb,ws,"Sheet1"); XLSX.writeFile(wb,`${type}_${month}_${teacher}.xlsx`.replace(/\s+/g,"_"));
     }
   }
 
-  $("openExportDialogZeit").onclick=()=>{$("exportDialogZeit").style.display="block"; $("monatZeit").value=getCurrentMonthYear();};
-  $("cancelExportZeit").onclick=()=>{$("exportDialogZeit").style.display="none";};
-  $("exportPdfZeit").onclick=()=>{exportPdf("taetigkeitsbericht",$("monatZeit").value,$("datumZeit").value,$("bereichslehrkraftZeit").value); $("exportDialogZeit").style.display="none";};
-  $("exportCsvZeit").onclick=()=>{exportTable("taetigkeitsbericht",$("monatZeit").value,$("datumZeit").value,$("bereichslehrkraftZeit").value,"csv"); $("exportDialogZeit").style.display="none";};
-  $("exportExcelZeit").onclick=()=>{exportTable("taetigkeitsbericht",$("monatZeit").value,$("datumZeit").value,$("bereichslehrkraftZeit").value,"excel"); $("exportDialogZeit").style.display="none";};
+  $('openExportDialogZeit').onclick=()=>{$('exportDialogZeit').style.display="block"; $('datumZeit').valueAsDate=new Date();};
+  $('cancelExportZeit').onclick=()=>{$('exportDialogZeit').style.display="none";};
+  $('exportPdfZeit').onclick=()=>{ exportPdf("taetigkeitsbericht",$('monatZeit').value,$('datumZeit').value,$('bereichslehrkraftZeit').value); };
+  $('exportCsvZeit').onclick=()=>{ exportTable("taetigkeitsbericht",$('monatZeit').value,$('datumZeit').value,$('bereichslehrkraftZeit').value,"csv"); };
+  $('exportExcelZeit').onclick=()=>{ exportTable("taetigkeitsbericht",$('monatZeit').value,$('datumZeit').value,$('bereichslehrkraftZeit').value,"excel"); };
 
-  $("openExportDialogKm").onclick=()=>{$("exportDialogKm").style.display="block"; $("monatKm").value=getCurrentMonthYear();};
-  $("cancelExportKm").onclick=()=>{$("exportDialogKm").style.display="none";};
-  $("exportPdfKm").onclick=()=>{exportPdf("fahrtkostenabrechnung",$("monatKm").value,$("datumKm").value,$("bereichslehrkraftKm").value); $("exportDialogKm").style.display="none";};
-  $("exportCsvKm").onclick=()=>{exportTable("fahrtkostenabrechnung",$("monatKm").value,$("datumKm").value,$("bereichslehrkraftKm").value,"csv"); $("exportDialogKm").style.display="none";};
-  $("exportExcelKm").onclick=()=>{exportTable("fahrtkostenabrechnung",$("monatKm").value,$("datumKm").value,$("bereichslehrkraftKm").value,"excel"); $("exportDialogKm").style.display="none";};
+  $('openExportDialogKm').onclick=()=>{$('exportDialogKm').style.display="block"; $('datumKm').valueAsDate=new Date();};
+  $('cancelExportKm').onclick=()=>{$('exportDialogKm').style.display="none";};
+  $('exportPdfKm').onclick=()=>{ exportPdf("fahrtkostenabrechnung",$('monatKm').value,$('datumKm').value,$('bereichslehrkraftKm').value); };
+  $('exportCsvKm').onclick=()=>{ exportTable("fahrtkostenabrechnung",$('monatKm').value,$('datumKm').value,$('bereichslehrkraftKm').value,"csv"); };
+  $('exportExcelKm').onclick=()=>{ exportTable("fahrtkostenabrechnung",$('monatKm').value,$('datumKm').value,$('bereichslehrkraftKm').value,"excel"); };
 
-  $("backupBtn").onclick=()=>{
-    const blob=new Blob([JSON.stringify(dataSets,null,2)],{type:"application/json"});
-    const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="daten.json"; a.click();
-  };
-  $("restoreBtn").onclick=()=>{$("restoreInput").click();};
-  $("restoreInput").onchange=e=>{
-    const file=e.target.files[0]; if(!file)return;
+  $('backupBtn').onclick=()=>{ const data=JSON.stringify(dataSets); const a=document.createElement('a'); a.href='data:text/json;charset=utf-8,'+encodeURIComponent(data); a.download='data_backup.json'; a.click(); };
+  $('restoreBtn').onclick=()=>{$('restoreInput').click();};
+  $('restoreInput').onchange=e=>{
+    const file=e.target.files[0];
     const reader=new FileReader();
-    reader.onload=ev=>{
-      try{ dataSets=JSON.parse(ev.target.result); saveData(); updateTable(); alert("Datensätze erfolgreich geladen!"); }
-      catch(err){ alert("Fehler beim Laden der Datei."); }
-    };
+    reader.onload=fe=>{ dataSets=JSON.parse(fe.target.result); updateTable(); saveData(); };
     reader.readAsText(file);
   };
 
-  loadData();
+  loadData(); updateTable();
 });
 </script>
 </body>
