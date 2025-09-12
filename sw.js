@@ -1,20 +1,19 @@
-self.addEventListener("install", e => {
-  e.waitUntil(
-    caches.open("blk-cache").then(cache => {
-      return cache.addAll([
-        "./",
-        "./index.html",
-        "./manifest.json"
-      ]);
-    })
-  );
+self.addEventListener('install', event => {
+  console.log('Service Worker installiert');
+  self.skipWaiting();
 });
 
-self.addEventListener("fetch", e => {
-  e.respondWith(
-    caches.match(e.request).then(response => {
-      return response || fetch(e.request);
-    })
-  );
+self.addEventListener('activate', event => {
+  console.log('Service Worker aktiviert');
 });
+
+self.addEventListener('fetch', event => {
+  // Einfach nur Netzwerk weiterleiten
+  event.respondWith(fetch(event.request).catch(() => {
+    // Optional: offline fallback kann hier definiert werden
+    return new Response('Offline verfügbar nicht verfügbar.', {status:503});
+  }));
+});
+
+
 
