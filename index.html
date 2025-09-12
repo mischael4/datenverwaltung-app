@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Datensatzverwaltung">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#27ae60">
-<meta name="touch-action" content="manipulation">
-<link rel="manifest" href="manifest.json">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<meta name="apple-mobile-web-app-title" content="Datensatzverwaltung" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="theme-color" content="#27ae60" />
+<meta name="touch-action" content="manipulation" />
+<link rel="manifest" href="manifest.json" />
 
 <title>Datenverwaltung - Bereichslehrkräfte Köln</title>
 
@@ -24,8 +24,8 @@
 <link id="appleIcon" rel="apple-touch-icon" href="icon-512.png">
 
 <style>
-:root { --brand:#27ae60; --brand-d:#1f8a4e; --secondary:#3498db; --secondary-d:#2c80b4; }
-body { font-family: Arial,sans-serif; margin:20px; background:#f9f9f9; color:#222; }
+:root { --brand:#27ae60; --brand-d:#1f8a4e; }
+body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin:20px; background:#f9f9f9; color:#222; }
 h2 { font-size:22px; color:var(--brand); margin-bottom:10px; }
 h4 { font-size:16px; color:#333; margin-bottom:15px; }
 .container { display:flex; flex-direction:column; gap:20px; max-width:1200px; margin:auto; }
@@ -47,15 +47,15 @@ button {
   cursor:pointer; font-size:16px; transition: all 0.2s;
 }
 button:hover { background:var(--brand-d); }
-.btn-secondary { background:var(--secondary); color:white; }
-.btn-secondary:hover { background:var(--secondary-d); }
-
+.btn-secondary { background:#e9ecef; color:#222; }
+.btn-secondary:hover { background:#dde1e6; }
+#backupBtn,#restoreBtn { background:#3498db; }
+#backupBtn:hover,#restoreBtn:hover { background:#2980b9; }
 table { width:100%; border-collapse:collapse; margin-top:20px; font-size:14px; }
-th,td { border:1px solid #eee; padding:8px; text-align:left; vertical-align:top; font-size:14px; }
+th,td { border:1px solid #eee; padding:10px; text-align:left; vertical-align:top; }
 th { background:#f1f1f1; font-weight:600; color:#333; }
 tr:nth-child(even){ background:#fcfcfc; }
-
-.summary { margin-top:10px; font-weight:bold; text-align:right; color:#444; }
+.summary { margin-top:10px; font-weight:bold; text-align:right; color:#444; font-size:12px; }
 .delete-btn { background:#e74c3c; }
 .delete-btn:hover { background:#c0392b; }
 .edit-btn { background:#f39c12; }
@@ -65,10 +65,6 @@ tr:nth-child(even){ background:#fcfcfc; }
   background:white; padding:25px; border:1px solid #ccc; border-radius:12px;
   z-index:1000; width:min(700px,90vw); max-height:90vh; overflow:auto; box-shadow:0 10px 30px rgba(0,0,0,0.1);
 }
-#tatigkeit { height:260px; font-size:14px; line-height:1.5; padding:6px; border-radius:6px; }
-#tatigkeit option { padding:6px 8px; border-bottom:1px solid #eee; }
-#tatigkeit option:last-child { border-bottom:none; }
-
 @media (max-width:768px) {
   body { margin:10px; font-size:16px; }
   .form-container, .table-container { padding:15px; }
@@ -77,10 +73,12 @@ tr:nth-child(even){ background:#fcfcfc; }
   table { display:block; overflow-x:auto; white-space:nowrap; }
   th,td { font-size:14px; padding:6px; }
 }
+#tatigkeit { height:260px; font-size:14px; line-height:1.5; padding:6px; border-radius:6px; }
+#tatigkeit option { padding:6px 8px; border-bottom:1px solid #eee; }
+#tatigkeit option:last-child { border-bottom:none; }
 </style>
 </head>
 <body>
-
 <div class="container">
   <h2>Datenverwaltung - Bereichslehrkräfte Köln</h2>
 
@@ -145,9 +143,9 @@ tr:nth-child(even){ background:#fcfcfc; }
     <div id="summenAnzeige" class="summary"></div>
     <button id="openExportDialogZeit">Exportieren (Tätigkeitsbericht)</button><br><br>
     <button id="openExportDialogKm">Exportieren (Fahrtkostenabrechnung)</button><br><br>
-    <button id="backupBtn" class="btn-secondary">Datensätze sichern</button>
+    <button id="backupBtn">Datensätze sichern</button>
     <input type="file" id="restoreInput" style="display:none" />
-    <button id="restoreBtn" class="btn-secondary">Datensätze laden</button>
+    <button id="restoreBtn">Datensätze laden</button>
   </div>
 </div>
 
@@ -193,11 +191,17 @@ document.addEventListener('DOMContentLoaded',()=>{
   function saveData(){ localStorage.setItem('dataSets',JSON.stringify(dataSets)); }
   function formatDateGerman(s){ const d=new Date(s); return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`; }
   function sumByKey(data,key){ return data.reduce((a,ds)=>a+(+ds[key]||0),0); }
-  function filterByMonth(data,monthInput){ return data.filter(ds=>{ const d=new Date(ds.datum); const monatJahr=d.toLocaleString('de-DE',{month:'long',year:'numeric'}); return monatJahr.toLowerCase().trim()===monthInput.toLowerCase().trim(); }); }
+  function filterByMonth(data,monthInput){
+    return data.filter(ds=>{
+      const d=new Date(ds.datum);
+      const monatJahr=d.toLocaleString('de-DE',{month:'long',year:'numeric'});
+      return monatJahr.toLowerCase().trim()===monthInput.toLowerCase().trim();
+    });
+  }
   function getCurrentMonthYear(){ const now=new Date(); return now.toLocaleString('de-DE',{month:'long',year:'numeric'}); }
 
-  // Datum automatisch setzen
-  $('datum').value = new Date().toISOString().split('T')[0];
+  // Auto fill current date
+  $('datum').valueAsDate = new Date();
 
   $('dataForm').onsubmit=e=>{
     e.preventDefault();
@@ -206,10 +210,15 @@ document.addEventListener('DOMContentLoaded',()=>{
       tatigkeit:Array.from($('tatigkeit').selectedOptions).map(o=>o.value).join(", "),
       anmerkungen:$('anmerkungen').value, zeit:$('zeit').value, km:$('km').value
     };
-    if(e.target.dataset.editIndex!==undefined){
-      dataSets[e.target.dataset.editIndex]=ds; delete e.target.dataset.editIndex; $('submitBtn').textContent="Datensatz hinzufügen";
-    }else{ dataSets.push(ds); }
-    updateTable(); saveData(); e.target.reset(); $('datum').value = new Date().toISOString().split('T')[0];
+
+    if (e.target.dataset.editIndex !== undefined) {
+      dataSets[e.target.dataset.editIndex] = ds;
+      delete e.target.dataset.editIndex;
+      $('submitBtn').textContent = "Datensatz hinzufügen";
+    } else { dataSets.push(ds); }
+
+    updateTable(); saveData(); e.target.reset();
+    $('datum').valueAsDate = new Date(); // reset to current date
   };
 
   function updateTable(){
@@ -231,6 +240,7 @@ document.addEventListener('DOMContentLoaded',()=>{
           </td>
         </tr>`;
     });
+
     document.querySelectorAll('.delete-btn').forEach(btn=>{ btn.onclick=()=>{ dataSets.splice(btn.dataset.i,1); updateTable(); saveData(); }; });
     document.querySelectorAll('.edit-btn').forEach(btn=>{
       btn.onclick=()=>{
@@ -243,41 +253,77 @@ document.addEventListener('DOMContentLoaded',()=>{
         $('zeit').value=ds.zeit;
         $('km').value=ds.km;
         $('dataForm').dataset.editIndex=btn.dataset.i;
-        $('submitBtn').textContent="Änderungen speichern";
+        $('submitBtn').textContent = "Änderungen speichern";
       };
     });
+
     $('summenAnzeige').textContent=`Gesamtsumme (alle Monate): Zeit=${sumByKey(dataSets,"zeit").toFixed(1)} h, Kilometer=${sumByKey(dataSets,"km").toFixed(1)} km`;
   }
 
   function exportPdf(type,month,date,teacher){
-    const { jsPDF }=window.jspdf; const doc=new jsPDF({orientation:"landscape",unit:"mm",format:"a4"});
-    const titles={taetigkeitsbericht:"Berichtsdokument für Bereichslehrkräfte für reisende Kinder und Jugendliche", fahrtkostenabrechnung:"Bereichslehrkräfte für reisende Kinder und Jugendliche – Fahrtkostenabrechnung"};
-    doc.setFontSize(14); doc.text(titles[type],10,15); doc.setFontSize(12);
-    doc.text(`Monat: ${month}`,10,30); doc.text(`Datum: ${formatDateGerman(date)}`,10,40);
-    doc.text(`Bereichslehrkraft: ${teacher}`,10,50); doc.text("Unterschrift:",150,50);
-    const filtered=filterByMonth(dataSets,month); const key=type==="taetigkeitsbericht"?"zeit":"km";
-    const colName=type==="taetigkeitsbericht"?"Zeit (h)":"Kilometer (km)";
-    const tableData=filtered.map(ds=>[formatDateGerman(ds.datum),ds.name,ds.schule,ds.tatigkeit,ds.anmerkungen,ds[key]]);
-    doc.autoTable({startY:60, head:[["Datum","Name","Ort der Beschulung/ Besprechung","Unterstützungsmaßnahmen","Anmerkungen",colName]], body:tableData, columnStyles:{0:{cellWidth:25}}});
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation:"landscape", unit:"mm", format:"a4" });
+
+    const titles = {
+        taetigkeitsbericht: "Berichtsdokument für Bereichslehrkräfte für reisende Kinder und Jugendliche",
+        fahrtkostenabrechnung: "Bereichslehrkräfte für reisende Kinder und Jugendliche – Fahrtkostenabrechnung"
+    };
+
+    doc.setFontSize(14);
+    doc.text(titles[type], 10, 15);
+    doc.setFontSize(12);
+    doc.text(`Monat: ${month}`, 10, 30);
+    doc.text(`Datum: ${formatDateGerman(date)}`, 10, 40);
+    doc.text(`Bereichslehrkraft: ${teacher}`, 10, 50);
+    doc.text("Unterschrift:", 150, 50);
+
+    const filtered = filterByMonth(dataSets, month);
+    const key = type === "taetigkeitsbericht" ? "zeit" : "km";
+    const colName = type === "taetigkeitsbericht" ? "Zeit (h)" : "Kilometer (km)";
+
+    const tableData = filtered.map(ds => [
+        formatDateGerman(ds.datum),
+        ds.name,
+        ds.schule,
+        ds.tatigkeit,
+        ds.anmerkungen,
+        ds[key]
+    ]);
+
+    // Gesamtsumme ans Ende der Tabelle
+    tableData.push(["", "", "", "", "Summe:", sumByKey(filtered,key).toFixed(1)]);
+
+    doc.autoTable({
+        startY: 60,
+        head: [["Datum","Name","Ort der Beschulung/ Besprechung","Unterstützungsmaßnahmen","Anmerkungen", colName]],
+        body: tableData,
+        styles: { fontSize: 10 },
+        headStyles: { fillColor: [200,200,200] },
+        columnStyles: { 0: { cellWidth: 25 } }
+    });
+
     doc.save(`${type}_${month}_${teacher}.pdf`.replace(/\s+/g,"_"));
   }
 
-  function exportTable(type,month,date,teacher,format){
-    const filtered=filterByMonth(dataSets,month);
-    const key=type==="taetigkeitsbericht"?"zeit":"km";
-    const colName=type==="taetigkeitsbericht"?"Zeit (h)":"Kilometer (km)";
-    const titles={taetigkeitsbericht:"Berichtsdokument für Bereichslehrkräfte für reisende Kinder und Jugendliche", fahrtkostenabrechnung:"Bereichslehrkräfte für reisende Kinder und Jugendliche – Fahrtkostenabrechnung"};
-    const meta=[[titles[type]],[`Monat: ${month}`],[`Datum: ${formatDateGerman(date)}`],[`Bereichslehrkraft: ${teacher}`],[]];
-    const headers=["Datum","Name","Ort der Beschulung/ Besprechung","Unterstützungsmaßnahmen","Anmerkungen",colName];
-    const rows=filtered.map(ds=>[formatDateGerman(ds.datum),ds.name,ds.schule,ds.tatigkeit,ds.anmerkungen,ds[key]]);
-    rows.push(["","","","","Summe:",sumByKey(filtered,key).toFixed(1)]);
+  function exportTable(type, month, date, teacher, format){
+    const filtered = filterByMonth(dataSets, month);
+    const key = type === "taetigkeitsbericht" ? "zeit" : "km";
+    const colName = type === "taetigkeitsbericht" ? "Zeit (h)" : "Kilometer (km)";
+    const titles = {taetigkeitsbericht:"Berichtsdokument für Bereichslehrkräfte für reisende Kinder und Jugendliche",
+                    fahrtkostenabrechnung:"Bereichslehrkräfte für reisende Kinder und Jugendliche – Fahrtkostenabrechnung"};
+    const meta = [[titles[type]],[`Monat: ${month}`],[`Datum: ${formatDateGerman(date)}`],[`Bereichslehrkraft: ${teacher}`],[]];
+    const headers = ["Datum","Name","Ort der Beschulung/ Besprechung","Unterstützungsmaßnahmen","Anmerkungen", colName];
+    const rows = filtered.map(ds => [formatDateGerman(ds.datum), ds.name, ds.schule, ds.tatigkeit, ds.anmerkungen, ds[key]]);
+    rows.push(["","","","","Summe:", sumByKey(filtered,key).toFixed(1)]);
     if(format==="csv"){
-      const csvContent=[...meta.flat(), headers.join(";"), ...rows.map(r=>r.join(";"))].join("\n");
-      const blob=new Blob([csvContent],{type:"text/csv;charset=utf-8;"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=`${type}_${month}_${teacher}.csv`.replace(/\s+/g,"_"); a.click();
-    }else if(format==="excel"){
+      const csvContent=[...meta.flat(), headers.join(";"), ...rows.map(r => r.join(";"))].join("\n");
+      const blob = new Blob([csvContent], {type:"text/csv;charset=utf-8;"});
+      const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
+      a.download=`${type}_${month}_${teacher}.csv`.replace(/\s+/g,"_"); a.click();
+    } else if(format==="excel"){
       const ws=XLSX.utils.aoa_to_sheet([...meta, headers, ...rows]);
-      const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,"Daten");
-      XLSX.writeFile(wb,`${type}_${month}_${teacher}.xlsx`.replace(/\s+/g,"_"));
+      const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Daten");
+      XLSX.writeFile(wb, `${type}_${month}_${teacher}.xlsx`.replace(/\s+/g,"_"));
     }
   }
 
