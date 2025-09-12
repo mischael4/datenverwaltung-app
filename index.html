@@ -43,30 +43,18 @@ input,textarea,select {
 }
 input:focus, textarea:focus, select:focus { border-color:var(--brand); outline:none; background:white; }
 
-/* Standard Buttons (inkl. Datensatz hinzufügen, Export Buttons) */
-button {
-  background:var(--brand); color:white; padding:10px 20px; border:none; border-radius:8px;
-  cursor:pointer; font-size:16px; transition: all 0.2s;
-}
+/* Standard Buttons */
+button { background:var(--brand); color:white; padding:10px 20px; border:none; border-radius:8px; cursor:pointer; font-size:16px; transition: all 0.2s; }
 button:hover { background:var(--brand-d); }
 
-/* Neutrale Buttons (Sichern / Laden) */
-.btn-secondary { 
-  background:#e9ecef; 
-  color:#222; 
-}
-.btn-secondary:hover { 
-  background:#dde1e6; 
-}
+/* Export/Backup Buttons */
+button.export-btn, button.btn-secondary { display:block; margin-bottom:10px; } /* Abstand zwischen Buttons */
+.btn-secondary { background:#e9ecef; color:#222; }
+.btn-secondary:hover { background:#dde1e6; }
 
-/* Abbrechen Buttons im Modal */
-.btn-cancel { 
-  background:#e74c3c; 
-  color:white; 
-}
-.btn-cancel:hover { 
-  background:#c0392b; 
-}
+/* Abbrechen im Modal */
+button.cancel-btn { background:#e74c3c; color:white; }
+button.cancel-btn:hover { background:#c0392b; }
 
 /* Tabelle */
 table { width:100%; border-collapse:collapse; margin-top:20px; font-size:14px; }
