@@ -37,9 +37,9 @@ th,td { border:1px solid #eee; padding:10px; text-align:left; vertical-align:top
 th { background:#f1f1f1; font-weight:600; color:#333; }
 tr:nth-child(even){ background:#fcfcfc; }
 .summary { margin-top:10px; margin-bottom:15px; font-weight:bold; text-align:right; color:#444; font-size:13px; }
-.edit-btn { background:#f39c12; padding:4px 6px; font-size:12px; margin-bottom:4px; width:75%; }
+.edit-btn { background:#f39c12; padding:4px 6px; font-size:12px; margin-bottom:4px; width:90%; }
 .edit-btn:hover { background:#d68910; }
-.delete-btn { background:#e74c3c; padding:4px 6px; font-size:12px; width:75%; }
+.delete-btn { background:#e74c3c; padding:4px 6px; font-size:12px; width:90%; }
 .delete-btn:hover { background:#c0392b; }
 .modal { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; padding:25px; border:1px solid #ccc; border-radius:12px; z-index:1000; width:min(700px,90vw); max-height:90vh; overflow:auto; box-shadow:0 10px 30px rgba(0,0,0,0.1); }
 @media (max-width:768px) {
@@ -153,6 +153,12 @@ tr:nth-child(even){ background:#fcfcfc; }
 <script>
 document.addEventListener('DOMContentLoaded',()=>{
   const $=id=>document.getElementById(id);
+
+  // --- NEU: Lehrkraft-Name nach erster Eingabe festlegen ---
+  const savedName = localStorage.getItem('lehrkraftName');
+  if(savedName) $('name').value = savedName;
+  // -----------------------------------------------------------
+
   let dataSets=[];
   const formatDateGerman=s=>{ const d=new Date(s); return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`; };
   const sumByKey=(data,key)=>data.reduce((a,ds)=>a+(+ds[key]||0),0);
@@ -167,8 +173,17 @@ document.addEventListener('DOMContentLoaded',()=>{
 
   $('dataForm').onsubmit=e=>{
     e.preventDefault();
+    const nameValue = $('name').value;
+
+    // --- NEU: Name speichern, falls noch nicht gesetzt ---
+    if(!localStorage.getItem('lehrkraftName')) {
+      localStorage.setItem('lehrkraftName', nameValue);
+    }
+    $('name').value = localStorage.getItem('lehrkraftName');
+    // -----------------------------------------------------
+
     const ds={
-      datum:$('datum').value, name:$('name').value, schule:$('schule').value,
+      datum:$('datum').value, name:nameValue, schule:$('schule').value,
       tatigkeit:Array.from($('tatigkeit').selectedOptions).map(o=>o.value).join(", "),
       anmerkungen:$('anmerkungen').value, strecke:$('strecke').value,
       zeit:$('zeit').value, km:$('km').value
@@ -221,7 +236,6 @@ document.addEventListener('DOMContentLoaded',()=>{
       ds.km
     ]);
 
-    // Tabelle
     doc.autoTable({
       startY:60,
       head:[["Datum","Name","Ort","Unterstützungsmaßnahmen","Anmerkungen","Strecke","Zeit (h)","Km"]],
@@ -230,23 +244,13 @@ document.addEventListener('DOMContentLoaded',()=>{
       styles:{fontSize:12}
     });
 
-    // Summen berechnen
-const sumZeit = sumByKey(filtered,"zeit").toFixed(1);
-const sumKm   = sumByKey(filtered,"km").toFixed(1);
-
-// Position knapp unter der Tabelle setzen
-const finalY = doc.lastAutoTable.finalY + 8;
-doc.setFont(undefined, "bold");
-
-if(type==="taetigkeitsbericht"){
-  doc.text(`Gesamtzeit: ${sumZeit}`, 257, finalY, { align: "right" }); // Zeit-Spalte
-}
-if(type==="fahrtkostenabrechnung"){
-  doc.text(`Gesamtkilometer: ${sumKm}`, 279, finalY, { align: "right" });   // Km-Spalte
-}
-
-doc.setFont(undefined, "normal");
-
+    const sumZeit = sumByKey(filtered,"zeit").toFixed(1);
+    const sumKm   = sumByKey(filtered,"km").toFixed(1);
+    const finalY = doc.lastAutoTable.finalY + 8;
+    doc.setFont(undefined, "bold");
+    if(type==="taetigkeitsbericht") doc.text(`Gesamtzeit: ${sumZeit}`, 257, finalY, { align: "right" });
+    if(type==="fahrtkostenabrechnung") doc.text(`Gesamtkilometer: ${sumKm}`, 279, finalY, { align: "right" });
+    doc.setFont(undefined, "normal");
 
     doc.save(`${type}_${month}_${teacher}.pdf`.replace(/\s+/g,"_"));
   }
@@ -266,5 +270,6 @@ doc.setFont(undefined, "normal");
   loadData(); updateTable();
 });
 </script>
+
 </body>
 </html>
