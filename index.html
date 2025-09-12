@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
@@ -25,54 +25,74 @@
   <link id="appleIcon" rel="apple-touch-icon" href="icon-512.png">
 
   <style>
-    :root { --brand:#27ae60; --brand-d:#1f8a4e; }
-    body { font-family:Arial,sans-serif; margin:20px; }
-    h2,h4,label { font-size:15px; font-weight:600; color:#222; }
-    .container { display:flex; flex-direction:column; gap:20px; }
-    .form-container,.table-container {
-      border:1px solid #ccc; padding:20px; border-radius:8px;
-      box-shadow:0 2px 8px rgba(0,0,0,.04);
+    :root {
+      --brand: #27ae60;
+      --brand-d: #1f8a4e;
+      --danger: #e74c3c;
+      --danger-d: #c0392b;
+      --warning: #f39c12;
+      --warning-d: #d68910;
+      --secondary: #e9ecef;
+      --secondary-d: #dde1e6;
     }
-    .form-group { margin-bottom:15px; }
-    label { display:block; margin-bottom:5px; }
-    label .hint { font-size:12px; font-weight:normal; color:#666; display:block; margin-top:2px; }
-    input,textarea,select {
-      width:100%; padding:10px; box-sizing:border-box;
-      border:1px solid #ccc; border-radius:6px;
+
+    body { font-family: Arial, sans-serif; margin: 20px; background: #fafafa; }
+    h2, h4, label { font-size: 15px; font-weight: 600; color: #222; }
+    .container { display: flex; flex-direction: column; gap: 20px; }
+    .form-container, .table-container {
+      border: 1px solid #ccc; padding: 20px; border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,.05); background: #fff;
     }
+    .form-group { margin-bottom: 15px; }
+    label { display: block; margin-bottom: 5px; }
+    label .hint { font-size: 12px; font-weight: normal; color: #666; display: block; margin-top: 2px; }
+
+    input, textarea, select {
+      width: 100%; padding: 12px; box-sizing: border-box;
+      border: 1px solid #ccc; border-radius: 8px; font-size: 15px;
+    }
+    textarea { min-height: 80px; resize: vertical; }
+    select[multiple] { min-height: 200px; }
+
+    .controls-row { display:flex; gap:8px; flex-wrap:wrap; align-items:center }
+
     button {
-      background:var(--brand); color:white; padding:10px 15px;
-      border:none; border-radius:8px; cursor:pointer; font-size:16px;
-      margin:4px 2px;
+      background: var(--brand); color: white; padding: 10px 16px;
+      border: none; border-radius: 10px; cursor: pointer; font-size: 15px;
+      margin: 4px; transition: background 0.2s ease;
     }
-    button:hover { background:var(--brand-d); }
-    .btn-secondary { background:#e9ecef; color:#222; }
-    .btn-secondary:hover { background:#dde1e6; }
-    table { width:100%; border-collapse:collapse; margin-top:20px; }
-    th,td { border:1px solid #ddd; padding:8px; text-align:left; }
-    th { background:#f2f2f2; }
-    tr:nth-child(even){ background:#f9f9f9; }
-    .summary { margin-top:10px; font-weight:bold; text-align:right; }
-    .delete-btn { background:#e74c3c; }
-    .delete-btn:hover { background:#c0392b; }
-    .edit-btn { background:#f39c12; }
-    .edit-btn:hover { background:#d68910; }
+    button:hover { background: var(--brand-d); }
+
+    .btn-secondary { background: var(--secondary); color: #222; }
+    .btn-secondary:hover { background: var(--secondary-d); }
+    .btn-danger { background: var(--danger); }
+    .btn-danger:hover { background: var(--danger-d); }
+    .btn-warning { background: var(--warning); }
+    .btn-warning:hover { background: var(--warning-d); }
+
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 14px; }
+    th { background: #f7f7f7; font-weight: bold; }
+    tr:nth-child(even) { background: #fbfbfb; }
+
+    .summary { margin-top: 10px; font-weight: bold; text-align: right; color: #333; }
+
     .modal {
-      display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
-      background:whitesmoke; padding:20px; border:1px solid #ccc; border-radius:10px;
-      z-index:1000; width:min(700px,92vw); max-height:90vh; overflow:auto;
+      display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      background: #fff; padding: 20px; border: 1px solid #ccc; border-radius: 12px;
+      z-index: 1000; width: min(760px, 94vw); max-height: 90vh; overflow: auto;
+      box-shadow: 0 8px 30px rgba(0,0,0,.12);
     }
-    @media (max-width:768px) {
-      body { margin:10px; font-size:16px; }
-      .form-container,.table-container { padding:15px; }
-      input,textarea,button { font-size:16px; }
-      button { width:100%; padding:14px; font-size:18px; }
-      table { display:block; overflow-x:auto; white-space:nowrap; }
-      th,td { font-size:14px; padding:6px; }
+
+    @media (max-width: 768px) {
+      body { margin: 10px; font-size: 16px; }
+      .form-container, .table-container { padding: 15px; }
+      input, textarea, select, button { font-size: 16px; }
+      button { width: 100%; margin: 6px 0; padding: 14px; font-size: 18px; }
+      table { display: block; overflow-x: auto; white-space: nowrap; }
+      th, td { font-size: 14px; padding: 6px; }
+      .controls-row { flex-direction: column; align-items: stretch; }
     }
-    #tatigkeit { height:260px; font-size:13px; line-height:1.4; padding:6px; }
-    #tatigkeit option { padding:4px 6px; border-bottom:1px solid #eee; }
-    #tatigkeit option:last-child { border-bottom:none; }
   </style>
 </head>
 
@@ -122,7 +142,11 @@
       <div class="form-group"><label for="anmerkungen">Anmerkungen:</label><textarea id="anmerkungen" rows="3"></textarea></div>
       <div class="form-group"><label for="zeit">Zeit (h):</label><input type="number" id="zeit" step="0.1" required></div>
       <div class="form-group"><label for="km">Kilometer (km):</label><input type="number" id="km" step="0.1" required></div>
-      <button type="submit" id="submitBtn">Datensatz hinzufügen</button>
+
+      <div class="controls-row">
+        <button type="submit" id="submitBtn">Datensatz hinzufügen</button>
+        <button type="button" id="cancelEditBtn" class="btn-secondary" style="display:none">Abbrechen</button>
+      </div>
     </form>
   </div>
 
@@ -133,19 +157,21 @@
       <tr><th>Datum</th><th>Name</th><th>Ort</th><th>Unterstützungsmaßnahmen</th><th>Anmerkungen</th><th>Zeit</th><th>Km</th><th>Aktion</th></tr>
     </thead><tbody id="tableBody"></tbody></table>
     <div id="summenAnzeige" class="summary"></div>
-    <button id="openExportDialogZeit">Exportieren (Tätigkeitsbericht)</button><br><br>
-    <button id="openExportDialogKm">Exportieren (Fahrtkostenabrechnung)</button><br><br>
-    <!-- Neue Buttons -->
-    <button id="backupBtn">Datensätze sichern</button>
-    <input type="file" id="restoreInput" style="display:none" />
-    <button id="restoreBtn">Datensätze laden</button>
+
+    <div style="margin-top:15px; display:flex; flex-wrap:wrap; gap:8px;">
+      <button id="openExportDialogZeit">Exportieren (Tätigkeitsbericht)</button>
+      <button id="openExportDialogKm">Exportieren (Fahrtkostenabrechnung)</button>
+      <button id="backupBtn" class="btn-warning">Datensätze sichern</button>
+      <input type="file" id="restoreInput" style="display:none" />
+      <button id="restoreBtn" class="btn-secondary">Datensätze laden</button>
+    </div>
   </div>
 </div>
 
-<!-- Modals -->
-<div id="exportDialogZeit" class="modal">
+<!-- Modals (für Export) -->
+<div id="exportDialogZeit" class="modal" aria-hidden="true">
   <h2>Exportieren (Tätigkeitsbericht)</h2>
-  <form id="exportFormZeit" class="export-form">
+  <form id="exportFormZeit" class="export-form" onsubmit="return false;">
     <div class="form-group"><label for="monatZeit">Monat:</label><input type="text" id="monatZeit" required></div>
     <div class="form-group"><label for="datumZeit">Datum:</label><input type="date" id="datumZeit" required></div>
     <div class="form-group"><label for="bereichslehrkraftZeit">Bereichslehrkraft:</label><input type="text" id="bereichslehrkraftZeit" required></div>
@@ -154,14 +180,14 @@
       <button type="button" id="exportCsvZeit">Als CSV</button>
       <button type="button" id="exportExcelZeit">Als Excel</button>
       <br><br>
-      <button type="button" id="cancelExportZeit">Abbrechen</button>
+      <button type="button" id="cancelExportZeit" class="btn-secondary">Abbrechen</button>
     </div>
   </form>
 </div>
 
-<div id="exportDialogKm" class="modal">
+<div id="exportDialogKm" class="modal" aria-hidden="true">
   <h2>Exportieren (Fahrtkostenabrechnung)</h2>
-  <form id="exportFormKm" class="export-form">
+  <form id="exportFormKm" class="export-form" onsubmit="return false;">
     <div class="form-group"><label for="monatKm">Monat:</label><input type="text" id="monatKm" required></div>
     <div class="form-group"><label for="datumKm">Datum:</label><input type="date" id="datumKm" required></div>
     <div class="form-group"><label for="bereichslehrkraftKm">Bereichslehrkraft:</label><input type="text" id="bereichslehrkraftKm" required></div>
@@ -170,45 +196,52 @@
       <button type="button" id="exportCsvKm">Als CSV</button>
       <button type="button" id="exportExcelKm">Als Excel</button>
       <br><br>
-      <button type="button" id="cancelExportKm">Abbrechen</button>
+      <button type="button" id="cancelExportKm" class="btn-secondary">Abbrechen</button>
     </div>
   </form>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded',()=>{
-  const $=id=>document.getElementById(id);
-  let dataSets=[];
+  const $ = id => document.getElementById(id);
+  let dataSets = [];
 
-  function loadData(){ const saved=localStorage.getItem('dataSets'); if(saved){ dataSets=JSON.parse(saved); updateTable(); } }
-  function saveData(){ localStorage.setItem('dataSets',JSON.stringify(dataSets)); }
-  function formatDateGerman(s){ const d=new Date(s); return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`; }
+  function loadData(){ const saved = localStorage.getItem('dataSets'); if(saved){ try{ dataSets = JSON.parse(saved); }catch(e){ dataSets = []; } updateTable(); } }
+  function saveData(){ localStorage.setItem('dataSets', JSON.stringify(dataSets)); }
+  function formatDateGerman(s){ if(!s) return ''; const d = new Date(s); if(isNaN(d)) return s; return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`; }
   function sumByKey(data,key){ return data.reduce((a,ds)=>a+(+ds[key]||0),0); }
+
   function filterByMonth(data,monthInput){
+    if(!monthInput) return [];
     return data.filter(ds=>{
       const d=new Date(ds.datum);
-      const monatJahr=d.toLocaleString('de-DE',{month:'long',year:'numeric'});
-      return monatJahr.toLowerCase().trim()===monthInput.toLowerCase().trim();
+      if(isNaN(d)) return false;
+      const monatJahr = d.toLocaleString('de-DE',{month:'long',year:'numeric'});
+      return monatJahr.toLowerCase().trim() === monthInput.toLowerCase().trim();
     });
   }
 
-  function getCurrentMonthYear(){
-    const now=new Date();
-    return now.toLocaleString('de-DE',{month:'long',year:'numeric'});
-  }
+  function getCurrentMonthYear(){ const now = new Date(); return now.toLocaleString('de-DE',{month:'long',year:'numeric'}); }
+  function getTodayIso(){ return new Date().toISOString().split('T')[0]; }
 
-  $('dataForm').onsubmit=e=>{
+  // Form submit (add / edit)
+  $('dataForm').onsubmit = e => {
     e.preventDefault();
-    const ds={
-      datum:$('datum').value, name:$('name').value, schule:$('schule').value,
-      tatigkeit:Array.from($('tatigkeit').selectedOptions).map(o=>o.value).join(", "),
-      anmerkungen:$('anmerkungen').value, zeit:$('zeit').value, km:$('km').value
+    const ds = {
+      datum: $('datum').value,
+      name: $('name').value,
+      schule: $('schule').value,
+      tatigkeit: Array.from($('tatigkeit').selectedOptions).map(o => o.value).join(", "),
+      anmerkungen: $('anmerkungen').value,
+      zeit: $('zeit').value,
+      km: $('km').value
     };
 
-    if (e.target.dataset.editIndex !== undefined) {
+    if ('editIndex' in e.target.dataset) {
       dataSets[e.target.dataset.editIndex] = ds;
       delete e.target.dataset.editIndex;
       $('submitBtn').textContent = "Datensatz hinzufügen";
+      $('cancelEditBtn').style.display = "none";
     } else {
       dataSets.push(ds);
     }
@@ -216,71 +249,95 @@ document.addEventListener('DOMContentLoaded',()=>{
     updateTable(); saveData(); e.target.reset();
   };
 
+  // Cancel edit
+  $('cancelEditBtn').onclick = ()=>{
+    delete $('dataForm').dataset.editIndex;
+    $('dataForm').reset();
+    $('submitBtn').textContent = "Datensatz hinzufügen";
+    $('cancelEditBtn').style.display = "none";
+  };
+
+  // Update table
   function updateTable(){
-    $('tableBody').innerHTML='';
-    dataSets.sort((a,b)=>new Date(a.datum)-new Date(b.datum));
+    $('tableBody').innerHTML = '';
+    dataSets.sort((a,b)=>new Date(a.datum) - new Date(b.datum));
     dataSets.forEach((ds,i)=>{
-      $('tableBody').innerHTML+=`
-        <tr>
-          <td>${formatDateGerman(ds.datum)}</td>
-          <td>${ds.name}</td>
-          <td>${ds.schule}</td>
-          <td>${ds.tatigkeit}</td>
-          <td>${ds.anmerkungen}</td>
-          <td>${ds.zeit}</td>
-          <td>${ds.km}</td>
-          <td>
-            <button class="edit-btn" data-i="${i}">Bearbeiten</button>
-            <button class="delete-btn" data-i="${i}">Löschen</button>
-          </td>
-        </tr>`;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${formatDateGerman(ds.datum)}</td>
+        <td>${ds.name}</td>
+        <td>${ds.schule}</td>
+        <td>${ds.tatigkeit}</td>
+        <td>${ds.anmerkungen}</td>
+        <td>${ds.zeit}</td>
+        <td>${ds.km}</td>
+        <td>
+          <button class="edit-btn btn-warning" data-i="${i}">Bearbeiten</button>
+          <button class="delete-btn btn-danger" data-i="${i}">Löschen</button>
+        </td>`;
+      $('tableBody').appendChild(tr);
     });
 
     document.querySelectorAll('.delete-btn').forEach(btn=>{
-      btn.onclick=()=>{ dataSets.splice(btn.dataset.i,1); updateTable(); saveData(); };
+      btn.onclick = ()=>{ dataSets.splice(btn.dataset.i,1); updateTable(); saveData(); };
     });
 
     document.querySelectorAll('.edit-btn').forEach(btn=>{
-      btn.onclick=()=>{
-        const ds=dataSets[btn.dataset.i];
-        $('datum').value=ds.datum;
-        $('name').value=ds.name;
-        $('schule').value=ds.schule;
-        Array.from($('tatigkeit').options).forEach(opt=>{
-          opt.selected=ds.tatigkeit.split(", ").includes(opt.value);
-        });
-        $('anmerkungen').value=ds.anmerkungen;
-        $('zeit').value=ds.zeit;
-        $('km').value=ds.km;
-        $('dataForm').dataset.editIndex=btn.dataset.i;
+      btn.onclick = ()=>{
+        const ds = dataSets[btn.dataset.i];
+        $('datum').value = ds.datum;
+        $('name').value = ds.name;
+        $('schule').value = ds.schule;
+        Array.from($('tatigkeit').options).forEach(opt=>{ opt.selected = ds.tatigkeit.split(", ").includes(opt.value); });
+        $('anmerkungen').value = ds.anmerkungen;
+        $('zeit').value = ds.zeit;
+        $('km').value = ds.km;
+        $('dataForm').dataset.editIndex = btn.dataset.i;
         $('submitBtn').textContent = "Änderungen speichern";
+        $('cancelEditBtn').style.display = "inline-block";
       };
     });
 
-    $('summenAnzeige').textContent=`Gesamtsumme (alle Monate): Zeit=${sumByKey(dataSets,"zeit").toFixed(1)} h, Kilometer=${sumByKey(dataSets,"km").toFixed(1)} km`;
+    $('summenAnzeige').textContent = `Gesamtsumme (alle Monate): Zeit=${sumByKey(dataSets,"zeit").toFixed(1)} h, Kilometer=${sumByKey(dataSets,"km").toFixed(1)} km`;
   }
 
-  // ---- Export unverändert (deine Version) ----
-  function exportPdf(type,month,date,teacher){
-    const { jsPDF }=window.jspdf; const doc=new jsPDF({orientation:"landscape",unit:"mm",format:"a4"});
-    const titles={
-      taetigkeitsbericht:"Berichtsdokument für Bereichslehrkräfte für reisende Kinder und Jugendliche",
-      fahrtkostenabrechnung:"Bereichslehrkräfte für reisende Kinder und Jugendliche – Fahrtkostenabrechnung"
+  // ---- Export functions ----
+  function exportPdf(type, month, date, teacher){
+    if(!month || !date || !teacher){ alert('Bitte Monat, Datum und Bereichslehrkraft angeben.'); return; }
+    const { jsPDF } = window.jspdf; const doc = new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+    const titles = {
+      taetigkeitsbericht: "Berichtsdokument für Bereichslehrkräfte für reisende Kinder und Jugendliche",
+      fahrtkostenabrechnung: "Bereichslehrkräfte für reisende Kinder und Jugendliche – Fahrtkostenabrechnung"
     };
     doc.setFontSize(14); doc.text(titles[type],10,15);
     doc.setFontSize(12);
-    doc.text(`Monat: ${month}`,10,30); doc.text(`Datum: ${formatDateGerman(date)}`,10,40); doc.text(`Bereichslehrkraft: ${teacher}`,10,50);
+    doc.text(`Monat: ${month}`,10,30);
+    doc.text(`Datum: ${formatDateGerman(date)}`,10,40);
+    doc.text(`Bereichslehrkraft: ${teacher}`,10,50);
     doc.text("Unterschrift:",150,50);
-    const filtered=filterByMonth(dataSets,month); const key=type==="taetigkeitsbericht"?"zeit":"km"; const colName=type==="taetigkeitsbericht"?"Zeit (h)":"Kilometer (km)";
-    const tableData=filtered.map(ds=>[formatDateGerman(ds.datum),ds.name,ds.schule,ds.tatigkeit,ds.anmerkungen,ds[key]]);
-    doc.autoTable({startY:60,head:[["Datum","Name","Ort der Beschulung/ Besprechung","Unterstützungsmaßnahmen (s. Rd. Erl. vom 14.10.2005 BASS 15-05 Nr. 21)","Anmerkungen",colName]],body:[...tableData,["","","","","Summe:",sumByKey(filtered,key).toFixed(1)]],styles:{fontSize:10},headStyles:{fillColor:[200,200,200]}});
-    doc.save(`${type}_${month}_${teacher}.pdf`.replace(/\s+/g,"_"));
+
+    const filtered = filterByMonth(dataSets, month);
+    const key = type === 'taetigkeitsbericht' ? 'zeit' : 'km';
+    const colName = type === 'taetigkeitsbericht' ? 'Zeit (h)' : 'Kilometer (km)';
+    const tableData = filtered.map(ds => [formatDateGerman(ds.datum), ds.name, ds.schule, ds.tatigkeit, ds.anmerkungen, ds[key]]);
+
+    doc.autoTable({
+      startY: 60,
+      head: [["Datum","Name","Ort der Beschulung/ Besprechung","Unterstützungsmaßnahmen (s. Rd. Erl. vom 14.10.2005 BASS 15-05 Nr. 21)","Anmerkungen", colName]],
+      body: [...tableData, ["","","","","Summe:", sumByKey(filtered, key).toFixed(1)]],
+      styles: { fontSize: 10 },
+      headStyles: { fillColor: [200,200,200] }
+    });
+
+    const fileName = `${type}_${month}_${teacher}.pdf`.replace(/\s+/g,'_');
+    doc.save(fileName);
   }
 
-  function exportTable(type, month, date, teacher, format) {
+  function exportTable(type, month, date, teacher, format){
+    if(!month || !date || !teacher){ alert('Bitte Monat, Datum und Bereichslehrkraft angeben.'); return; }
     const filtered = filterByMonth(dataSets, month);
-    const key = type === "taetigkeitsbericht" ? "zeit" : "km";
-    const colName = type === "taetigkeitsbericht" ? "Zeit (h)" : "Kilometer (km)";
+    const key = type === 'taetigkeitsbericht' ? 'zeit' : 'km';
+    const colName = type === 'taetigkeitsbericht' ? 'Zeit (h)' : 'Kilometer (km)';
 
     const titles = {
       taetigkeitsbericht: "Berichtsdokument für Bereichslehrkräfte für reisende Kinder und Jugendliche",
@@ -295,63 +352,56 @@ document.addEventListener('DOMContentLoaded',()=>{
       []
     ];
 
-    const headers = ["Datum","Name","Ort der Beschulung/ Besprechung",
-      "Unterstützungsmaßnahmen (s. Rd. Erl. vom 14.10.2005 BASS 15-05 Nr. 21)",
-      "Anmerkungen", colName];
+    const headers = ["Datum","Name","Ort der Beschulung/ Besprechung","Unterstützungsmaßnahmen (s. Rd. Erl. vom 14.10.2005 BASS 15-05 Nr. 21)","Anmerkungen", colName];
 
-    const rows = filtered.map(ds => [
-      formatDateGerman(ds.datum), ds.name, ds.schule, ds.tatigkeit, ds.anmerkungen, ds[key]
-    ]);
+    const rows = filtered.map(ds => [formatDateGerman(ds.datum), ds.name, ds.schule, ds.tatigkeit, ds.anmerkungen, ds[key]]);
+    rows.push(["","","","","Summe:", sumByKey(filtered, key).toFixed(1)]);
 
-    rows.push(["","","","","Summe:", sumByKey(filtered,key).toFixed(1)]);
-
-    if (format === "csv") {
-      const csvContent = [...meta.flat(), headers.join(";"), ...rows.map(r => r.join(";"))].join("\n");
-      const blob = new Blob([csvContent], {type:"text/csv;charset=utf-8;"});
-      const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
-      a.download=`${type}_${month}_${teacher}.csv`.replace(/\s+/g,"_"); a.click();
-    } else if (format === "excel") {
-      const ws=XLSX.utils.aoa_to_sheet([...meta, headers, ...rows]);
-      const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Daten");
-      XLSX.writeFile(wb, `${type}_${month}_${teacher}.xlsx`.replace(/\s+/g,"_"));
+    if(format === 'csv'){
+      const csvLines = [];
+      meta.forEach(m => { if(Array.isArray(m)) csvLines.push(m.join(';')); else csvLines.push(m); });
+      csvLines.push(headers.join(';'));
+      rows.forEach(r => csvLines.push(r.join(';')));
+      const blob = new Blob([csvLines.join('\n')], {type: 'text/csv;charset=utf-8;'});
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${type}_${month}_${teacher}.csv`.replace(/\s+/g,'_'); a.click();
+      URL.revokeObjectURL(a.href);
+    } else if(format === 'excel'){
+      const ws = XLSX.utils.aoa_to_sheet([...meta, headers, ...rows]);
+      const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Daten');
+      XLSX.writeFile(wb, `${type}_${month}_${teacher}.xlsx`.replace(/\s+/g,'_'));
     }
   }
 
-  // ---- Event Listeners für Export ----
-  $("openExportDialogZeit").onclick=()=>{$("exportDialogZeit").style.display="block"; $("monatZeit").value=getCurrentMonthYear();};
-  $("cancelExportZeit").onclick=()=>{$("exportDialogZeit").style.display="none";};
-  $("exportPdfZeit").onclick=()=>{exportPdf("taetigkeitsbericht",$("monatZeit").value,$("datumZeit").value,$("bereichslehrkraftZeit").value); $("exportDialogZeit").style.display="none";};
-  $("exportCsvZeit").onclick=()=>{exportTable("taetigkeitsbericht",$("monatZeit").value,$("datumZeit").value,$("bereichslehrkraftZeit").value,"csv"); $("exportDialogZeit").style.display="none";};
-  $("exportExcelZeit").onclick=()=>{exportTable("taetigkeitsbericht",$("monatZeit").value,$("datumZeit").value,$("bereichslehrkraftZeit").value,"excel"); $("exportDialogZeit").style.display="none";};
+  // ---- Event listeners for export dialogs ----
+  $('openExportDialogZeit').onclick = ()=>{ $('exportDialogZeit').style.display = 'block'; $('monatZeit').value = getCurrentMonthYear(); $('datumZeit').value = getTodayIso(); };
+  $('cancelExportZeit').onclick = ()=>{ $('exportDialogZeit').style.display = 'none'; };
+  $('exportPdfZeit').onclick = ()=>{ exportPdf('taetigkeitsbericht', $('monatZeit').value, $('datumZeit').value, $('bereichslehrkraftZeit').value); $('exportDialogZeit').style.display = 'none'; };
+  $('exportCsvZeit').onclick = ()=>{ exportTable('taetigkeitsbericht', $('monatZeit').value, $('datumZeit').value, $('bereichslehrkraftZeit').value, 'csv'); $('exportDialogZeit').style.display = 'none'; };
+  $('exportExcelZeit').onclick = ()=>{ exportTable('taetigkeitsbericht', $('monatZeit').value, $('datumZeit').value, $('bereichslehrkraftZeit').value, 'excel'); $('exportDialogZeit').style.display = 'none'; };
 
-  $("openExportDialogKm").onclick=()=>{$("exportDialogKm").style.display="block"; $("monatKm").value=getCurrentMonthYear();};
-  $("cancelExportKm").onclick=()=>{$("exportDialogKm").style.display="none";};
-  $("exportPdfKm").onclick=()=>{exportPdf("fahrtkostenabrechnung",$("monatKm").value,$("datumKm").value,$("bereichslehrkraftKm").value); $("exportDialogKm").style.display="none";};
-  $("exportCsvKm").onclick=()=>{exportTable("fahrtkostenabrechnung",$("monatKm").value,$("datumKm").value,$("bereichslehrkraftKm").value,"csv"); $("exportDialogKm").style.display="none";};
-  $("exportExcelKm").onclick=()=>{exportTable("fahrtkostenabrechnung",$("monatKm").value,$("datumKm").value,$("bereichslehrkraftKm").value,"excel"); $("exportDialogKm").style.display="none";};
+  $('openExportDialogKm').onclick = ()=>{ $('exportDialogKm').style.display = 'block'; $('monatKm').value = getCurrentMonthYear(); $('datumKm').value = getTodayIso(); };
+  $('cancelExportKm').onclick = ()=>{ $('exportDialogKm').style.display = 'none'; };
+  $('exportPdfKm').onclick = ()=>{ exportPdf('fahrtkostenabrechnung', $('monatKm').value, $('datumKm').value, $('bereichslehrkraftKm').value); $('exportDialogKm').style.display = 'none'; };
+  $('exportCsvKm').onclick = ()=>{ exportTable('fahrtkostenabrechnung', $('monatKm').value, $('datumKm').value, $('bereichslehrkraftKm').value, 'csv'); $('exportDialogKm').style.display = 'none'; };
+  $('exportExcelKm').onclick = ()=>{ exportTable('fahrtkostenabrechnung', $('monatKm').value, $('datumKm').value, $('bereichslehrkraftKm').value, 'excel'); $('exportDialogKm').style.display = 'none'; };
 
-  // ---- NEUE Funktionen für Datensätze sichern / laden ----
-  $("backupBtn").onclick=()=>{
-    const blob=new Blob([JSON.stringify(dataSets,null,2)],{type:"application/json"});
-    const a=document.createElement("a");
-    a.href=URL.createObjectURL(blob);
-    a.download="daten.json";
-    a.click();
+  // ---- Backup / Restore ----
+  $('backupBtn').onclick = ()=>{
+    const blob = new Blob([JSON.stringify(dataSets, null, 2)], {type: 'application/json'});
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'daten.json'; a.click(); URL.revokeObjectURL(a.href);
   };
-  $("restoreBtn").onclick=()=>{$("restoreInput").click();};
-  $("restoreInput").onchange=e=>{
-    const file=e.target.files[0]; if(!file)return;
-    const reader=new FileReader();
-    reader.onload=ev=>{
-      try{
-        dataSets=JSON.parse(ev.target.result);
-        saveData(); updateTable();
-        alert("Datensätze erfolgreich geladen!");
-      }catch(err){ alert("Fehler beim Laden der Datei."); }
+  $('restoreBtn').onclick = ()=>{ $('restoreInput').click(); };
+  $('restoreInput').onchange = e => {
+    const file = e.target.files[0]; if(!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try{ dataSets = JSON.parse(ev.target.result); saveData(); updateTable(); alert('Datensätze erfolgreich geladen!'); }
+      catch(err){ alert('Fehler beim Laden der Datei.'); }
     };
     reader.readAsText(file);
   };
 
+  // initial load
   loadData();
 });
 </script>
