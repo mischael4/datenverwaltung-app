@@ -54,8 +54,8 @@ tr:nth-child(even){ background:#fcfcfc; }
   input,textarea,button { font-size:16px; }
   button { width:100%; padding:14px; font-size:18px; }
   table { display:block; overflow-x:auto; white-space:nowrap; }
-  th,td { font-size:14px; padding:4px 6px; line-height:1.3; } /* kompaktere Zeilenhöhe */
-  .tatigkeit-cell { font-size:14px !important; line-height:1.3 !important; } /* kompakter und gleiche Schriftgröße */
+  th,td { font-size:14px; padding:4px 6px; line-height:1.3; }
+  .tatigkeit-cell { font-size:14px !important; line-height:1.3 !important; }
 }
 #tatigkeit { height:260px; font-size:13px; line-height:1.4; padding:6px; border-radius:6px; }
 #tatigkeit option { padding:4px 6px; border-bottom:1px solid #eee; }
@@ -162,6 +162,22 @@ tr:nth-child(even){ background:#fcfcfc; }
 <script>
 document.addEventListener('DOMContentLoaded',()=>{
   const $=id=>document.getElementById(id);
+  
+  const showMessage=(msg)=>{ 
+    const el=document.createElement('div'); 
+    el.textContent=msg; 
+    el.style.position='fixed'; 
+    el.style.top='10px'; 
+    el.style.left='50%'; 
+    el.style.transform='translateX(-50%)'; 
+    el.style.background='#27ae60'; 
+    el.style.color='white'; 
+    el.style.padding='10px 20px'; 
+    el.style.borderRadius='6px'; 
+    el.style.zIndex='2000'; 
+    document.body.appendChild(el); 
+    setTimeout(()=>el.remove(),2000); 
+  };
 
   const savedName = localStorage.getItem('lehrkraftName');
   if(savedName) $('name').value = savedName;
@@ -169,7 +185,18 @@ document.addEventListener('DOMContentLoaded',()=>{
   let dataSets=[];
   const formatDateGerman=s=>{ const d=new Date(s); return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`; };
   const sumByKey=(data,key)=>data.reduce((a,ds)=>a+(+ds[key]||0),0);
-  const filterByMonth=(data,month)=>data.filter(ds=>new Date(ds.datum).toLocaleString('de-DE',{month:'long',year:'numeric'}).toLowerCase().trim()===month.toLowerCase().trim());
+
+  // Robuster Monatsfilter: Vergleich über Monat und Jahr
+  const filterByMonth=(data,monthText)=>{
+    const [monthName, yearText]=monthText.trim().split(/\s+/);
+    const monthNum = new Date(`${monthName} 1, ${yearText}`).getMonth();
+    const yearNum = parseInt(yearText,10);
+    return data.filter(ds=>{
+      const d=new Date(ds.datum);
+      return d.getMonth()===monthNum && d.getFullYear()===yearNum;
+    });
+  };
+  
   const getCurrentMonthYear=()=>new Date().toLocaleString('de-DE',{month:'long',year:'numeric'});
 
   $('datum').valueAsDate = new Date();
@@ -181,10 +208,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   $('dataForm').onsubmit=e=>{
     e.preventDefault();
     const nameValue = $('name').value;
-
-    if(!localStorage.getItem('lehrkraftName')) {
-      localStorage.setItem('lehrkraftName', nameValue);
-    }
+    if(!localStorage.getItem('lehrkraftName')) localStorage.setItem('lehrkraftName', nameValue);
     $('name').value = localStorage.getItem('lehrkraftName');
 
     const ds={
@@ -193,8 +217,11 @@ document.addEventListener('DOMContentLoaded',()=>{
       anmerkungen:$('anmerkungen').value, strecke:$('strecke').value,
       zeit:$('zeit').value, km:$('km').value
     };
-    if(e.target.dataset.editIndex!==undefined){ dataSets[e.target.dataset.editIndex]=ds; delete e.target.dataset.editIndex; $('submitBtn').textContent="Datensatz hinzufügen"; }
-    else dataSets.push(ds);
+    if(e.target.dataset.editIndex!==undefined){
+      dataSets[e.target.dataset.editIndex]=ds; 
+      delete e.target.dataset.editIndex; 
+      $('submitBtn').textContent="Datensatz hinzufügen"; 
+    } else dataSets.push(ds);
     updateTable(); saveData(); e.target.reset(); $('datum').valueAsDate=new Date();
   };
 
@@ -217,9 +244,38 @@ document.addEventListener('DOMContentLoaded',()=>{
           <button class="copy-btn" data-i="${i}">Kopieren</button>
         </td>
       </tr>`);
-    document.querySelectorAll('.delete-btn').forEach(btn=>{ btn.onclick=()=>{ dataSets.splice(btn.dataset.i,1); updateTable(); saveData(); }; });
-    document.querySelectorAll('.edit-btn').forEach(btn=>{ btn.onclick=()=>{ const ds=dataSets[btn.dataset.i]; $('datum').value=ds.datum; $('name').value=ds.name; $('schule').value=ds.schule; Array.from($('tatigkeit').options).forEach(opt=>opt.selected=ds.tatigkeit.split(", ").includes(opt.value)); $('anmerkungen').value=ds.anmerkungen; $('strecke').value=ds.strecke; $('zeit').value=ds.zeit; $('km').value=ds.km; $('dataForm').dataset.editIndex=btn.dataset.i; $('submitBtn').textContent="Änderungen speichern"; }; });
-    document.querySelectorAll('.copy-btn').forEach(btn=>{ btn.onclick=()=>{ let copy={...dataSets[btn.dataset.i]}; copy.datum=new Date().toISOString().split("T")[0]; dataSets.push(copy); updateTable(); saveData(); }; });
+    
+    document.querySelectorAll('.delete-btn').forEach(btn=>{
+      btn.onclick=()=>{ dataSets.splice(btn.dataset.i,1); updateTable(); saveData(); };
+    });
+    document.querySelectorAll('.edit-btn').forEach(btn=>{
+      btn.onclick=()=>{
+        const ds=dataSets[btn.dataset.i]; 
+        $('datum').value=ds.datum; 
+        $('name').value=ds.name; 
+        $('schule').value=ds.schule; 
+        Array.from($('tatigkeit').options).forEach(opt=>opt.selected=ds.tatigkeit.split(", ").includes(opt.value)); 
+        $('anmerkungen').value=ds.anmerkungen; 
+        $('strecke').value=ds.strecke; 
+        $('zeit').value=ds.zeit; 
+        $('km').value=ds.km; 
+        $('dataForm').dataset.editIndex=btn.dataset.i; 
+        $('submitBtn').textContent="Änderungen speichern"; 
+        window.scrollTo({top:0,behavior:'smooth'});
+        showMessage("Datensatz ausgewählt – jetzt bearbeiten!");
+      };
+    });
+    document.querySelectorAll('.copy-btn').forEach(btn=>{
+      btn.onclick=()=>{
+        let copy={...dataSets[btn.dataset.i]}; 
+        copy.datum=new Date().toISOString().split("T")[0]; 
+        dataSets.push(copy); 
+        updateTable(); 
+        saveData(); 
+        window.scrollTo({top:0,behavior:'smooth'});
+        showMessage("Datensatz wurde kopiert und kann bearbeitet werden.");
+      };
+    });
     $('summenAnzeige').textContent=`Gesamtsumme (alle Monate): Zeit=${sumByKey(dataSets,"zeit").toFixed(1)} h, Kilometer=${sumByKey(dataSets,"km").toFixed(1)} km`;
   }
 
@@ -245,12 +301,12 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(type === "taetigkeitsbericht"){
       head = [["Datum","Name","Ort","Unterstützungsmaßnahmen","Anmerkungen","Strecke","Zeit (h)"]];
       body = filtered.map(ds=>[
-        formatDateGerman(ds.datum), ds.name, ds.schule, ds.tatigkeit, ds.anmerkungen, ds.strecke, ds.zeit
+        formatDateGerman(ds.datum), ds.name, ds.schule, doc.splitTextToSize(ds.tatigkeit,50), ds.anmerkungen, ds.strecke, ds.zeit
       ]);
     } else {
       head = [["Datum","Name","Ort","Unterstützungsmaßnahmen","Anmerkungen","Strecke","Km"]];
       body = filtered.map(ds=>[
-        formatDateGerman(ds.datum), ds.name, ds.schule, ds.tatigkeit, ds.anmerkungen, ds.strecke, ds.km
+        formatDateGerman(ds.datum), ds.name, ds.schule, doc.splitTextToSize(ds.tatigkeit,50), ds.anmerkungen, ds.strecke, ds.km
       ]);
     }
 
@@ -286,10 +342,22 @@ document.addEventListener('DOMContentLoaded',()=>{
   $('exportPdfKm').onclick=()=>{ exportPdf("fahrtkostenabrechnung",$('monatKm').value,$('datumKm').value,$('bereichslehrkraftKm').value); };
 
   $('backupBtn').onclick=()=>{ const a=document.createElement('a'); a.href='data:text/json;charset=utf-8,'+encodeURIComponent(JSON.stringify(dataSets)); a.download='data_backup.json'; a.click(); };
+  
   $('restoreBtn').onclick=()=>{$('restoreInput').click();};
-  $('restoreInput').onchange=e=>{ const reader=new FileReader(); reader.onload=fe=>{ dataSets=JSON.parse(fe.target.result); updateTable(); saveData(); }; reader.readAsText(e.target.files[0]); };
+  $('restoreInput').onchange=e=>{
+    const reader=new FileReader(); 
+    reader.onload=fe=>{
+      try {
+        const parsed = JSON.parse(fe.target.result);
+        if(!Array.isArray(parsed)) throw new Error("Ungültige Datei");
+        dataSets=parsed; updateTable(); saveData();
+      } catch(err){
+        alert("Fehler beim Laden: Ungültige JSON-Datei");
+      }
+    }; 
+    reader.readAsText(e.target.files[0]); 
+  };
 
-  // Suche / Filter
   $('searchInput').oninput = e => {
     const term = e.target.value.toLowerCase();
     document.querySelectorAll('#tableBody tr').forEach(tr => {
