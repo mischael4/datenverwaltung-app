@@ -246,7 +246,15 @@ document.addEventListener('DOMContentLoaded',()=>{
       </tr>`);
     
     document.querySelectorAll('.delete-btn').forEach(btn=>{
-      btn.onclick=()=>{ dataSets.splice(btn.dataset.i,1); updateTable(); saveData(); };
+  btn.onclick=()=>{
+    if(confirm("Möchten Sie diesen Datensatz wirklich löschen?")) {
+      dataSets.splice(btn.dataset.i,1);
+      updateTable();
+      saveData();
+    }
+  };
+});
+
     });
     document.querySelectorAll('.edit-btn').forEach(btn=>{
       btn.onclick=()=>{
