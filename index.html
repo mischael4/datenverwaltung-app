@@ -36,10 +36,7 @@ table { width:100%; border-collapse:collapse; margin-top:20px; font-size:14px; }
 th,td { border:1px solid #eee; padding:10px; text-align:left; vertical-align:top; }
 th { background:#f1f1f1; font-weight:600; color:#333; }
 tr:nth-child(even){ background:#fcfcfc; }
-.tatigkeit-cell {
-  font-size: 14px;
-  line-height: 1.4;
-}
+.tatigkeit-cell { font-size: 14px; line-height: 1.4; }
 .summary { margin-top:10px; margin-bottom:15px; font-weight:bold; text-align:right; color:#444; font-size:13px; }
 .edit-btn { background:#f39c12; padding:4px 6px; font-size:12px; margin-bottom:4px; width:99%; }
 .edit-btn:hover { background:#d68910; }
@@ -48,6 +45,7 @@ tr:nth-child(even){ background:#fcfcfc; }
 .copy-btn { background:#2980b9; padding:4px 6px; font-size:12px; width:99%; }
 .copy-btn:hover { background:#21618c; }
 .modal { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; padding:25px; border:1px solid #ccc; border-radius:12px; z-index:1000; width:min(700px,90vw); max-height:90vh; overflow:auto; box-shadow:0 10px 30px rgba(0,0,0,0.1); }
+
 @media (max-width:768px) {
   body { margin:10px; font-size:16px; }
   .form-container, .table-container { padding:15px; }
@@ -57,7 +55,11 @@ tr:nth-child(even){ background:#fcfcfc; }
   th,td { font-size:14px; padding:4px 6px; line-height:1.3; }
   .tatigkeit-cell { font-size:14px !important; line-height:1.3 !important; }
 }
-#tatigkeit { height:260px; font-size:13px; line-height:1.4; padding:6px; border-radius:6px; }
+@media (max-width:480px) {
+  th, td { font-size:12px; padding:3px 5px; }
+  #tatigkeit { font-size:12px; height:140px; }
+}
+#tatigkeit { height:180px; font-size:13px; line-height:1.4; padding:6px; border-radius:6px; }
 #tatigkeit option { padding:4px 6px; border-bottom:1px solid #eee; }
 #tatigkeit option:last-child { border-bottom:none; }
 #searchInput { margin-top:10px; padding:8px; border:1px solid #ccc; border-radius:6px; width:100%; }
@@ -65,196 +67,323 @@ tr:nth-child(even){ background:#fcfcfc; }
 </head>
 <body>
 <div class="container">
-  <h2>Datenverwaltung - Bereichslehrkräfte Köln</h2>
+<h2>Datenverwaltung - Bereichslehrkräfte Köln</h2>
 
-  <!-- Formular -->
-  <div class="form-container">
-    <h4>Neuen Datensatz hinzufügen</h4>
-    <form id="dataForm">
-      <div class="form-group"><label for="datum">Datum:</label><input type="date" id="datum" required></div>
-      <div class="form-group"><label for="name">Name:</label><input type="text" id="name" required></div>
-      <div class="form-group"><label for="schule">Ort der Beschulung/ Besprechung:</label><input type="text" id="schule" required></div>
-      <div class="form-group">
-        <label for="tatigkeit">Unterstützungsmaßnahmen <span class="hint">(Mehrfachauswahl mit STRG/CMD)</span></label>
-        <select id="tatigkeit" multiple required>
-          <option>Förderunterricht</option>
-          <option>Anmeldung durchreisender SchülerInnen an örtlichen Stammschulen</option>
-          <option>Beratung von Bereichslehrkräften</option>
-          <option>Beratung einer Stamm- oder Stützpunktschule</option>
-          <option>Beratung von Eltern, Kindern und Schulen</option>
-          <option>Beratung von Lehrkräften</option>
-          <option>Beratung zur schulischen Perspektive</option>
-          <option>Datenerfassung DigLu - Anmeldung, Aktualisierung, Pflege und Registrierung</option>
-          <option>Dienstbesprechung bei der Bezirksregierung</option>
-          <option>Dienstbesprechung</option>
-          <option>Dokumentation</option>
-          <option>Entwicklung und Mitwirkung an innovativen Unterrichtsverfahren</option>
-          <option>geregelte Übergabe von SchülerInnen an andere Schulen und Bereichslehrkräfte</option>
-          <option>Herstellung von Kontakten zwischen Eltern und Schulen</option>
-          <option>Kontrolle der Lernstandsberichte, Einträge Schultagebuch (DigLu)</option>
-          <option>Organisation von Medien und Unterrichtsmaterialien für den Online-Unterricht</option>
-          <option>Organisation von Medien und Unterrichtsmaterialien für die Reise</option>
-          <option>Sammlung und Entwicklung von Unterrichtsmaterial</option>
-          <option>Sprechstundenbereitschaft</option>
-          <option>Teilnahme an der BuFo für BLK</option>
-          <option>Teilnahme BLK Landestreffen</option>
-          <option>terminliche Koordination</option>
-          <option>Unterstützung von SchülerInnen bei der Vorbereitung auf zentrale Prüfungen</option>
-          <option>Vorbereitung der Stützpunktschulen auf den Schulbesuch</option>
-          <option>besondere Koordinatorentätigkeiten</option>
-          <option>sonstiges</option>
-          <option>erkrankt</option>
-        </select>
-      </div>
-      <div class="form-group"><label for="anmerkungen">Anmerkungen:</label><textarea id="anmerkungen" rows="3"></textarea></div>
-      <div class="form-group"><label for="strecke">Strecke:</label><input type="text" id="strecke"></div>
-      <div class="form-group"><label for="zeit">Zeit (h):</label><input type="number" id="zeit" step="0.1" required></div>
-      <div class="form-group"><label for="km">Kilometer (km):</label><input type="number" id="km" step="0.1" required></div>
-      <button type="submit" id="submitBtn">Datensatz hinzufügen</button>
-    </form>
-  </div>
-
-  <!-- Tabelle -->
-  <div class="table-container">
-    <h2>Datensätze</h2>
-    <input type="text" id="searchInput" placeholder="Suche nach Text..." />
-    <table>
-      <thead>
-        <tr>
-          <th>Datum</th><th>Name</th><th>Ort</th><th>Unterstützungsmaßnahmen</th>
-          <th>Anmerkungen</th><th>Strecke</th><th>Zeit</th><th>Km</th><th>Aktion</th>
-        </tr>
-      </thead>
-      <tbody id="tableBody"></tbody>
-    </table>
-    <div id="summenAnzeige" class="summary"></div>
-    <button id="openExportDialogZeit">Exportieren (Tätigkeitsbericht)</button>
-    <button id="openExportDialogKm">Exportieren (Fahrtkostenabrechnung)</button>
-    <button id="backupBtn" class="data-btn">Datensätze sichern</button>
-    <input type="file" id="restoreInput" style="display:none" />
-    <button id="restoreBtn" class="data-btn">Datensätze laden</button>
-  </div>
+<div class="form-container">
+<h4>Neuen Datensatz hinzufügen</h4>
+<form id="dataForm">
+<div class="form-group"><label for="datum">Datum:</label><input type="date" id="datum" required></div>
+<div class="form-group"><label for="name">Name:</label><input type="text" id="name" required></div>
+<div class="form-group"><label for="schule">Ort der Beschulung/ Besprechung:</label><input type="text" id="schule" required></div>
+<div class="form-group">
+<label for="tatigkeit">Unterstützungsmaßnahmen <span class="hint">(Mehrfachauswahl mit STRG/CMD)</span></label>
+<select id="tatigkeit" multiple required>
+<option>Förderunterricht</option>
+<option>Anmeldung durchreisender SchülerInnen an örtlichen Stammschulen</option>
+<option>Beratung von Bereichslehrkräften</option>
+<option>Beratung einer Stamm- oder Stützpunktschule</option>
+<option>Beratung von Eltern, Kindern und Schulen</option>
+<option>Beratung von Lehrkräften</option>
+<option>Beratung zur schulischen Perspektive</option>
+<option>Datenerfassung DigLu - Anmeldung, Aktualisierung, Pflege und Registrierung</option>
+<option>Dienstbesprechung bei der Bezirksregierung</option>
+<option>Dienstbesprechung</option>
+<option>Dokumentation</option>
+<option>Entwicklung und Mitwirkung an innovativen Unterrichtsverfahren</option>
+<option>geregelte Übergabe von SchülerInnen an andere Schulen und Bereichslehrkräfte</option>
+<option>Herstellung von Kontakten zwischen Eltern und Schulen</option>
+<option>Kontrolle der Lernstandsberichte, Einträge Schultagebuch (DigLu)</option>
+<option>Organisation von Medien und Unterrichtsmaterialien für den Online-Unterricht</option>
+<option>Organisation von Medien und Unterrichtsmaterialien für die Reise</option>
+<option>Sammlung und Entwicklung von Unterrichtsmaterial</option>
+<option>Sprechstundenbereitschaft</option>
+<option>Teilnahme an der BuFo für BLK</option>
+<option>Teilnahme BLK Landestreffen</option>
+<option>terminliche Koordination</option>
+<option>Unterstützung von SchülerInnen bei der Vorbereitung auf zentrale Prüfungen</option>
+<option>Vorbereitung der Stützpunktschulen auf den Schulbesuch</option>
+<option>besondere Koordinatorentätigkeiten</option>
+<option>sonstiges</option>
+<option>erkrankt</option>
+</select>
+</div>
+<div class="form-group"><label for="anmerkungen">Anmerkungen:</label><textarea id="anmerkungen" rows="3"></textarea></div>
+<div class="form-group"><label for="strecke">Strecke:</label><input type="text" id="strecke"></div>
+<div class="form-group"><label for="zeit">Zeit (h):</label><input type="number" id="zeit" step="0.1" min="0" required></div>
+<div class="form-group"><label for="km">Kilometer (km):</label><input type="number" id="km" step="0.1" min="0" required></div>
+<button type="submit" id="submitBtn">Datensatz hinzufügen</button>
+</form>
 </div>
 
-<!-- PDF-Export Modals -->
+<div class="table-container">
+<h2>Datensätze</h2>
+<input type="text" id="searchInput" placeholder="Suche nach Text..." />
+<table>
+<thead>
+<tr>
+<th>Datum</th><th>Name</th><th>Ort</th><th>Unterstützungsmaßnahmen</th>
+<th>Anmerkungen</th><th>Strecke</th><th>Zeit</th><th>Km</th><th>Aktion</th>
+</tr>
+</thead>
+<tbody id="tableBody"></tbody>
+</table>
+<div id="summenAnzeige" class="summary"></div>
+<button id="openExportDialogZeit">Exportieren (Tätigkeitsbericht)</button>
+<button id="openExportDialogKm">Exportieren (Fahrtkostenabrechnung)</button>
+<button id="backupBtn" class="data-btn">Datensätze sichern</button>
+<input type="file" id="restoreInput" style="display:none" />
+<button id="restoreBtn" class="data-btn">Datensätze laden</button>
+</div>
+
+<!-- Export Modals -->
 <div id="exportDialogZeit" class="modal">
-  <h2>Exportieren (Tätigkeitsbericht)</h2>
-  <form>
-    <div class="form-group"><label>Monat:</label><input type="text" id="monatZeit" required></div>
-    <div class="form-group"><label>Datum:</label><input type="date" id="datumZeit" required></div>
-    <div class="form-group"><label>Bereichslehrkraft:</label><input type="text" id="bereichslehrkraftZeit" required></div>
-    <button type="button" id="exportPdfZeit">Als PDF</button>
-    <button type="button" id="cancelExportZeit" class="cancel-btn">Abbrechen</button>
-  </form>
+<h2>Exportieren (Tätigkeitsbericht)</h2>
+<form>
+<div class="form-group"><label>Monat:</label><input type="text" id="monatZeit" required></div>
+<div class="form-group"><label>Datum:</label><input type="date" id="datumZeit" required></div>
+<div class="form-group"><label>Bereichslehrkraft:</label><input type="text" id="bereichslehrkraftZeit" required></div>
+<button type="button" id="exportPdfZeit">Als PDF</button>
+<button type="button" id="cancelExportZeit" class="cancel-btn">Abbrechen</button>
+</form>
 </div>
 
 <div id="exportDialogKm" class="modal">
-  <h2>Exportieren (Fahrtkostenabrechnung)</h2>
-  <form>
-    <div class="form-group"><label>Monat:</label><input type="text" id="monatKm" required></div>
-    <div class="form-group"><label>Datum:</label><input type="date" id="datumKm" required></div>
-    <div class="form-group"><label>Bereichslehrkraft:</label><input type="text" id="bereichslehrkraftKm" required></div>
-    <button type="button" id="exportPdfKm">Als PDF</button>
-    <button type="button" id="cancelExportKm" class="cancel-btn">Abbrechen</button>
-  </form>
+<h2>Exportieren (Fahrtkostenabrechnung)</h2>
+<form>
+<div class="form-group"><label>Monat:</label><input type="text" id="monatKm" required></div>
+<div class="form-group"><label>Datum:</label><input type="date" id="datumKm" required></div>
+<div class="form-group"><label>Bereichslehrkraft:</label><input type="text" id="bereichslehrkraftKm" required></div>
+<button type="button" id="exportPdfKm">Als PDF</button>
+<button type="button" id="cancelExportKm" class="cancel-btn">Abbrechen</button>
+</form>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-  const $ = id => document.getElementById(id);
+const $ = id => document.getElementById(id);
 
-  const showMessage = (msg) => { 
-    const el = document.createElement('div'); 
-    el.textContent = msg; 
-    el.style.position = 'fixed'; 
-    el.style.top = '10px'; 
-    el.style.left = '50%'; 
-    el.style.transform = 'translateX(-50%)'; 
-    el.style.background = '#27ae60'; 
-    el.style.color = 'white'; 
-    el.style.padding = '10px 20px'; 
-    el.style.borderRadius = '6px'; 
-    el.style.zIndex = '2000'; 
-    document.body.appendChild(el); 
-    setTimeout(() => el.remove(), 2000); 
-  };
+const showMessage = msg => { 
+  const el = document.createElement('div'); 
+  el.textContent = msg; 
+  el.style.position = 'fixed'; 
+  el.style.top = '10px'; 
+  el.style.left = '50%'; 
+  el.style.transform = 'translateX(-50%)'; 
+  el.style.background = '#27ae60'; 
+  el.style.color = 'white'; 
+  el.style.padding = '10px 20px'; 
+  el.style.borderRadius = '6px'; 
+  el.style.zIndex = '2000'; 
+  document.body.appendChild(el); 
+  setTimeout(() => el.remove(), 2000); 
+};
 
-  const savedName = localStorage.getItem('lehrkraftName');
-  if(savedName) $('name').value = savedName;
+const savedName = localStorage.getItem('lehrkraftName');
+if(savedName) $('name').value = savedName;
 
-  let dataSets = [];
-  const formatDateGerman = s => { 
-    const d = new Date(s); 
-    return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`; 
-  };
-  const sumByKey = (data, key) => data.reduce((a, ds) => a + (+ds[key]||0), 0);
+let dataSets = [];
+const formatDateGerman = s => { const d = new Date(s); return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`; };
+const sumByKey = (data, key) => data.reduce((a, ds) => a + (+ds[key]||0), 0);
+const filterByMonth = (data, monthText) => {
+  const [monthName, yearText] = monthText.trim().split(/\s+/);
+  const monthNum = new Date(`${monthName} 1, ${yearText}`).getMonth();
+  const yearNum = parseInt(yearText, 10);
+  return data.filter(ds => {
+    const d = new Date(ds.datum);
+    return d.getMonth() === monthNum && d.getFullYear() === yearNum;
+  });
+};
+const getCurrentMonthYear = () => new Date().toLocaleString('de-DE', {month:'long', year:'numeric'});
+$('datum').valueAsDate = new Date();
+$('monatZeit').value = $('monatKm').value = getCurrentMonthYear();
 
-  const filterByMonth = (data, monthText) => {
-    const [monthName, yearText] = monthText.trim().split(/\s+/);
-    const monthNum = new Date(`${monthName} 1, ${yearText}`).getMonth();
-    const yearNum = parseInt(yearText, 10);
-    return data.filter(ds => {
-      const d = new Date(ds.datum);
-      return d.getMonth() === monthNum && d.getFullYear() === yearNum;
+function loadData() {
+  const saved = localStorage.getItem('dataSets');
+  if(saved) { 
+    dataSets = JSON.parse(saved); 
+
+    dataSets.forEach(ds => {
+      // Falls tatigkeit ein String ist, in Array umwandeln
+      if(!Array.isArray(ds.tatigkeit)) {
+        // Trenne an Kommas, die auf Großbuchstaben folgen (alte Daten)
+        ds.tatigkeit = ds.tatigkeit.split(/, ?(?=[A-ZÄÖÜ])/).map(s => s.trim());
+      }
+      // Optional: sicherstellen, dass jede Tätigkeit ein String ist
+      ds.tatigkeit = ds.tatigkeit.map(t => String(t));
     });
+
+    updateTable(); 
+  }
+}
+
+// ... Funktionen für Form Submission, UpdateTable, Edit, Delete, Copy, Backup, Restore wie bisher ...
+
+// PDF Export mit Semikolon und Untereinander
+function exportPdf(type, month, date, teacher){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({orientation:"landscape", unit:"mm", format:"a4"});
+  const titles = {
+    taetigkeitsbericht: "Berichtsdokument für Bereichslehrkräfte für reisende Kinder und Jugendliche",
+    fahrtkostenabrechnung: "Bereichslehrkräfte für reisende Kinder und Jugendliche – Fahrtkostenabrechnung"
   };
+  doc.setFontSize(14);
+  doc.text(titles[type], 10, 15);
+  doc.setFontSize(12);
+  doc.text(`Monat: ${month}`, 10, 30);
+  doc.text(`Datum: ${formatDateGerman(date)}`, 10, 40);
+  doc.text(`Bereichslehrkraft: ${teacher}`, 10, 50);
+  doc.text("Unterschrift:", 150, 50);
 
-  const getCurrentMonthYear = () => new Date().toLocaleString('de-DE', {month:'long', year:'numeric'});
-
-  $('datum').valueAsDate = new Date();
-  $('monatZeit').value = $('monatKm').value = getCurrentMonthYear();
-
-  function loadData() {
-    const saved = localStorage.getItem('dataSets');
-    if(saved) { dataSets = JSON.parse(saved); updateTable(); }
+  const filtered = filterByMonth(dataSets, month);
+  let head, body;
+  if(type === "taetigkeitsbericht"){
+    head = [["Datum","Name","Ort","Unterstützungsmaßnahmen","Anmerkungen","Strecke","Zeit (h)"]];
+    body = filtered.map(ds => [
+      formatDateGerman(ds.datum),
+      ds.name,
+      ds.schule,
+      ds.tatigkeit.map(t => t+"• ").join("\n"),
+      ds.anmerkungen,
+      ds.strecke,
+      ds.zeit
+    ]);
+  } else {
+    head = [["Datum","Name","Ort","Unterstützungsmaßnahmen","Anmerkungen","Strecke","Km"]];
+    body = filtered.map(ds => [
+      formatDateGerman(ds.datum),
+      ds.name,
+      ds.schule,
+      ds.tatigkeit.map(t => t+";").join("\n"),
+      ds.anmerkungen,
+      ds.strecke,
+      ds.km
+    ]);
   }
 
-  function saveData() {
-    localStorage.setItem('dataSets', JSON.stringify(dataSets));
-  }
-
-  $('dataForm').onsubmit = e => {
-    e.preventDefault();
-    const nameValue = $('name').value;
-    if(!localStorage.getItem('lehrkraftName')) localStorage.setItem('lehrkraftName', nameValue);
-    $('name').value = localStorage.getItem('lehrkraftName');
-
-    const ds = {
-      datum: $('datum').value,
-      name: nameValue,
-      schule: $('schule').value,
-      tatigkeit: Array.from($('tatigkeit').selectedOptions).map(o => o.value).join(", "),
-      anmerkungen: $('anmerkungen').value,
-      strecke: $('strecke').value,
-      zeit: $('zeit').value,
-      km: $('km').value
-    };
-
-    if(e.target.dataset.editIndex !== undefined){
-      dataSets[e.target.dataset.editIndex] = ds;
-      delete e.target.dataset.editIndex;
-      $('submitBtn').textContent = "Datensatz hinzufügen";
-      showMessage("Datensatz erfolgreich bearbeitet!");
-    } else {
-      dataSets.push(ds);
-      showMessage("Datensatz erfolgreich hinzugefügt!");
+  doc.autoTable({
+    startY: 60,
+    head: head,
+    body: body,
+    theme: "grid",
+    styles: { fontSize: 12 },
+    didDrawPage: function(data){
+      const pageCount = doc.internal.getNumberOfPages();
+      doc.setFontSize(10);
+      doc.text(`Seite ${doc.internal.getCurrentPageInfo().pageNumber} / ${pageCount}`, 
+               data.settings.margin.left, doc.internal.pageSize.getHeight() - 10);
     }
+  });
 
-    updateTable();
-    saveData();
-    e.target.reset();
-    $('datum').valueAsDate = new Date();
+  const finalY = doc.lastAutoTable.finalY + 5;
+  const sumZeit = sumByKey(filtered, "zeit").toFixed(1);
+  const sumKm   = sumByKey(filtered, "km").toFixed(1);
+  doc.setFont(undefined,"bold");
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const offsetRight = 20;
+  if(type === "taetigkeitsbericht") doc.text(`Gesamtzeit: ${sumZeit}`, pageWidth - offsetRight, finalY, {align:"right"});
+  if(type === "fahrtkostenabrechnung") doc.text(`Gesamtkilometer: ${sumKm}`, pageWidth - offsetRight, finalY, {align:"right"});
+  doc.setFont(undefined,"normal");
+
+  doc.save(`${type}_${month}_${teacher}.pdf`.replace(/\s+/g,"_"));
+}
+
+// Event Handler für PDF Export, Backup, Restore, Search
+$('openExportDialogZeit').onclick = () => {$('exportDialogZeit').style.display="block"; $('datumZeit').valueAsDate=new Date();};
+$('cancelExportZeit').onclick = () => {$('exportDialogZeit').style.display="none";};
+$('exportPdfZeit').onclick = () => { exportPdf("taetigkeitsbericht",$('monatZeit').value,$('datumZeit').value,$('bereichslehrkraftZeit').value); };
+
+$('openExportDialogKm').onclick = () => {$('exportDialogKm').style.display="block"; $('datumKm').valueAsDate=new Date();};
+$('cancelExportKm').onclick = () => {$('exportDialogKm').style.display="none";};
+$('exportPdfKm').onclick = () => { exportPdf("fahrtkostenabrechnung",$('monatKm').value,$('datumKm').value,$('bereichslehrkraftKm').value); };
+
+$('backupBtn').onclick = () => { 
+  const a = document.createElement('a'); 
+  a.href = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(dataSets)); 
+  a.download = 'data_backup.json'; 
+  a.click(); 
+};
+
+$('restoreBtn').onclick=()=>$('restoreInput').click();
+$('restoreInput').onchange=e=>{
+  const file=e.target.files[0]; if(!file) return;
+  const reader = new FileReader(); 
+  reader.onload = fe => {
+    try{
+      const parsed = JSON.parse(fe.target.result);
+      if(!Array.isArray(parsed)) throw new Error("Ungültige Datei");
+      dataSets = parsed; updateTable(); saveData();
+      showMessage("Datensätze erfolgreich geladen!");
+    }catch(err){
+      alert("Fehler beim Laden: Ungültige JSON-Datei");
+    }
   };
+  reader.readAsText(e.target.files[0]);
+};
 
-  function updateTable(){
-    $('tableBody').innerHTML = '';
-    dataSets.sort((a,b) => new Date(a.datum) - new Date(b.datum));
-    dataSets.forEach((ds,i) => $('tableBody').innerHTML += `
-      <tr>
+$('searchInput').oninput = e => {
+  const term=e.target.value.toLowerCase();
+  document.querySelectorAll('#tableBody tr').forEach(tr=>{
+    tr.style.display=tr.innerText.toLowerCase().includes(term)?'':'none';
+  });
+};
+
+function saveData() { localStorage.setItem('dataSets', JSON.stringify(dataSets)); }
+
+$('dataForm').onsubmit = e => {
+  e.preventDefault();
+  const nameValue = $('name').value;
+  if(!localStorage.getItem('lehrkraftName')) localStorage.setItem('lehrkraftName', nameValue);
+  $('name').value = localStorage.getItem('lehrkraftName');
+
+  const ds = {
+  datum: $('datum').value,
+  name: nameValue,
+  schule: $('schule').value,
+  tatigkeit: Array.from($('tatigkeit').selectedOptions).map(o=>o.value),
+  anmerkungen: $('anmerkungen').value,
+  strecke: $('strecke').value,
+  zeit: parseFloat($('zeit').value) || 0,
+  km: parseFloat($('km').value) || 0
+};
+
+
+  if(e.target.dataset.editIndex !== undefined){
+    dataSets[e.target.dataset.editIndex] = ds;
+    delete e.target.dataset.editIndex;
+    $('submitBtn').textContent = "Datensatz hinzufügen";
+    showMessage("Datensatz erfolgreich bearbeitet!");
+  } else {
+    dataSets.push(ds);
+    showMessage("Datensatz erfolgreich hinzugefügt!");
+  }
+
+  updateTable();
+  saveData();
+  e.target.reset();
+  $('datum').valueAsDate = new Date();
+};
+
+function updateTable(){
+  $('tableBody').innerHTML = '';
+
+  // Duplikat-Erkennung
+  const seen = new Set();
+
+  // Daten sortieren nach Datum
+  dataSets.sort((a,b) => new Date(a.datum) - new Date(b.datum));
+
+  dataSets.forEach((ds,i) => {
+    // Schlüssel für Duplikat-Erkennung: Datum + Name + Schule + Tätigkeiten
+    const key = `${ds.datum}|${ds.name}|${ds.schule}|${ds.tatigkeit.join(";")}`;
+    const isDuplicate = seen.has(key);
+    if(!isDuplicate) seen.add(key);
+
+    $('tableBody').innerHTML += `
+      <tr ${isDuplicate ? 'style="background:#ffe6e6;" title="Duplikat"' : ''}>
         <td>${formatDateGerman(ds.datum)}</td>
         <td>${ds.name}</td>
         <td>${ds.schule}</td>
-        <td class="tatigkeit-cell">${ds.tatigkeit.split(", ").join("<br>")}</td>
+        <td class="tatigkeit-cell">${ds.tatigkeit.join("<br>")}</td>
         <td>${ds.anmerkungen}</td>
         <td>${ds.strecke}</td>
         <td>${ds.zeit}</td>
@@ -264,144 +393,65 @@ document.addEventListener('DOMContentLoaded', () => {
           <button class="delete-btn" data-i="${i}">Löschen</button>
           <button class="copy-btn" data-i="${i}">Kopieren</button>
         </td>
-      </tr>`);
+      </tr>`;
+  });
 
-    // Delete
-    document.querySelectorAll('.delete-btn').forEach(btn => {
-      btn.onclick = () => {
-        if(confirm("Möchten Sie diesen Datensatz wirklich löschen?")) {
-          dataSets.splice(btn.dataset.i, 1);
-          updateTable();
-          saveData();
-          showMessage("Datensatz erfolgreich gelöscht!");
-        }
-      };
-    });
-
-    // Edit
-    document.querySelectorAll('.edit-btn').forEach(btn => {
-      btn.onclick = () => {
-        const ds = dataSets[btn.dataset.i];
-        $('datum').value = ds.datum;
-        $('name').value = ds.name;
-        $('schule').value = ds.schule;
-        Array.from($('tatigkeit').options).forEach(opt => opt.selected = ds.tatigkeit.split(", ").includes(opt.value));
-        $('anmerkungen').value = ds.anmerkungen;
-        $('strecke').value = ds.strecke;
-        $('zeit').value = ds.zeit;
-        $('km').value = ds.km;
-        $('dataForm').dataset.editIndex = btn.dataset.i;
-        $('submitBtn').textContent = "Änderungen speichern";
-        window.scrollTo({top:0, behavior:'smooth'});
-        showMessage("Datensatz ausgewählt – jetzt bearbeiten!");
-      };
-    });
-
-    // Copy
-    document.querySelectorAll('.copy-btn').forEach(btn => {
-      btn.onclick = () => {
-        let copy = {...dataSets[btn.dataset.i]};
-        copy.datum = new Date().toISOString().split("T")[0];
-        dataSets.push(copy);
-        updateTable();
-        saveData();
-        window.scrollTo({top:0, behavior:'smooth'});
-        showMessage("Datensatz wurde kopiert und kann bearbeitet werden.");
-      };
-    });
-
-    $('summenAnzeige').textContent = `Gesamtsumme (alle Monate): Zeit=${sumByKey(dataSets,"zeit").toFixed(1)} h, Kilometer=${sumByKey(dataSets,"km").toFixed(1)} km`;
-  }
-
-  function exportPdf(type, month, date, teacher){
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({orientation:"landscape", unit:"mm", format:"a4"});
-
-    const titles = {
-      taetigkeitsbericht: "Berichtsdokument für Bereichslehrkräfte für reisende Kinder und Jugendliche",
-      fahrtkostenabrechnung: "Bereichslehrkräfte für reisende Kinder und Jugendliche – Fahrtkostenabrechnung"
-    };
-    doc.setFontSize(14);
-    doc.text(titles[type],10,15);
-    doc.setFontSize(12);
-    doc.text(`Monat: ${month}`,10,30);
-    doc.text(`Datum: ${formatDateGerman(date)}`,10,40);
-    doc.text(`Bereichslehrkraft: ${teacher}`,10,50);
-    doc.text("Unterschrift:",150,50);
-
-    const filtered = filterByMonth(dataSets, month);
-
-    let head, body;
-    if(type === "taetigkeitsbericht"){
-      head = [["Datum","Name","Ort","Unterstützungsmaßnahmen","Anmerkungen","Strecke","Zeit (h)"]];
-      body = filtered.map(ds => [formatDateGerman(ds.datum), ds.name, ds.schule, doc.splitTextToSize(ds.tatigkeit,50), ds.anmerkungen, ds.strecke, ds.zeit]);
-    } else {
-      head = [["Datum","Name","Ort","Unterstützungsmaßnahmen","Anmerkungen","Strecke","Km"]];
-      body = filtered.map(ds => [formatDateGerman(ds.datum), ds.name, ds.schule, doc.splitTextToSize(ds.tatigkeit,50), ds.anmerkungen, ds.strecke, ds.km]);
+  // Event-Handler für Löschen, Bearbeiten, Kopieren
+  document.querySelectorAll('.delete-btn').forEach(btn => btn.onclick = () => {
+    if(confirm("Möchten Sie diesen Datensatz wirklich löschen?")) {
+      dataSets.splice(btn.dataset.i, 1);
+      updateTable();
+      saveData();
+      showMessage("Datensatz erfolgreich gelöscht!");
     }
+  });
 
-    doc.autoTable({ startY:60, head: head, body: body, theme:"grid", styles:{fontSize:12} });
+  document.querySelectorAll('.edit-btn').forEach(btn => btn.onclick = () => {
+    const ds = dataSets[btn.dataset.i];
+    $('datum').value = ds.datum;
+    $('name').value = ds.name;
+    $('schule').value = ds.schule;
+    Array.from($('tatigkeit').options).forEach(opt => opt.selected = ds.tatigkeit.includes(opt.value));
+    $('anmerkungen').value = ds.anmerkungen;
+    $('strecke').value = ds.strecke;
+    $('zeit').value = ds.zeit;
+    $('km').value = ds.km;
+    $('dataForm').dataset.editIndex = btn.dataset.i;
+    $('submitBtn').textContent = "Änderungen speichern";
+    window.scrollTo({top:0, behavior:'smooth'});
+    showMessage("Datensatz ausgewählt – jetzt bearbeiten!");
+  });
 
-    const finalY = doc.lastAutoTable.finalY + 5;
-    const sumZeit = sumByKey(filtered,"zeit").toFixed(1);
-    const sumKm   = sumByKey(filtered,"km").toFixed(1);
+  document.querySelectorAll('.copy-btn').forEach(btn => btn.onclick = () => {
+    let copy = {...dataSets[btn.dataset.i]};
+    copy.datum = new Date().toISOString().split("T")[0];
+    dataSets.push(copy);
+    updateTable();
+    saveData();
 
-    doc.setFont(undefined,"bold");
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const offsetRight = 20;
+    const newIndex = dataSets.length - 1;
+    const ds = dataSets[newIndex];
+    $('datum').value = ds.datum;
+    $('name').value = ds.name;
+    $('schule').value = ds.schule;
+    Array.from($('tatigkeit').options).forEach(opt => opt.selected = ds.tatigkeit.includes(opt.value));
+    $('anmerkungen').value = ds.anmerkungen;
+    $('strecke').value = ds.strecke;
+    $('zeit').value = ds.zeit;
+    $('km').value = ds.km;
+    $('dataForm').dataset.editIndex = newIndex;
+    $('submitBtn').textContent = "Änderungen speichern";
+    window.scrollTo({top:0, behavior:'smooth'});
+    showMessage("Datensatz kopiert und zur Bearbeitung geöffnet.");
+  });
 
-    if(type==="taetigkeitsbericht") doc.text(`Gesamtzeit: ${sumZeit}`, pageWidth - offsetRight, finalY, { align: "right" });
-    if(type==="fahrtkostenabrechnung") doc.text(`Gesamtkilometer: ${sumKm}`, pageWidth - offsetRight, finalY, { align: "right" });
+  // Summenanzeige
+  $('summenAnzeige').textContent = `Gesamtsumme (alle Monate): Zeit=${sumByKey(dataSets,"zeit").toFixed(1)} h, Kilometer=${sumByKey(dataSets,"km").toFixed(1)} km`;
+}
 
-    doc.setFont(undefined,"normal");
-    doc.save(`${type}_${month}_${teacher}.pdf`.replace(/\s+/g,"_"));
-  }
-
-  // Export Dialogs
-  $('openExportDialogZeit').onclick = () => {$('exportDialogZeit').style.display="block"; $('datumZeit').valueAsDate=new Date();};
-  $('cancelExportZeit').onclick = () => {$('exportDialogZeit').style.display="none";};
-  $('exportPdfZeit').onclick = () => { exportPdf("taetigkeitsbericht", $('monatZeit').value, $('datumZeit').value, $('bereichslehrkraftZeit').value); };
-
-  $('openExportDialogKm').onclick = () => {$('exportDialogKm').style.display="block"; $('datumKm').valueAsDate=new Date();};
-  $('cancelExportKm').onclick = () => {$('exportDialogKm').style.display="none";};
-  $('exportPdfKm').onclick = () => { exportPdf("fahrtkostenabrechnung", $('monatKm').value, $('datumKm').value, $('bereichslehrkraftKm').value); };
-
-  // Backup / Restore
-  $('backupBtn').onclick = () => { 
-    const a = document.createElement('a'); 
-    a.href = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(dataSets)); 
-    a.download = 'data_backup.json'; 
-    a.click(); 
-  };
-
-  $('restoreBtn').onclick = () => {$('restoreInput').click();};
-  $('restoreInput').onchange = e => {
-    const reader = new FileReader(); 
-    reader.onload = fe => {
-      try {
-        const parsed = JSON.parse(fe.target.result);
-        if(!Array.isArray(parsed)) throw new Error("Ungültige Datei");
-        dataSets = parsed; updateTable(); saveData();
-        showMessage("Datensätze erfolgreich geladen!");
-      } catch(err){
-        alert("Fehler beim Laden: Ungültige JSON-Datei");
-      }
-    }; 
-    reader.readAsText(e.target.files[0]); 
-  };
-
-  // Suche
-  $('searchInput').oninput = e => {
-    const term = e.target.value.toLowerCase();
-    document.querySelectorAll('#tableBody tr').forEach(tr => {
-      tr.style.display = tr.innerText.toLowerCase().includes(term) ? '' : 'none';
-    });
-  };
-
-  loadData(); 
-  updateTable();
+loadData();
+updateTable();
 });
 </script>
-
 </body>
 </html>
