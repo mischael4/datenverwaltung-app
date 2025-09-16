@@ -8,6 +8,8 @@
 <!-- PDF -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+<!-- Excel/CSV -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 <style>
 :root { --brand:#27ae60; --brand-d:#1f8a4e; }
@@ -15,10 +17,7 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin:20px
 h2 { font-size:22px; color:var(--brand); margin-bottom:10px; }
 h4 { font-size:16px; color:#333; margin-bottom:15px; }
 .container { display:flex; flex-direction:column; gap:20px; max-width:1200px; margin:auto; }
-.form-container, .table-container {
-  background:white; border:1px solid #ddd; padding:20px; border-radius:10px;
-  box-shadow:0 4px 12px rgba(0,0,0,0.05);
-}
+.form-container, .table-container { background:white; border:1px solid #ddd; padding:20px; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.05); }
 .form-group { margin-bottom:15px; }
 label { display:block; margin-bottom:5px; font-weight:600; color:#555; }
 label .hint { font-size:12px; font-weight:normal; color:#999; display:block; margin-top:2px; }
@@ -62,7 +61,7 @@ tr:nth-child(even){ background:#fcfcfc; }
 #tatigkeit { height:180px; font-size:13px; line-height:1.4; padding:6px; border-radius:6px; }
 #tatigkeit option { padding:4px 6px; border-bottom:1px solid #eee; }
 #tatigkeit option:last-child { border-bottom:none; }
-#searchInput { margin-top:10px; padding:8px; border:1px solid #ccc; border-radius:6px; width:100%; }
+#searchInput { margin-top:10px; padding:8px; border:1px solid #ccc; border-radius:6px; }
 </style>
 </head>
 <body>
@@ -137,253 +136,170 @@ tr:nth-child(even){ background:#fcfcfc; }
 
 <!-- Export Modals -->
 <div id="exportDialogZeit" class="modal">
-<h2>Exportieren (Tätigkeitsbericht)</h2>
+<h2>Tätigkeitsbericht</h2>
 <form>
 <div class="form-group"><label>Monat:</label><input type="text" id="monatZeit" required></div>
 <div class="form-group"><label>Datum:</label><input type="date" id="datumZeit" required></div>
 <div class="form-group"><label>Bereichslehrkraft:</label><input type="text" id="bereichslehrkraftZeit" required></div>
 <button type="button" id="exportPdfZeit">Als PDF</button>
+<button type="button" id="exportCsvZeit">Als CSV</button>
+<button type="button" id="exportXlsZeit">Als Excel</button>
 <button type="button" id="cancelExportZeit" class="cancel-btn">Abbrechen</button>
 </form>
 </div>
 
 <div id="exportDialogKm" class="modal">
-<h2>Exportieren (Fahrtkostenabrechnung)</h2>
+<h2>Fahrtkostenabrechnung</h2>
 <form>
 <div class="form-group"><label>Monat:</label><input type="text" id="monatKm" required></div>
 <div class="form-group"><label>Datum:</label><input type="date" id="datumKm" required></div>
 <div class="form-group"><label>Bereichslehrkraft:</label><input type="text" id="bereichslehrkraftKm" required></div>
 <button type="button" id="exportPdfKm">Als PDF</button>
+<button type="button" id="exportCsvKm">Als CSV</button>
+<button type="button" id="exportXlsKm">Als Excel</button>
 <button type="button" id="cancelExportKm" class="cancel-btn">Abbrechen</button>
 </form>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-const $ = id => document.getElementById(id);
+  const $ = id => document.getElementById(id);
 
-const showMessage = msg => { 
-  const el = document.createElement('div'); 
-  el.textContent = msg; 
-  el.style.position = 'fixed'; 
-  el.style.top = '10px'; 
-  el.style.left = '50%'; 
-  el.style.transform = 'translateX(-50%)'; 
-  el.style.background = '#27ae60'; 
-  el.style.color = 'white'; 
-  el.style.padding = '10px 20px'; 
-  el.style.borderRadius = '6px'; 
-  el.style.zIndex = '2000'; 
-  document.body.appendChild(el); 
-  setTimeout(() => el.remove(), 2000); 
-};
+  const showMessage = msg => { 
+    const el = document.createElement('div'); 
+    el.textContent = msg; 
+    el.style.position = 'fixed'; 
+    el.style.top = '10px'; 
+    el.style.left = '50%'; 
+    el.style.transform = 'translateX(-50%)'; 
+    el.style.background = '#27ae60'; 
+    el.style.color = 'white'; 
+    el.style.padding = '10px 20px'; 
+    el.style.borderRadius = '6px'; 
+    el.style.zIndex = '2000'; 
+    document.body.appendChild(el); 
+    setTimeout(() => el.remove(), 2000); 
+  };
 
-const savedName = localStorage.getItem('lehrkraftName');
-if(savedName) $('name').value = savedName;
+  const normalizeTaetigkeit = t => {
+    if (Array.isArray(t)) return t;
+    if (!t) return [];
+    return String(t).split(/[,;]+/).map(s => s.trim()).filter(Boolean);
+  };
 
-let dataSets = [];
-const formatDateGerman = s => { const d = new Date(s); return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`; };
-const sumByKey = (data, key) => data.reduce((a, ds) => a + (+ds[key]||0), 0);
-const filterByMonth = (data, monthText) => {
-  const [monthName, yearText] = monthText.trim().split(/\s+/);
-  const monthNum = new Date(`${monthName} 1, ${yearText}`).getMonth();
-  const yearNum = parseInt(yearText, 10);
-  return data.filter(ds => {
-    const d = new Date(ds.datum);
-    return d.getMonth() === monthNum && d.getFullYear() === yearNum;
-  });
-};
-const getCurrentMonthYear = () => new Date().toLocaleString('de-DE', {month:'long', year:'numeric'});
-$('datum').valueAsDate = new Date();
-$('monatZeit').value = $('monatKm').value = getCurrentMonthYear();
+  const savedName = localStorage.getItem('lehrkraftName');
+  if(savedName) $('name').value = savedName;
 
-function loadData() {
-  const saved = localStorage.getItem('dataSets');
-  if(saved) { 
-    dataSets = JSON.parse(saved); 
+  let dataSets = [];
 
-    dataSets.forEach(ds => {
-      // Falls tatigkeit ein String ist, in Array umwandeln
-      if(!Array.isArray(ds.tatigkeit)) {
-        // Trenne an Kommas, die auf Großbuchstaben folgen (alte Daten)
-        ds.tatigkeit = ds.tatigkeit.split(/, ?(?=[A-ZÄÖÜ])/).map(s => s.trim());
-      }
-      // Optional: sicherstellen, dass jede Tätigkeit ein String ist
-      ds.tatigkeit = ds.tatigkeit.map(t => String(t));
+  const formatDateGerman = s => {
+    if(!s) return '';
+    const d = new Date(s);
+    return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`;
+  };
+
+  const sumByKey = (data, key) => data.reduce((a, ds) => a + (+ds[key]||0), 0);
+
+  const filterByMonth = (data, monthText) => {
+    const [monthName, yearText] = monthText.trim().split(/\s+/);
+    const monthNum = new Date(`${monthName} 1, ${yearText}`).getMonth();
+    const yearNum = parseInt(yearText, 10);
+    return data.filter(ds => {
+      const d = new Date(ds.datum);
+      return d.getMonth() === monthNum && d.getFullYear() === yearNum;
     });
-
-    updateTable(); 
-  }
-}
-
-// ... Funktionen für Form Submission, UpdateTable, Edit, Delete, Copy, Backup, Restore wie bisher ...
-
-// PDF Export mit Semikolon und Untereinander
-function exportPdf(type, month, date, teacher){
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({orientation:"landscape", unit:"mm", format:"a4"});
-  const titles = {
-    taetigkeitsbericht: "Berichtsdokument für Bereichslehrkräfte für reisende Kinder und Jugendliche",
-    fahrtkostenabrechnung: "Bereichslehrkräfte für reisende Kinder und Jugendliche – Fahrtkostenabrechnung"
   };
-  doc.setFontSize(14);
-  doc.text(titles[type], 10, 15);
-  doc.setFontSize(12);
-  doc.text(`Monat: ${month}`, 10, 30);
-  doc.text(`Datum: ${formatDateGerman(date)}`, 10, 40);
-  doc.text(`Bereichslehrkraft: ${teacher}`, 10, 50);
-  doc.text("Unterschrift:", 150, 50);
 
-  const filtered = filterByMonth(dataSets, month);
-  let head, body;
-  if(type === "taetigkeitsbericht"){
-    head = [["Datum","Name","Ort","Unterstützungsmaßnahmen","Anmerkungen","Strecke","Zeit (h)"]];
-    body = filtered.map(ds => [
-      formatDateGerman(ds.datum),
-      ds.name,
-      ds.schule,
-      ds.tatigkeit.map(t => t+"• ").join("\n"),
-      ds.anmerkungen,
-      ds.strecke,
-      ds.zeit
-    ]);
-  } else {
-    head = [["Datum","Name","Ort","Unterstützungsmaßnahmen","Anmerkungen","Strecke","Km"]];
-    body = filtered.map(ds => [
-      formatDateGerman(ds.datum),
-      ds.name,
-      ds.schule,
-      ds.tatigkeit.map(t => t+";").join("\n"),
-      ds.anmerkungen,
-      ds.strecke,
-      ds.km
-    ]);
-  }
+  const getCurrentMonthYear = () => new Date().toLocaleString('de-DE', {month:'long', year:'numeric'});
 
-  doc.autoTable({
-    startY: 60,
-    head: head,
-    body: body,
-    theme: "grid",
-    styles: { fontSize: 12 },
-    didDrawPage: function(data){
-      const pageCount = doc.internal.getNumberOfPages();
-      doc.setFontSize(10);
-      doc.text(`Seite ${doc.internal.getCurrentPageInfo().pageNumber} / ${pageCount}`, 
-               data.settings.margin.left, doc.internal.pageSize.getHeight() - 10);
-    }
-  });
-
-  const finalY = doc.lastAutoTable.finalY + 5;
-  const sumZeit = sumByKey(filtered, "zeit").toFixed(1);
-  const sumKm   = sumByKey(filtered, "km").toFixed(1);
-  doc.setFont(undefined,"bold");
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const offsetRight = 20;
-  if(type === "taetigkeitsbericht") doc.text(`Gesamtzeit: ${sumZeit}`, pageWidth - offsetRight, finalY, {align:"right"});
-  if(type === "fahrtkostenabrechnung") doc.text(`Gesamtkilometer: ${sumKm}`, pageWidth - offsetRight, finalY, {align:"right"});
-  doc.setFont(undefined,"normal");
-
-  doc.save(`${type}_${month}_${teacher}.pdf`.replace(/\s+/g,"_"));
-}
-
-// Event Handler für PDF Export, Backup, Restore, Search
-$('openExportDialogZeit').onclick = () => {$('exportDialogZeit').style.display="block"; $('datumZeit').valueAsDate=new Date();};
-$('cancelExportZeit').onclick = () => {$('exportDialogZeit').style.display="none";};
-$('exportPdfZeit').onclick = () => { exportPdf("taetigkeitsbericht",$('monatZeit').value,$('datumZeit').value,$('bereichslehrkraftZeit').value); };
-
-$('openExportDialogKm').onclick = () => {$('exportDialogKm').style.display="block"; $('datumKm').valueAsDate=new Date();};
-$('cancelExportKm').onclick = () => {$('exportDialogKm').style.display="none";};
-$('exportPdfKm').onclick = () => { exportPdf("fahrtkostenabrechnung",$('monatKm').value,$('datumKm').value,$('bereichslehrkraftKm').value); };
-
-$('backupBtn').onclick = () => { 
-  const a = document.createElement('a'); 
-  a.href = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(dataSets)); 
-  a.download = 'data_backup.json'; 
-  a.click(); 
-};
-
-$('restoreBtn').onclick=()=>$('restoreInput').click();
-$('restoreInput').onchange=e=>{
-  const file=e.target.files[0]; if(!file) return;
-  const reader = new FileReader(); 
-  reader.onload = fe => {
-    try{
-      const parsed = JSON.parse(fe.target.result);
-      if(!Array.isArray(parsed)) throw new Error("Ungültige Datei");
-      dataSets = parsed; updateTable(); saveData();
-      showMessage("Datensätze erfolgreich geladen!");
-    }catch(err){
-      alert("Fehler beim Laden: Ungültige JSON-Datei");
-    }
-  };
-  reader.readAsText(e.target.files[0]);
-};
-
-$('searchInput').oninput = e => {
-  const term=e.target.value.toLowerCase();
-  document.querySelectorAll('#tableBody tr').forEach(tr=>{
-    tr.style.display=tr.innerText.toLowerCase().includes(term)?'':'none';
-  });
-};
-
-function saveData() { localStorage.setItem('dataSets', JSON.stringify(dataSets)); }
-
-$('dataForm').onsubmit = e => {
-  e.preventDefault();
-  const nameValue = $('name').value;
-  if(!localStorage.getItem('lehrkraftName')) localStorage.setItem('lehrkraftName', nameValue);
-  $('name').value = localStorage.getItem('lehrkraftName');
-
-  const ds = {
-  datum: $('datum').value,
-  name: nameValue,
-  schule: $('schule').value,
-  tatigkeit: Array.from($('tatigkeit').selectedOptions).map(o=>o.value),
-  anmerkungen: $('anmerkungen').value,
-  strecke: $('strecke').value,
-  zeit: parseFloat($('zeit').value) || 0,
-  km: parseFloat($('km').value) || 0
-};
-
-
-  if(e.target.dataset.editIndex !== undefined){
-    dataSets[e.target.dataset.editIndex] = ds;
-    delete e.target.dataset.editIndex;
-    $('submitBtn').textContent = "Datensatz hinzufügen";
-    showMessage("Datensatz erfolgreich bearbeitet!");
-  } else {
-    dataSets.push(ds);
-    showMessage("Datensatz erfolgreich hinzugefügt!");
-  }
-
-  updateTable();
-  saveData();
-  e.target.reset();
+  // Initialwerte
   $('datum').valueAsDate = new Date();
-};
+  $('monatZeit').value = $('monatKm').value = getCurrentMonthYear();
+  $('datumZeit').valueAsDate = new Date(new Date().getFullYear(), new Date().getMonth()+1, 0); // letzter Tag
+  $('datumKm').valueAsDate = new Date(new Date().getFullYear(), new Date().getMonth()+1, 0);
+  if(savedName) {
+    $('bereichslehrkraftZeit').value = $('bereichslehrkraftKm').value = savedName;
+  }
 
-function updateTable(){
-  $('tableBody').innerHTML = '';
+  // Daten laden
+  function loadData() {
+    const saved = localStorage.getItem('dataSets');
+    if(saved) { 
+      dataSets = JSON.parse(saved); 
+      dataSets.forEach(ds => ds.tatigkeit = normalizeTaetigkeit(ds.tatigkeit));
+      updateTable(); 
+    }
+  }
 
-  // Duplikat-Erkennung
-  const seen = new Set();
+  // Backup/Restore
+  $('restoreBtn').onclick = () => $('restoreInput').click();
+  $('restoreInput').onchange = e => {
+    const file=e.target.files[0];
+    if(file){
+      const reader=new FileReader();
+      reader.onload = evt=>{
+        try {
+          const imported=JSON.parse(evt.target.result);
+          imported.forEach(ds => ds.tatigkeit = normalizeTaetigkeit(ds.tatigkeit));
+          dataSets=imported;
+          localStorage.setItem("dataSets",JSON.stringify(dataSets));
+          updateTable();
+          showMessage("Datensätze erfolgreich geladen!");
+        } catch(err){ alert("Fehler beim Laden: "+err); }
+      };
+      reader.readAsText(file);
+    }
+  };
 
-  // Daten sortieren nach Datum
-  dataSets.sort((a,b) => new Date(a.datum) - new Date(b.datum));
+  // Form Submission
+  $('dataForm').onsubmit = e => {
+    e.preventDefault();
+    const ds = {
+      datum: $('datum').value,
+      name: $('name').value,
+      schule: $('schule').value,
+      tatigkeit: Array.from($('tatigkeit').selectedOptions).map(o=>o.value),
+      anmerkungen: $('anmerkungen').value,
+      strecke: $('strecke').value,
+      zeit: parseFloat($('zeit').value)||0,
+      km: parseFloat($('km').value)||0
+    };
+    localStorage.setItem('lehrkraftName', $('name').value);
 
-  dataSets.forEach((ds,i) => {
-    // Schlüssel für Duplikat-Erkennung: Datum + Name + Schule + Tätigkeiten
-    const key = `${ds.datum}|${ds.name}|${ds.schule}|${ds.tatigkeit.join(";")}`;
-    const isDuplicate = seen.has(key);
-    if(!isDuplicate) seen.add(key);
+    if(e.target.dataset.editIndex!==undefined){
+      dataSets[e.target.dataset.editIndex] = ds;
+      delete e.target.dataset.editIndex;
+      $('submitBtn').textContent="Datensatz hinzufügen";
+      showMessage("Datensatz erfolgreich bearbeitet!");
+    } else {
+      dataSets.push(ds);
+      showMessage("Datensatz erfolgreich hinzugefügt!");
+    }
+    localStorage.setItem("dataSets",JSON.stringify(dataSets));
+    updateTable();
+    e.target.reset();
+    $('datum').valueAsDate = new Date();
+  };
 
-    $('tableBody').innerHTML += `
-      <tr ${isDuplicate ? 'style="background:#ffe6e6;" title="Duplikat"' : ''}>
+  // Tabelle aktualisieren
+  function updateTable(){
+    const tableBody=$("tableBody");
+    tableBody.innerHTML="";
+    const search=$("searchInput").value.toLowerCase();
+    let totalZeit=0, totalKm=0, filteredZeit=0, filteredKm=0;
+    const currentMonth=getCurrentMonthYear();
+
+    dataSets.forEach((ds,i)=>{
+      const dsTatigkeit=normalizeTaetigkeit(ds.tatigkeit);
+      const text=[ds.datum, ds.name, ds.schule, dsTatigkeit.join(" "), ds.anmerkungen, ds.strecke, ds.zeit, ds.km].join(" ").toLowerCase();
+      if(search && !text.includes(search)) return;
+
+      const tr=document.createElement("tr");
+      tr.innerHTML=`
         <td>${formatDateGerman(ds.datum)}</td>
         <td>${ds.name}</td>
         <td>${ds.schule}</td>
-        <td class="tatigkeit-cell">${ds.tatigkeit.join("<br>")}</td>
+        <td class="tatigkeit-cell">${dsTatigkeit.map(t=>"• "+t).join("<br>")}</td>
         <td>${ds.anmerkungen}</td>
         <td>${ds.strecke}</td>
         <td>${ds.zeit}</td>
@@ -392,66 +308,226 @@ function updateTable(){
           <button class="edit-btn" data-i="${i}">Bearbeiten</button>
           <button class="delete-btn" data-i="${i}">Löschen</button>
           <button class="copy-btn" data-i="${i}">Kopieren</button>
-        </td>
-      </tr>`;
-  });
+        </td>`;
+      tableBody.appendChild(tr);
 
-  // Event-Handler für Löschen, Bearbeiten, Kopieren
-  document.querySelectorAll('.delete-btn').forEach(btn => btn.onclick = () => {
-    if(confirm("Möchten Sie diesen Datensatz wirklich löschen?")) {
-      dataSets.splice(btn.dataset.i, 1);
-      updateTable();
-      saveData();
-      showMessage("Datensatz erfolgreich gelöscht!");
-    }
-  });
+      totalZeit+=ds.zeit||0; totalKm+=ds.km||0;
+      const d=new Date(ds.datum);
+      if(d.toLocaleString("de-DE",{month:"long",year:"numeric"})===currentMonth){
+        filteredZeit+=ds.zeit||0; filteredKm+=ds.km||0;
+      }
+    });
 
-  document.querySelectorAll('.edit-btn').forEach(btn => btn.onclick = () => {
-    const ds = dataSets[btn.dataset.i];
-    $('datum').value = ds.datum;
-    $('name').value = ds.name;
-    $('schule').value = ds.schule;
-    Array.from($('tatigkeit').options).forEach(opt => opt.selected = ds.tatigkeit.includes(opt.value));
-    $('anmerkungen').value = ds.anmerkungen;
-    $('strecke').value = ds.strecke;
-    $('zeit').value = ds.zeit;
-    $('km').value = ds.km;
-    $('dataForm').dataset.editIndex = btn.dataset.i;
-    $('submitBtn').textContent = "Änderungen speichern";
+    $("summenAnzeige").innerHTML = 
+      `Gesamtzeit (alle Monate): ${totalZeit.toFixed(1)} h | Gesamtkm (alle Monate): ${totalKm.toFixed(1)} km<br>`+
+      `Im aktuellen Monat (${currentMonth}): ${filteredZeit.toFixed(1)} h | ${filteredKm.toFixed(1)} km`;
+
+    document.querySelectorAll('.edit-btn').forEach(btn=>{ btn.onclick=()=>editRecord(btn.dataset.i); });
+    document.querySelectorAll('.delete-btn').forEach(btn=>{ btn.onclick=()=>deleteRecord(btn.dataset.i); });
+    document.querySelectorAll('.copy-btn').forEach(btn=>{ btn.onclick=()=>copyRecord(btn.dataset.i); });
+  }
+
+  function editRecord(i){
+    const ds=dataSets[i];
+    $('datum').value=ds.datum;
+    $('name').value=ds.name;
+    $('schule').value=ds.schule;
+    Array.from($('tatigkeit').options).forEach(o=>o.selected=normalizeTaetigkeit(ds.tatigkeit).includes(o.value));
+    $('anmerkungen').value=ds.anmerkungen;
+    $('strecke').value=ds.strecke;
+    $('zeit').value=ds.zeit;
+    $('km').value=ds.km;
+    $('dataForm').dataset.editIndex=i;
+    $('submitBtn').textContent="Änderungen speichern";
     window.scrollTo({top:0, behavior:'smooth'});
     showMessage("Datensatz ausgewählt – jetzt bearbeiten!");
+  }
+
+  function deleteRecord(i){ if(confirm("Diesen Datensatz wirklich löschen?")){ dataSets.splice(i,1); localStorage.setItem("dataSets",JSON.stringify(dataSets)); updateTable(); showMessage("Datensatz erfolgreich gelöscht!"); } }
+  function copyRecord(i){ const copy={...dataSets[i], datum:new Date().toISOString().split("T")[0]}; dataSets.push(copy); localStorage.setItem("dataSets",JSON.stringify(dataSets)); updateTable(); showMessage("Datensatz kopiert und zur Bearbeitung geöffnet."); }
+
+  // PDF Export
+  function exportPdf(type, month, date, teacher){
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({orientation:"landscape", unit:"mm", format:"a4"});
+    const titles = {
+      taetigkeitsbericht: "Berichtsdokument für Bereichslehrkräfte für reisende Kinder und Jugendliche",
+      fahrtkostenabrechnung: "Bereichslehrkräfte für reisende Kinder und Jugendliche – Fahrtkostenabrechnung"
+    };
+    doc.setFontSize(14);
+    doc.text(titles[type], 10, 15);
+    doc.setFontSize(12);
+    doc.text(`Monat: ${month}`, 10, 30);
+    doc.text(`Datum: ${formatDateGerman(date)}`, 10, 40);
+    doc.text(`Bereichslehrkraft: ${teacher}`, 10, 50);
+    doc.text("Unterschrift:", 150, 50);
+
+    const filtered = filterByMonth(dataSets, month);
+    let head, body;
+    if(type === "taetigkeitsbericht"){
+      head = [["Datum","Name","Ort","Unterstützungsmaßnahmen","Anmerkungen","Strecke","Zeit (h)"]];
+      body = filtered.map(ds => [
+        formatDateGerman(ds.datum),
+        ds.name,
+        ds.schule,
+        normalizeTaetigkeit(ds.tatigkeit).map(t => "• "+t).join("\n"),
+        ds.anmerkungen,
+        ds.strecke,
+        ds.zeit
+      ]);
+    } else {
+      head = [["Datum","Name","Ort","Unterstützungsmaßnahmen","Anmerkungen","Strecke","Km"]];
+      body = filtered.map(ds => [
+        formatDateGerman(ds.datum),
+        ds.name,
+        ds.schule,
+        normalizeTaetigkeit(ds.tatigkeit).map(t => "• "+t).join("\n"),
+        ds.anmerkungen,
+        ds.strecke,
+        ds.km
+      ]);
+    }
+
+    doc.autoTable({
+      startY: 60,
+      head: head,
+      body: body,
+      theme: "grid",
+      styles: { fontSize: 12 },
+      columnStyles: {
+        2:{cellWidth:40}, // C
+        3:{cellWidth:80}, // D
+        5:{cellWidth:40}  // F
+      },
+      didDrawPage: function(data){
+        const pageNumber = doc.internal.getCurrentPageInfo().pageNumber;
+        doc.setFontSize(10);
+        doc.text(`Seite ${pageNumber}`, data.settings.margin.left, doc.internal.pageSize.getHeight() - 10);
+      }
+    });
+
+    const finalY = doc.lastAutoTable.finalY + 5;
+    const sumZeit = sumByKey(filtered, "zeit").toFixed(1);
+    const sumKm   = sumByKey(filtered, "km").toFixed(1);
+    doc.setFont(undefined,"bold");
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const offsetRight = 20;
+    if(type === "taetigkeitsbericht") doc.text(`Gesamtzeit: ${sumZeit}`, pageWidth - offsetRight, finalY, {align:"right"});
+    if(type === "fahrtkostenabrechnung") doc.text(`Gesamtkilometer: ${sumKm}`, pageWidth - offsetRight, finalY, {align:"right"});
+    doc.setFont(undefined,"normal");
+
+    doc.save(`${type}_${month}_${teacher}.pdf`.replace(/\s+/g,"_"));
+  }
+
+  // CSV / Excel Export
+  function exportTable(type, month, date, teacher, format){
+  const filtered = filterByMonth(dataSets, month);
+
+  const headerLines = [
+    [`${type==="taetigkeitsbericht" ? 
+       "Berichtsdokument für Bereichslehrkräfte für reisende Kinder und Jugendliche" :
+       "Bereichslehrkräfte für reisende Kinder und Jugendliche – Fahrtkostenabrechnung"}`],
+    [`Monat: ${month}`],
+    [`Datum: ${formatDateGerman(date)}`],
+    [`Bereichslehrkraft: ${teacher}`],
+    []
+  ];
+
+  // Datenzeilen: nur relevante Spalte für Zeit/Km
+  const rows = filtered.map(ds => {
+    const base = [
+      formatDateGerman(ds.datum),
+      ds.name,
+      ds.schule,
+      normalizeTaetigkeit(ds.tatigkeit).map(t=>"• "+t).join("\n"),
+      ds.anmerkungen,
+      ds.strecke
+    ];
+    if(type==="taetigkeitsbericht") base.push(ds.zeit); // nur Zeit
+    else base.push(ds.km); // nur Km
+    return base;
   });
 
-  document.querySelectorAll('.copy-btn').forEach(btn => btn.onclick = () => {
-    let copy = {...dataSets[btn.dataset.i]};
-    copy.datum = new Date().toISOString().split("T")[0];
-    dataSets.push(copy);
-    updateTable();
-    saveData();
+  // Spaltenüberschriften
+  const head = ["Datum","Name","Ort","Unterstützungsmaßnahmen","Anmerkungen","Strecke"];
+  if(type==="taetigkeitsbericht") head.push("Zeit");
+  else head.push("Km");
 
-    const newIndex = dataSets.length - 1;
-    const ds = dataSets[newIndex];
-    $('datum').value = ds.datum;
-    $('name').value = ds.name;
-    $('schule').value = ds.schule;
-    Array.from($('tatigkeit').options).forEach(opt => opt.selected = ds.tatigkeit.includes(opt.value));
-    $('anmerkungen').value = ds.anmerkungen;
-    $('strecke').value = ds.strecke;
-    $('zeit').value = ds.zeit;
-    $('km').value = ds.km;
-    $('dataForm').dataset.editIndex = newIndex;
-    $('submitBtn').textContent = "Änderungen speichern";
-    window.scrollTo({top:0, behavior:'smooth'});
-    showMessage("Datensatz kopiert und zur Bearbeitung geöffnet.");
+  // Summen
+  const sumValue = type==="taetigkeitsbericht" ? sumByKey(filtered,"zeit") : sumByKey(filtered,"km");
+  const sumRow = head.map(h => {
+    if(h==="Zeit" && type==="taetigkeitsbericht") return sumValue;
+    if(h==="Km" && type==="fahrtkostenabrechnung") return sumValue;
+    return "";
   });
 
-  // Summenanzeige
-  $('summenAnzeige').textContent = `Gesamtsumme (alle Monate): Zeit=${sumByKey(dataSets,"zeit").toFixed(1)} h, Kilometer=${sumByKey(dataSets,"km").toFixed(1)} km`;
+  if(format === "csv"){
+    let csvContent = "\uFEFF"; // BOM für Umlaute
+    headerLines.forEach(line=>{
+      csvContent += line.map(cell => `"${String(cell).replace(/"/g,'""')}"`).join(";") + "\n";
+    });
+    csvContent += head.map(cell => `"${cell}"`).join(";") + "\n";
+    rows.forEach(row=>{
+      csvContent += row.map(cell => `"${String(cell).replace(/"/g,'""')}"`).join(";") + "\n";
+    });
+    csvContent += sumRow.map(cell=>`"${cell}"`).join(";") + "\n";
+
+    const blob = new Blob([csvContent], {type:'text/csv;charset=utf-8;'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `${type}_${month}_${teacher}.csv`.replace(/\s+/g,"_");
+    a.click();
+  }
+
+  else if(format==="xls"){
+    const wb = XLSX.utils.book_new();
+    const ws_data = headerLines.concat([head]).concat(rows);
+    ws_data.push(sumRow);
+
+    const ws = XLSX.utils.aoa_to_sheet(ws_data);
+
+    // Spaltenbreiten
+    ws['!cols'] = [
+      {wch:12}, // Datum
+      {wch:20}, // Name
+      {wch:25}, // Ort
+      {wch:40}, // Unterstützungsmaßnahmen
+      {wch:20}, // Anmerkungen
+      {wch:20}, // Strecke
+      {wch:10}  // Zeit oder Km
+    ];
+
+    XLSX.utils.book_append_sheet(wb, ws, "Export");
+    XLSX.writeFile(wb, `${type}_${month}_${teacher}.xlsx`.replace(/\s+/g,"_"));
+  }
 }
 
-loadData();
-updateTable();
+  // Event Handler Export, Backup, Search
+  $('openExportDialogZeit').onclick = () => {$('exportDialogZeit').style.display="block";};
+  $('cancelExportZeit').onclick = () => {$('exportDialogZeit').style.display="none";};
+  $('exportPdfZeit').onclick = () => { exportPdf("taetigkeitsbericht",$('monatZeit').value,$('datumZeit').value,$('bereichslehrkraftZeit').value); };
+  $('exportCsvZeit').onclick = () => { exportTable("taetigkeitsbericht",$('monatZeit').value,$('datumZeit').value,$('bereichslehrkraftZeit').value,"csv"); };
+  $('exportXlsZeit').onclick = () => { exportTable("taetigkeitsbericht",$('monatZeit').value,$('datumZeit').value,$('bereichslehrkraftZeit').value,"xls"); };
+
+  $('openExportDialogKm').onclick = () => {$('exportDialogKm').style.display="block";};
+  $('cancelExportKm').onclick = () => {$('exportDialogKm').style.display="none";};
+  $('exportPdfKm').onclick = () => { exportPdf("fahrtkostenabrechnung",$('monatKm').value,$('datumKm').value,$('bereichslehrkraftKm').value); };
+  $('exportCsvKm').onclick = () => { exportTable("fahrtkostenabrechnung",$('monatKm').value,$('datumKm').value,$('bereichslehrkraftKm').value,"csv"); };
+  $('exportXlsKm').onclick = () => { exportTable("fahrtkostenabrechnung",$('monatKm').value,$('datumKm').value,$('bereichslehrkraftKm').value,"xls"); };
+
+  $('backupBtn').onclick = () => { 
+    const blob=new Blob([JSON.stringify(dataSets)],{type:"application/json"});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='data_backup.json';
+    a.click();
+  };
+
+  $('searchInput').addEventListener("input", updateTable);
+
+  loadData();
 });
 </script>
+
 </body>
 </html>
