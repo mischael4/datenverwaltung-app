@@ -573,5 +573,85 @@ if ("serviceWorker" in navigator) {
 }
 </script>
 
+<style>
+/* ---- Handy-Optimierungen ---- */
+@media (max-width:480px) {
+  /* Modals fullscreen und scrollbar */
+  .modal {
+    width: 95vw;
+    height: 95vh;
+    padding: 15px;
+    overflow-y: auto;
+  }
+
+  /* Buttons, Inputs, Selects größer für Touch */
+  button, select, input, textarea {
+    font-size: 16px !important;
+    padding: 14px 12px !important;
+  }
+
+  /* Tabelle scrollable & sticky header */
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  table thead th {
+    position: sticky;
+    top: 0;
+    background: #f1f1f1;
+    z-index: 10;
+  }
+
+  /* Edit/Delete/Copy Buttons kleiner */
+  .edit-btn, .delete-btn, .copy-btn {
+    font-size: 10px;
+    padding: 6px 4px;
+  }
+}
+
+/* Collapsible Suche */
+#toggleSearch {
+  display: none;
+  margin-bottom: 5px;
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  background: var(--brand);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+#searchContainer {
+  transition: max-height 0.3s ease;
+  overflow: hidden;
+}
+@media (max-width:480px) {
+  #toggleSearch { display: block; }
+  #searchContainer { max-height: 0; }
+  #searchContainer.active { max-height: 100px; }
+}
+</style>
+
+<script>
+// Collapsible Suche auf kleinen Screens
+document.addEventListener('DOMContentLoaded', () => {
+  const toggleBtn = document.createElement('button');
+  toggleBtn.id = 'toggleSearch';
+  toggleBtn.textContent = 'Suche ein-/ausblenden';
+  const searchInput = document.getElementById('searchInput');
+  const searchContainer = document.createElement('div');
+  searchContainer.id = 'searchContainer';
+  searchInput.parentNode.insertBefore(searchContainer, searchInput);
+  searchContainer.appendChild(searchInput);
+  searchContainer.parentNode.insertBefore(toggleBtn, searchContainer);
+
+  toggleBtn.addEventListener('click', () => {
+    searchContainer.classList.toggle('active');
+  });
+});
+</script>
+
 </body>
 </html>
