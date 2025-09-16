@@ -297,50 +297,57 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   // Tabelle aktualisieren
-  function updateTable(){
-    const tableBody=$("tableBody");
-    tableBody.innerHTML="";
-    const search=$("searchInput").value.toLowerCase();
-    let totalZeit=0, totalKm=0, filteredZeit=0, filteredKm=0;
-    const currentMonth=getCurrentMonthYear();
+  function updateTable() {
+    const tableBody = $("tableBody");
 
-    dataSets.forEach((ds,i)=>{
-      const dsTatigkeit=normalizeTaetigkeit(ds.tatigkeit);
-      const text=[ds.datum, ds.name, ds.schule, dsTatigkeit.join(" "), ds.anmerkungen, ds.strecke, ds.zeit, ds.km].join(" ").toLowerCase();
-      if(search && !text.includes(search)) return;
+    // älteste zuerst
+dataSets.sort((a, b) => new Date(a.datum) - new Date(b.datum));
 
-      const tr=document.createElement("tr");
-      tr.innerHTML=`
-        <td>${formatDateGerman(ds.datum)}</td>
-        <td>${ds.name}</td>
-        <td>${ds.schule}</td>
-        <td class="tatigkeit-cell">${dsTatigkeit.map(t=>"• "+t).join("<br>")}</td>
-        <td>${ds.anmerkungen}</td>
-        <td>${ds.strecke}</td>
-        <td>${ds.zeit}</td>
-        <td>${ds.km}</td>
-        <td>
-          <button class="edit-btn" data-i="${i}">Bearbeiten</button>
-          <button class="delete-btn" data-i="${i}">Löschen</button>
-          <button class="copy-btn" data-i="${i}">Kopieren</button>
-        </td>`;
-      tableBody.appendChild(tr);
 
-      totalZeit+=ds.zeit||0; totalKm+=ds.km||0;
-      const d=new Date(ds.datum);
-      if(d.toLocaleString("de-DE",{month:"long",year:"numeric"})===currentMonth){
-        filteredZeit+=ds.zeit||0; filteredKm+=ds.km||0;
-      }
+    tableBody.innerHTML = "";
+    const search = $("searchInput").value.toLowerCase();
+    let totalZeit = 0, totalKm = 0, filteredZeit = 0, filteredKm = 0;
+    const currentMonth = getCurrentMonthYear();
+
+    dataSets.forEach((ds, i) => {
+        const dsTatigkeit = normalizeTaetigkeit(ds.tatigkeit);
+        const text = [ds.datum, ds.name, ds.schule, dsTatigkeit.join(" "), ds.anmerkungen, ds.strecke, ds.zeit, ds.km].join(" ").toLowerCase();
+        if (search && !text.includes(search)) return;
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>${formatDateGerman(ds.datum)}</td>
+            <td>${ds.name}</td>
+            <td>${ds.schule}</td>
+            <td class="tatigkeit-cell">${dsTatigkeit.map(t => "• " + t).join("<br>")}</td>
+            <td>${ds.anmerkungen}</td>
+            <td>${ds.strecke}</td>
+            <td>${ds.zeit}</td>
+            <td>${ds.km}</td>
+            <td>
+                <button class="edit-btn" data-i="${i}">Bearbeiten</button>
+                <button class="delete-btn" data-i="${i}">Löschen</button>
+                <button class="copy-btn" data-i="${i}">Kopieren</button>
+            </td>`;
+        tableBody.appendChild(tr);
+
+        totalZeit += ds.zeit || 0; 
+        totalKm += ds.km || 0;
+        const d = new Date(ds.datum);
+        if (d.toLocaleString("de-DE", {month:"long", year:"numeric"}) === currentMonth) {
+            filteredZeit += ds.zeit || 0; 
+            filteredKm += ds.km || 0;
+        }
     });
 
     $("summenAnzeige").innerHTML = 
-      `Gesamtzeit (alle Monate): ${totalZeit.toFixed(1)} h | Gesamtkm (alle Monate): ${totalKm.toFixed(1)} km<br>`+
-      `Im aktuellen Monat (${currentMonth}): ${filteredZeit.toFixed(1)} h | ${filteredKm.toFixed(1)} km`;
+        `Gesamtzeit (alle Monate): ${totalZeit.toFixed(1)} h | Gesamtkm (alle Monate): ${totalKm.toFixed(1)} km<br>` +
+        `Im aktuellen Monat (${currentMonth}): ${filteredZeit.toFixed(1)} h | ${filteredKm.toFixed(1)} km`;
 
-    document.querySelectorAll('.edit-btn').forEach(btn=>{ btn.onclick=()=>editRecord(btn.dataset.i); });
-    document.querySelectorAll('.delete-btn').forEach(btn=>{ btn.onclick=()=>deleteRecord(btn.dataset.i); });
-    document.querySelectorAll('.copy-btn').forEach(btn=>{ btn.onclick=()=>copyRecord(btn.dataset.i); });
-  }
+    document.querySelectorAll('.edit-btn').forEach(btn => { btn.onclick = () => editRecord(btn.dataset.i); });
+    document.querySelectorAll('.delete-btn').forEach(btn => { btn.onclick = () => deleteRecord(btn.dataset.i); });
+    document.querySelectorAll('.copy-btn').forEach(btn => { btn.onclick = () => copyRecord(btn.dataset.i); });
+}
 
   function editRecord(i){
     const ds=dataSets[i];
@@ -359,7 +366,20 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function deleteRecord(i){ if(confirm("Diesen Datensatz wirklich löschen?")){ dataSets.splice(i,1); localStorage.setItem("dataSets",JSON.stringify(dataSets)); updateTable(); showMessage("Datensatz erfolgreich gelöscht!"); } }
-  function copyRecord(i){ const copy={...dataSets[i], datum:new Date().toISOString().split("T")[0]}; dataSets.push(copy); localStorage.setItem("dataSets",JSON.stringify(dataSets)); updateTable(); showMessage("Datensatz kopiert und zur Bearbeitung geöffnet."); }
+  function copyRecord(i){
+  // Kopie erstellen, Datum auf heute setzen
+  const copy = { ...dataSets[i], datum: new Date().toISOString().split("T")[0] };
+  dataSets.push(copy);
+  localStorage.setItem("dataSets", JSON.stringify(dataSets));
+  updateTable();
+
+  // Formular auf den kopierten Datensatz setzen
+  const newIndex = dataSets.length - 1;
+  editRecord(newIndex);
+
+  showMessage("Datensatz kopiert und zur Bearbeitung geöffnet.");
+}
+
 
   // PDF Export
   function exportPdf(type, month, date, teacher){
