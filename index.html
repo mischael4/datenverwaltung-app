@@ -228,10 +228,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const getCurrentMonthYear = () => new Date().toLocaleString('de-DE', {month:'long', year:'numeric'});
 
   // Initialwerte
-  $('datum').valueAsDate = new Date();
-  $('monatZeit').value = $('monatKm').value = getCurrentMonthYear();
-  $('datumZeit').valueAsDate = new Date(new Date().getFullYear(), new Date().getMonth()+1, 0); // letzter Tag
-  $('datumKm').valueAsDate = new Date(new Date().getFullYear(), new Date().getMonth()+1, 0);
+const today = new Date();
+$('datum').valueAsDate = today; // Formular-Datum auf heute
+$('monatZeit').value = $('monatKm').value = getCurrentMonthYear(); // aktueller Monat
+$('datumZeit').valueAsDate = new Date(today.getFullYear(), today.getMonth() + 1, 0); // letzter Tag dieses Monats
+$('datumKm').valueAsDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+
+
   if(savedName) {
     $('bereichslehrkraftZeit').value = $('bereichslehrkraftKm').value = savedName;
   }
