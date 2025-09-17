@@ -38,7 +38,7 @@ table { width:100%; border-collapse:collapse; margin-top:20px; font-size:14px; }
 th,td { border:1px solid #eee; padding:10px; text-align:left; vertical-align:top; }
 th { background:#f1f1f1; font-weight:600; color:#333; }
 tr:nth-child(even){ background:#fcfcfc; }
-.tatigkeit-cell { font-size: 14px; line-height: 1.4; }
+.tatigkeit-cell { font-size: 14px; white-space: normal; word-break: break-word; line-height: 1.4; }
 .summary { margin-top:10px; margin-bottom:15px; font-weight:bold; text-align:right; color:#444; font-size:13px; }
 .edit-btn { background:#f39c12; padding:4px 6px; font-size:12px; margin-bottom:4px; width:99%; }
 .edit-btn:hover { background:#d68910; }
@@ -686,7 +686,6 @@ if ("serviceWorker" in navigator) {
 }
 
   .tatigkeit-cell, td:nth-child(5) { white-space: normal; }
-}
 
 </style>
 
