@@ -70,14 +70,14 @@ tr:nth-child(even){ background:#fcfcfc; }
   .tatigkeit-cell { font-size:14px !important; line-height:1.3 !important; }
 }
 @media (max-width:480px) {
-  th, td { font-size:12px; padding:3px 5px; }
-  #tatigkeit { font-size:12px; height:140px; }
-
-  /* Neu: Buttons kompakt und automatisch in der Breite */
-  .edit-btn, .delete-btn, .copy-btn {
-    font-size:14px; 
-    padding:4px 6px;
-    width:auto;  /* statt 99% */
+  /* Kleine Buttons in der Tabelle */
+  .table-container .edit-btn,
+  .table-container .delete-btn,
+  .table-container .copy-btn {
+    font-size: 12px !important;   /* kleiner als normale Buttons */
+    padding: 2px 4px !important;  /* kompakt */
+    line-height: 1.2;
+    width: auto;
   }
 }
 
@@ -638,9 +638,11 @@ if ("serviceWorker" in navigator) {
   cursor: pointer;
 }
 #searchContainer {
-  transition: max-height 0.3s ease;
   overflow: hidden;
+  max-height: 0;
+  transition: max-height 0.3s ease;
 }
+
 /* Desktop & Tablet: Tabelle passt automatisch, Text bricht um */
 /* Desktop & Tablet: Tabelle passt exakt zur Container-Breite */
 @media (min-width: 481px) {
@@ -703,8 +705,15 @@ document.addEventListener('DOMContentLoaded', () => {
   searchContainer.parentNode.insertBefore(toggleBtn, searchContainer);
 
   toggleBtn.addEventListener('click', () => {
-    searchContainer.classList.toggle('active');
-  });
+  if (searchContainer.style.maxHeight && searchContainer.style.maxHeight !== '0px') {
+    // zusammenklappen
+    searchContainer.style.maxHeight = '0px';
+  } else {
+    // ausklappen: volle Höhe des Inputs + Padding
+    searchContainer.style.maxHeight = searchInput.scrollHeight + 20 + 'px'; 
+  }
+});
+
 });
 </script>
 
