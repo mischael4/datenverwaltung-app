@@ -72,7 +72,15 @@ tr:nth-child(even){ background:#fcfcfc; }
 @media (max-width:480px) {
   th, td { font-size:12px; padding:3px 5px; }
   #tatigkeit { font-size:12px; height:140px; }
+
+  /* Neu: Buttons kompakt und automatisch in der Breite */
+  .edit-btn, .delete-btn, .copy-btn {
+    font-size:14px; 
+    padding:4px 6px;
+    width:auto;  /* statt 99% */
+  }
 }
+
 #tatigkeit { height:180px; font-size:13px; line-height:1.4; padding:6px; border-radius:6px; }
 #tatigkeit option { padding:4px 6px; border-bottom:1px solid #eee; }
 #tatigkeit option:last-child { border-bottom:none; }
@@ -328,10 +336,11 @@ dataSets.sort((a, b) => new Date(a.datum) - new Date(b.datum));
             <td>${ds.zeit}</td>
             <td>${ds.km}</td>
             <td>
-                <button class="edit-btn" data-i="${i}">Bearbeiten</button>
-                <button class="delete-btn" data-i="${i}">Löschen</button>
-                <button class="copy-btn" data-i="${i}">Kopieren</button>
-            </td>`;
+  <button class="edit-btn" data-i="${i}" title="Bearbeiten">Bearbeiten</button>
+  <button class="delete-btn" data-i="${i}" title="Löschen">Löschen</button>
+  <button class="copy-btn" data-i="${i}" title="Kopieren">Kopieren</button>
+</td>
+`;
         tableBody.appendChild(tr);
 
         totalZeit += ds.zeit || 0; 
