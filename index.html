@@ -636,19 +636,39 @@ if ("serviceWorker" in navigator) {
   transition: max-height 0.3s ease;
   overflow: hidden;
 }
-@media (max-width:480px) {
-  #toggleSearch { display: block; }
-  #searchContainer { max-height: 0; }
-  #searchContainer.active { max-height: 100px; }
-}
-/* Desktop-Optimierung: Tätigkeits-Spalte kompakt, Zeilen umbrechen */
-@media (min-width: 769px) {
-  table {
-    table-layout: fixed; /* fixe Spaltenbreiten */
-    width: 100%;
+/* Desktop & Tablet: Tabelle passt automatisch, Text bricht um */
+/* Desktop & Tablet: Tabelle passt exakt zur Container-Breite */
+@media (min-width: 481px) {
+  .table-container table {
+    width: 100%;         /* passt exakt zum Container */
+    border-collapse: collapse;
+    table-layout: auto;  /* flexible Spaltenbreiten */
   }
 
-  /* Spaltenbreiten */
+  th, td {
+    padding: 6px 8px;       /* passend zu den Input-Feldern */
+    white-space: normal;     /* Textumbruch */
+    word-wrap: break-word;
+    vertical-align: top;
+    box-sizing: border-box;  /* padding zählt nicht zur Breite dazu */
+  }
+
+  /* Spalten proportional */
+  table th:nth-child(1), td:nth-child(1) { width: 12%; }   /* Datum */
+  table th:nth-child(2), td:nth-child(2) { width: 18%; }   /* Name */
+  table th:nth-child(3), td:nth-child(3) { width: 20%; }   /* Ort */
+  table th:nth-child(4), td:nth-child(4) { width: 25%; }   /* Tätigkeiten */
+  table th:nth-child(5), td:nth-child(5) { width: 25%; }   /* Anmerkungen */
+  /* restliche Spalten flexibel */
+  table th:nth-child(6), td:nth-child(6),
+  table th:nth-child(7), td:nth-child(7),
+  table th:nth-child(8), td:nth-child(8),
+  table th:nth-child(9), td:nth-child(9) { width: auto; }
+}
+
+/* Desktop-Optimierung: Tätigkeits-Spalte kompakt, Zeilen umbrechen */
+@media (min-width: 769px) {
+  table { table-layout: fixed; width: 100%; }
   table th:nth-child(1), table td:nth-child(1) { width: 80px; }   /* Datum */
   table th:nth-child(2), table td:nth-child(2) { width: 120px; }  /* Name */
   table th:nth-child(3), table td:nth-child(3) { width: 150px; }  /* Ort */
@@ -658,12 +678,9 @@ if ("serviceWorker" in navigator) {
   table th:nth-child(7), table td:nth-child(7) { width: 60px; }   /* Zeit */
   table th:nth-child(8), table td:nth-child(8) { width: 60px; }   /* Km */
   table th:nth-child(9), table td:nth-child(9) { width: 120px; }  /* Aktion */
+}
 
-  /* Zeilen umbrechen, nicht überlaufen lassen */
-  .tatigkeit-cell {
-    white-space: normal;
-    word-wrap: break-word;
-  }
+  .tatigkeit-cell, td:nth-child(5) { white-space: normal; }
 }
 
 </style>
