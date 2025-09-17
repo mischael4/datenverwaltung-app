@@ -88,6 +88,8 @@ tr:nth-child(even){ background:#fcfcfc; }
 </style>
 </head>
 <body>
+<div id="modalOverlay" class="modal-overlay"></div>
+
 <div class="container">
 <h2>Datenverwaltung - Bereichslehrkräfte Köln</h2>
 
@@ -235,13 +237,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const getCurrentMonthYear = () => new Date().toLocaleString('de-DE', {month:'long', year:'numeric'});
 
-  // Initialwerte
-const today = new Date();
-$('datum').valueAsDate = today; // Formular-Datum auf heute
-$('monatZeit').value = $('monatKm').value = getCurrentMonthYear(); // aktueller Monat
-$('datumZeit').valueAsDate = new Date(today.getFullYear(), today.getMonth() + 1, 0); // letzter Tag dieses Monats
-$('datumKm').valueAsDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-
+  const today = new Date();
+  $('datum').valueAsDate = today;
+  $('monatZeit').value = $('monatKm').value = getCurrentMonthYear();
+  $('datumZeit').valueAsDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+  $('datumKm').valueAsDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
   if(savedName) {
     $('bereichslehrkraftZeit').value = $('bereichslehrkraftKm').value = savedName;
@@ -310,11 +310,7 @@ $('datumKm').valueAsDate = new Date(today.getFullYear(), today.getMonth() + 1, 0
   // Tabelle aktualisieren
   function updateTable() {
     const tableBody = $("tableBody");
-
-    // älteste zuerst
-dataSets.sort((a, b) => new Date(a.datum) - new Date(b.datum));
-
-
+    dataSets.sort((a, b) => new Date(a.datum) - new Date(b.datum));
     tableBody.innerHTML = "";
     const search = $("searchInput").value.toLowerCase();
     let totalZeit = 0, totalKm = 0, filteredZeit = 0, filteredKm = 0;
@@ -330,7 +326,7 @@ dataSets.sort((a, b) => new Date(a.datum) - new Date(b.datum));
             <td>${formatDateGerman(ds.datum)}</td>
             <td>${ds.name}</td>
             <td>${ds.schule}</td>
-            <td class="tatigkeit-cell">${dsTatigkeit.map(t => "• " + t).join("<br>")}</td>
+            <td class="tatigkeit-cell">${normalizeTaetigkeit(ds.tatigkeit).map(t => " • " + t).join("<br>")}</td>
             <td>${ds.anmerkungen}</td>
             <td>${ds.strecke}</td>
             <td>${ds.zeit}</td>
@@ -353,13 +349,13 @@ dataSets.sort((a, b) => new Date(a.datum) - new Date(b.datum));
     });
 
     $("summenAnzeige").innerHTML = 
-        `Gesamtzeit (alle Monate): ${totalZeit.toFixed(1)} h | Gesamtkm (alle Monate): ${totalKm.toFixed(1)} km<br>` +
-        `Im aktuellen Monat (${currentMonth}): ${filteredZeit.toFixed(1)} h | ${filteredKm.toFixed(1)} km`;
+        `Gesamtzeit: ${totalZeit.toFixed(1)} h | Gesamtkm: ${totalKm.toFixed(1)} km<br>` +
+        `${currentMonth}: ${filteredZeit.toFixed(1)} h | ${filteredKm.toFixed(1)} km`;
 
     document.querySelectorAll('.edit-btn').forEach(btn => { btn.onclick = () => editRecord(btn.dataset.i); });
     document.querySelectorAll('.delete-btn').forEach(btn => { btn.onclick = () => deleteRecord(btn.dataset.i); });
     document.querySelectorAll('.copy-btn').forEach(btn => { btn.onclick = () => copyRecord(btn.dataset.i); });
-}
+  }
 
   function editRecord(i){
     const ds=dataSets[i];
@@ -379,19 +375,14 @@ dataSets.sort((a, b) => new Date(a.datum) - new Date(b.datum));
 
   function deleteRecord(i){ if(confirm("Diesen Datensatz wirklich löschen?")){ dataSets.splice(i,1); localStorage.setItem("dataSets",JSON.stringify(dataSets)); updateTable(); showMessage("Datensatz erfolgreich gelöscht!"); } }
   function copyRecord(i){
-  // Kopie erstellen, Datum auf heute setzen
-  const copy = { ...dataSets[i], datum: new Date().toISOString().split("T")[0] };
-  dataSets.push(copy);
-  localStorage.setItem("dataSets", JSON.stringify(dataSets));
-  updateTable();
-
-  // Formular auf den kopierten Datensatz setzen
-  const newIndex = dataSets.length - 1;
-  editRecord(newIndex);
-
-  showMessage("Datensatz kopiert und zur Bearbeitung geöffnet.");
-}
-
+    const copy = { ...dataSets[i], datum: new Date().toISOString().split("T")[0] };
+    dataSets.push(copy);
+    localStorage.setItem("dataSets", JSON.stringify(dataSets));
+    updateTable();
+    const newIndex = dataSets.length - 1;
+    editRecord(newIndex);
+    showMessage("Datensatz kopiert und zur Bearbeitung geöffnet.");
+  }
 
   // PDF Export
   function exportPdf(type, month, date, teacher){
@@ -442,9 +433,9 @@ dataSets.sort((a, b) => new Date(a.datum) - new Date(b.datum));
       theme: "grid",
       styles: { fontSize: 12 },
       columnStyles: {
-        2:{cellWidth:40}, // C
-        3:{cellWidth:80}, // D
-        5:{cellWidth:40}  // F
+        2:{cellWidth:40},
+        3:{cellWidth:80},
+        5:{cellWidth:40}
       },
       didDrawPage: function(data){
         const pageNumber = doc.internal.getCurrentPageInfo().pageNumber;
@@ -468,96 +459,87 @@ dataSets.sort((a, b) => new Date(a.datum) - new Date(b.datum));
 
   // CSV / Excel Export
   function exportTable(type, month, date, teacher, format){
-  const filtered = filterByMonth(dataSets, month);
+    const filtered = filterByMonth(dataSets, month);
 
-  const headerLines = [
-    [`${type==="taetigkeitsbericht" ? 
-       "Berichtsdokument für Bereichslehrkräfte für reisende Kinder und Jugendliche" :
-       "Bereichslehrkräfte für reisende Kinder und Jugendliche – Fahrtkostenabrechnung"}`],
-    [`Monat: ${month}`],
-    [`Datum: ${formatDateGerman(date)}`],
-    [`Bereichslehrkraft: ${teacher}`],
-    []
-  ];
-
-  // Datenzeilen: nur relevante Spalte für Zeit/Km
-  const rows = filtered.map(ds => {
-    const base = [
-      formatDateGerman(ds.datum),
-      ds.name,
-      ds.schule,
-      normalizeTaetigkeit(ds.tatigkeit).map(t=>"• "+t).join("\n"),
-      ds.anmerkungen,
-      ds.strecke
-    ];
-    if(type==="taetigkeitsbericht") base.push(ds.zeit); // nur Zeit
-    else base.push(ds.km); // nur Km
-    return base;
-  });
-
-  // Spaltenüberschriften
-  const head = ["Datum","Name","Ort","Unterstützungsmaßnahmen","Anmerkungen","Strecke"];
-  if(type==="taetigkeitsbericht") head.push("Zeit");
-  else head.push("Km");
-
-  // Summen
-  const sumValue = type==="taetigkeitsbericht" ? sumByKey(filtered,"zeit") : sumByKey(filtered,"km");
-  const sumRow = head.map(h => {
-    if(h==="Zeit" && type==="taetigkeitsbericht") return sumValue;
-    if(h==="Km" && type==="fahrtkostenabrechnung") return sumValue;
-    return "";
-  });
-
-  if(format === "csv"){
-    let csvContent = "\uFEFF"; // BOM für Umlaute
-    headerLines.forEach(line=>{
-      csvContent += line.map(cell => `"${String(cell).replace(/"/g,'""')}"`).join(";") + "\n";
-    });
-    csvContent += head.map(cell => `"${cell}"`).join(";") + "\n";
-    rows.forEach(row=>{
-      csvContent += row.map(cell => `"${String(cell).replace(/"/g,'""')}"`).join(";") + "\n";
-    });
-    csvContent += sumRow.map(cell=>`"${cell}"`).join(";") + "\n";
-
-    const blob = new Blob([csvContent], {type:'text/csv;charset=utf-8;'});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `${type}_${month}_${teacher}.csv`.replace(/\s+/g,"_");
-    a.click();
-  }
-
-  else if(format==="xls"){
-    const wb = XLSX.utils.book_new();
-    const ws_data = headerLines.concat([head]).concat(rows);
-    ws_data.push(sumRow);
-
-    const ws = XLSX.utils.aoa_to_sheet(ws_data);
-
-    // Spaltenbreiten
-    ws['!cols'] = [
-      {wch:12}, // Datum
-      {wch:20}, // Name
-      {wch:25}, // Ort
-      {wch:40}, // Unterstützungsmaßnahmen
-      {wch:20}, // Anmerkungen
-      {wch:20}, // Strecke
-      {wch:10}  // Zeit oder Km
+    const headerLines = [
+      [`${type==="taetigkeitsbericht" ? 
+         "Berichtsdokument für Bereichslehrkräfte für reisende Kinder und Jugendliche" :
+         "Bereichslehrkräfte für reisende Kinder und Jugendliche – Fahrtkostenabrechnung"}`],
+      [`Monat: ${month}`],
+      [`Datum: ${formatDateGerman(date)}`],
+      [`Bereichslehrkraft: ${teacher}`],
+      []
     ];
 
-    XLSX.utils.book_append_sheet(wb, ws, "Export");
-    XLSX.writeFile(wb, `${type}_${month}_${teacher}.xlsx`.replace(/\s+/g,"_"));
+    const rows = filtered.map(ds => {
+      const base = [
+        formatDateGerman(ds.datum),
+        ds.name,
+        ds.schule,
+        normalizeTaetigkeit(ds.tatigkeit).map(t=>"• "+t).join("\n"),
+        ds.anmerkungen,
+        ds.strecke
+      ];
+      if(type==="taetigkeitsbericht") base.push(ds.zeit);
+      else base.push(ds.km);
+      return base;
+    });
+
+    const head = ["Datum","Name","Ort","Unterstützungsmaßnahmen","Anmerkungen","Strecke"];
+    if(type==="taetigkeitsbericht") head.push("Zeit");
+    else head.push("Km");
+
+    const sumValue = type==="taetigkeitsbericht" ? sumByKey(filtered,"zeit") : sumByKey(filtered,"km");
+    const sumRow = head.map(h => {
+      if(h==="Zeit" && type==="taetigkeitsbericht") return sumValue;
+      if(h==="Km" && type==="fahrtkostenabrechnung") return sumValue;
+      return "";
+    });
+
+    if(format === "csv"){
+      let csvContent = "\uFEFF";
+      headerLines.forEach(line=>{
+        csvContent += line.map(cell => `"${String(cell).replace(/"/g,'""')}"`).join(";") + "\n";
+      });
+      csvContent += head.map(cell => `"${cell}"`).join(";") + "\n";
+      rows.forEach(row=>{
+        csvContent += row.map(cell => `"${String(cell).replace(/"/g,'""')}"`).join(";") + "\n";
+      });
+      csvContent += sumRow.map(cell=>`"${cell}"`).join(";") + "\n";
+
+      const blob = new Blob([csvContent], {type:'text/csv;charset=utf-8;'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `${type}_${month}_${teacher}.csv`.replace(/\s+/g,"_");
+      a.click();
+    }
+
+    else if(format==="xls"){
+      const wb = XLSX.utils.book_new();
+      const ws_data = headerLines.concat([head]).concat(rows);
+      ws_data.push(sumRow);
+
+      const ws = XLSX.utils.aoa_to_sheet(ws_data);
+      ws['!cols'] = [
+        {wch:12},
+        {wch:20},
+        {wch:25},
+        {wch:40},
+        {wch:20},
+        {wch:20},
+        {wch:10}
+      ];
+
+      XLSX.utils.book_append_sheet(wb, ws, "Export");
+      XLSX.writeFile(wb, `${type}_${month}_${teacher}.xlsx`.replace(/\s+/g,"_"));
+    }
   }
-}
 
   // Event Handler Export, Backup, Search
-  $('openExportDialogZeit').onclick = () => {$('exportDialogZeit').style.display="block";};
-  $('cancelExportZeit').onclick = () => {$('exportDialogZeit').style.display="none";};
   $('exportPdfZeit').onclick = () => { exportPdf("taetigkeitsbericht",$('monatZeit').value,$('datumZeit').value,$('bereichslehrkraftZeit').value); };
   $('exportCsvZeit').onclick = () => { exportTable("taetigkeitsbericht",$('monatZeit').value,$('datumZeit').value,$('bereichslehrkraftZeit').value,"csv"); };
   $('exportXlsZeit').onclick = () => { exportTable("taetigkeitsbericht",$('monatZeit').value,$('datumZeit').value,$('bereichslehrkraftZeit').value,"xls"); };
 
-  $('openExportDialogKm').onclick = () => {$('exportDialogKm').style.display="block";};
-  $('cancelExportKm').onclick = () => {$('exportDialogKm').style.display="none";};
   $('exportPdfKm').onclick = () => { exportPdf("fahrtkostenabrechnung",$('monatKm').value,$('datumKm').value,$('bereichslehrkraftKm').value); };
   $('exportCsvKm').onclick = () => { exportTable("fahrtkostenabrechnung",$('monatKm').value,$('datumKm').value,$('bereichslehrkraftKm').value,"csv"); };
   $('exportXlsKm').onclick = () => { exportTable("fahrtkostenabrechnung",$('monatKm').value,$('datumKm').value,$('bereichslehrkraftKm').value,"xls"); };
@@ -571,6 +553,29 @@ dataSets.sort((a, b) => new Date(a.datum) - new Date(b.datum));
   };
 
   $('searchInput').addEventListener("input", updateTable);
+
+  // Modal-Logik
+  const overlay = document.getElementById("modalOverlay");
+
+  function openModal(modal) {
+    modal.style.display = "block";
+    overlay.classList.add("active");
+  }
+
+  function closeModal(modal) {
+    modal.style.display = "none";
+    overlay.classList.remove("active");
+  }
+
+  $('openExportDialogZeit').onclick = () => openModal($('exportDialogZeit'));
+  $('cancelExportZeit').onclick = () => closeModal($('exportDialogZeit'));
+  $('openExportDialogKm').onclick = () => openModal($('exportDialogKm'));
+  $('cancelExportKm').onclick = () => closeModal($('exportDialogKm'));
+
+  overlay.onclick = () => {
+    closeModal($('exportDialogZeit'));
+    closeModal($('exportDialogKm'));
+  };
 
   loadData();
 });
