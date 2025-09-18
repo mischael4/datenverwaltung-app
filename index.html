@@ -240,11 +240,12 @@ document.addEventListener('DOMContentLoaded', () => {
   $('datum').valueAsDate = today;
   $('monatZeit').value = $('monatKm').value = getCurrentMonthYear();
   $('datumZeit').valueAsDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-  $('datumKm').valueAsDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+$('datumKm').valueAsDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
-  if(savedName) {
-    $('bereichslehrkraftZeit').value = $('bereichslehrkraftKm').value = savedName;
-  }
+
+  // Modal-Felder werden nicht automatisch gesetzt
+$('bereichslehrkraftZeit').value = $('bereichslehrkraftKm').value = savedName;
+
 
   // Daten laden
   function loadData() {
@@ -399,7 +400,9 @@ document.addEventListener('DOMContentLoaded', () => {
     doc.text(`Bereichslehrkraft: ${teacher}`, 10, 50);
     doc.text("Unterschrift:", 150, 50);
 
-    const filtered = filterByMonth(dataSets, month);
+    let filtered = filterByMonth(dataSets, month);
+if(type === "fahrtkostenabrechnung") filtered = filtered.filter(ds => ds.km && ds.km > 0);
+
     let head, body;
     if(type === "taetigkeitsbericht"){
       head = [["Datum","Name","Ort","Unterstützungsmaßnahmen","Anmerkungen","Strecke","Zeit (h)"]];
@@ -458,7 +461,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // CSV / Excel Export
   function exportTable(type, month, date, teacher, format){
-    const filtered = filterByMonth(dataSets, month);
+    let filtered = filterByMonth(dataSets, month);
+if(type === "fahrtkostenabrechnung") filtered = filtered.filter(ds => ds.km && ds.km > 0);
 
     const headerLines = [
       [`${type==="taetigkeitsbericht" ? 
