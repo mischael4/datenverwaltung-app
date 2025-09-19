@@ -132,7 +132,7 @@ tr:nth-child(even){ background:#fcfcfc; }
 </div>
 <div class="form-group"><label for="anmerkungen">Anmerkungen:</label><textarea id="anmerkungen" rows="3"></textarea></div>
 <div class="form-group"><label for="strecke">Strecke:</label><input type="text" id="strecke"></div>
-<div class="form-group"><label for="zeit">Zeit (h):</label><input type="number" id="zeit" step="0.1" min="0" required></div>
+<div class="form-group"><label for="zeit">Zeit (h):</label><input type="number" id="zeit" step="0.01" min="0" required></div>
 <div class="form-group"><label for="km">Kilometer (km):</label><input type="number" id="km" step="0.1" min="0" required></div>
 <button type="submit" id="submitBtn">Datensatz hinzufügen</button>
 </form>
@@ -360,9 +360,14 @@ if(duplicate) tr.style.backgroundColor = "#ffe6e6"; // hellrot für Duplikate
         }
     });
 
-    $("summenAnzeige").innerHTML = 
-        `Gesamtzeit: ${totalZeit.toFixed(1)} h | Gesamtkm: ${totalKm.toFixed(1)} km<br>` +
-        `${currentMonth}: ${filteredZeit.toFixed(1)} h | ${filteredKm.toFixed(1)} km`;
+    const formatNumber = n => {
+  const str = n.toFixed(2);     // immer 2 Nachkommastellen
+  return str.endsWith("00") ? str.slice(0,-3) : str; // .00 entfernen
+};
+
+$("summenAnzeige").innerHTML = 
+    `Gesamtzeit: ${formatNumber(totalZeit)} h | Gesamtkm: ${formatNumber(totalKm)} km<br>` +
+    `${currentMonth}: ${formatNumber(filteredZeit)} h | ${formatNumber(filteredKm)} km`;
 
     document.querySelectorAll('.edit-btn').forEach(btn => { btn.onclick = () => editRecord(btn.dataset.i); });
     document.querySelectorAll('.delete-btn').forEach(btn => { btn.onclick = () => deleteRecord(btn.dataset.i); });
@@ -433,15 +438,22 @@ if(type === "fahrtkostenabrechnung") filtered = filtered.filter(ds => ds.km && d
     let head, body;
     if(type === "taetigkeitsbericht"){
       head = [["Datum","Name","Ort","Unterstützungsmaßnahmen","Anmerkungen","Strecke","Zeit (h)"]];
-      body = filtered.map(ds => [
-        formatDateGerman(ds.datum),
-        ds.name,
-        ds.schule,
-        normalizeTaetigkeit(ds.tatigkeit).map(t => "• "+t).join("\n"),
-        ds.anmerkungen,
-        ds.strecke,
-        ds.zeit
-      ]);
+      const formatForPdf = n => {
+    let val = Number(n).toFixed(2);
+    if(val.endsWith("00")) val = val.slice(0,-3); // .00 entfernen
+    return val;
+};
+
+body = filtered.map(ds => [
+    formatDateGerman(ds.datum),
+    ds.name,
+    ds.schule,
+    normalizeTaetigkeit(ds.tatigkeit).map(t => "• "+t).join("\n"),
+    ds.anmerkungen,
+    ds.strecke,
+    formatForPdf(ds.zeit)
+]);
+;
     } else {
       head = [["Datum","Name","Ort","Unterstützungsmaßnahmen","Anmerkungen","Strecke","Km"]];
       body = filtered.map(ds => [
@@ -474,8 +486,18 @@ if(type === "fahrtkostenabrechnung") filtered = filtered.filter(ds => ds.km && d
     });
 
     const finalY = doc.lastAutoTable.finalY + 5;
-    const sumZeit = sumByKey(filtered, "zeit").toFixed(1);
-    const sumKm   = sumByKey(filtered, "km").toFixed(1);
+    const sumZeit = (() => {
+    let val = sumByKey(filtered, "zeit").toFixed(2);
+    if(val.endsWith("00")) val = val.slice(0,-3);
+    return val;
+})();
+
+    const sumKm = (() => {
+    let val = sumByKey(filtered, "km").toFixed(2);
+    if(val.endsWith("00")) val = val.slice(0,-3);
+    return val;
+})();
+
     doc.setFont(undefined,"bold");
     const pageWidth = doc.internal.pageSize.getWidth();
     const offsetRight = 20;
@@ -521,10 +543,16 @@ if(type === "fahrtkostenabrechnung") filtered = filtered.filter(ds => ds.km && d
 
     const sumValue = type==="taetigkeitsbericht" ? sumByKey(filtered,"zeit") : sumByKey(filtered,"km");
     const sumRow = head.map(h => {
-      if(h==="Zeit" && type==="taetigkeitsbericht") return sumValue;
-      if(h==="Km" && type==="fahrtkostenabrechnung") return sumValue;
-      return "";
-    });
+    let sumValue = 0;
+    if(h==="Zeit" && type==="taetigkeitsbericht") sumValue = sumByKey(filtered,"zeit");
+    if(h==="Km" && type==="fahrtkostenabrechnung") sumValue = sumByKey(filtered,"km");
+    if(sumValue){
+        let val = sumValue.toFixed(2);
+        if(val.endsWith("00")) val = val.slice(0,-3);
+        return val;
+    }
+    return "";
+});
 
     if(format === "csv"){
   let csvContent = "\uFEFF";
@@ -536,10 +564,15 @@ if(type === "fahrtkostenabrechnung") filtered = filtered.filter(ds => ds.km && d
     csvContent += row.map((cell, index) => {
       // Wenn es die Zeit- oder Km-Spalte ist, Dezimalpunkt in Komma ändern
       if((type === "taetigkeitsbericht" && head[index] === "Zeit") ||
-         (type === "fahrtkostenabrechnung" && head[index] === "Km")) {
-        if(cell != null && cell !== "") return `"${String(cell).replace(".", ",")}"`;
-        return '""';
-      }
+   (type === "fahrtkostenabrechnung" && head[index] === "Km")) {
+    if(cell != null && cell !== "") {
+        let val = Number(cell).toFixed(2);        // 2 Dezimalstellen
+        if(val.endsWith("00")) val = val.slice(0,-3); // .00 entfernen
+        return `"${val.replace(".", ",")}"`;
+    }
+    return '""';
+}
+
       return `"${String(cell).replace(/"/g,'""')}"`;
     }).join(";") + "\n";
   });
