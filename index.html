@@ -211,9 +211,6 @@ document.addEventListener('DOMContentLoaded', () => {
     return String(t).split(/[,;]+/).map(s => s.trim()).filter(Boolean);
   };
 
-  const savedName = localStorage.getItem('lehrkraftName');
-  if(savedName) $('name').value = savedName;
-
   let dataSets = [];
 
   const formatDateGerman = s => {
@@ -242,10 +239,8 @@ document.addEventListener('DOMContentLoaded', () => {
   $('datumZeit').valueAsDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 $('datumKm').valueAsDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 
-
-  // Modal-Felder werden nicht automatisch gesetzt
-$('bereichslehrkraftZeit').value = $('bereichslehrkraftKm').value = savedName;
-
+$('bereichslehrkraftZeit').value = '';
+$('bereichslehrkraftKm').value = '';
 
   // Daten laden
   function loadData() {
@@ -374,7 +369,22 @@ if(duplicate) tr.style.backgroundColor = "#ffe6e6"; // hellrot für Duplikate
     document.querySelectorAll('.copy-btn').forEach(btn => { btn.onclick = () => copyRecord(btn.dataset.i); });
   }
 
-  function editRecord(i){
+// ENTFERNE diese Zeilen
+// const savedName = localStorage.getItem('lehrkraftName');
+// if(savedName) $('name').value = savedName;
+
+// Modal-Logik: Name übernehmen, nur wenn vorhanden
+function openModal(modal) {
+  if(modal.id === "exportDialogZeit") 
+      $('bereichslehrkraftZeit').value = $('name').value || '';
+  if(modal.id === "exportDialogKm") 
+      $('bereichslehrkraftKm').value = $('name').value || '';
+  modal.style.display = "block";
+  overlay.classList.add("active");
+}
+
+// Beim Bearbeiten wird Name gesetzt
+function editRecord(i){
     const ds=dataSets[i];
     $('datum').value=ds.datum;
     $('name').value=ds.name;
@@ -388,7 +398,7 @@ if(duplicate) tr.style.backgroundColor = "#ffe6e6"; // hellrot für Duplikate
     $('submitBtn').textContent="Änderungen speichern";
     window.scrollTo({top:0, behavior:'smooth'});
     showMessage("Datensatz ausgewählt – jetzt bearbeiten!");
-  }
+}
 
   function deleteRecord(i){ if(confirm("Diesen Datensatz wirklich löschen?")){ dataSets.splice(i,1); localStorage.setItem("dataSets",JSON.stringify(dataSets)); updateTable(); showMessage("Datensatz erfolgreich gelöscht!"); } }
   function copyRecord(i){
@@ -517,22 +527,30 @@ if(type === "fahrtkostenabrechnung") filtered = filtered.filter(ds => ds.km && d
     });
 
     if(format === "csv"){
-      let csvContent = "\uFEFF";
-      headerLines.forEach(line=>{
-        csvContent += line.map(cell => `"${String(cell).replace(/"/g,'""')}"`).join(";") + "\n";
-      });
-      csvContent += head.map(cell => `"${cell}"`).join(";") + "\n";
-      rows.forEach(row=>{
-        csvContent += row.map(cell => `"${String(cell).replace(/"/g,'""')}"`).join(";") + "\n";
-      });
-      csvContent += sumRow.map(cell=>`"${cell}"`).join(";") + "\n";
+  let csvContent = "\uFEFF";
+  headerLines.forEach(line=>{
+    csvContent += line.map(cell => `"${String(cell).replace(/"/g,'""')}"`).join(";") + "\n";
+  });
+  csvContent += head.map(cell => `"${cell}"`).join(";") + "\n";
+  rows.forEach(row => {
+    csvContent += row.map((cell, index) => {
+      // Wenn es die Zeit- oder Km-Spalte ist, Dezimalpunkt in Komma ändern
+      if((type === "taetigkeitsbericht" && head[index] === "Zeit") ||
+         (type === "fahrtkostenabrechnung" && head[index] === "Km")) {
+        if(cell != null && cell !== "") return `"${String(cell).replace(".", ",")}"`;
+        return '""';
+      }
+      return `"${String(cell).replace(/"/g,'""')}"`;
+    }).join(";") + "\n";
+  });
+  csvContent += sumRow.map(cell=>`"${cell}"`).join(";") + "\n";
 
-      const blob = new Blob([csvContent], {type:'text/csv;charset=utf-8;'});
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = `${type}_${month}_${teacher}.csv`.replace(/\s+/g,"_");
-      a.click();
-    }
+  const blob = new Blob([csvContent], {type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${type}_${month}_${teacher}.csv`.replace(/\s+/g,"_");
+  a.click();
+}
 
     else if(format==="xls"){
       const wb = XLSX.utils.book_new();
@@ -576,13 +594,6 @@ if(type === "fahrtkostenabrechnung") filtered = filtered.filter(ds => ds.km && d
 
   // Modal-Logik
   const overlay = document.getElementById("modalOverlay");
-
-  function openModal(modal) {
-  if(modal.id === "exportDialogZeit") $('bereichslehrkraftZeit').value = $('name').value;
-  if(modal.id === "exportDialogKm") $('bereichslehrkraftKm').value = $('name').value;
-  modal.style.display = "block";
-  overlay.classList.add("active");
-}
 
   function closeModal(modal) {
     modal.style.display = "none";
