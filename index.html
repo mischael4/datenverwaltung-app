@@ -4,7 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Datenverwaltung - Bereichslehrkräfte Köln</title>
-
+<meta name="author" content="Michae Gibbels">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#27ae60">
 
@@ -323,20 +323,21 @@ $('bereichslehrkraftZeit').value = $('bereichslehrkraftKm').value = savedName;
 
         const tr = document.createElement("tr");
         tr.innerHTML = `
-            <td>${formatDateGerman(ds.datum)}</td>
-            <td>${ds.name}</td>
-            <td>${ds.schule}</td>
-            <td class="tatigkeit-cell">${normalizeTaetigkeit(ds.tatigkeit).map(t => " • " + t).join("<br>")}</td>
-            <td>${ds.anmerkungen}</td>
-            <td>${ds.strecke}</td>
-            <td>${ds.zeit}</td>
-            <td>${ds.km}</td>
-            <td>
-  <button class="edit-btn" data-i="${i}" title="Bearbeiten">Bearbeiten</button>
-  <button class="delete-btn" data-i="${i}" title="Löschen">Löschen</button>
-  <button class="copy-btn" data-i="${i}" title="Kopieren">Kopieren</button>
-</td>
+    <td>${formatDateGerman(ds.datum)}</td>
+    <td>${ds.name.replace(/,/g, ",<br>")}</td>
+    <td>${ds.schule.replace(/,/g, ",<br>")}</td>
+    <td class="tatigkeit-cell">${normalizeTaetigkeit(ds.tatigkeit).map(t => " • " + t).join("<br>")}</td>
+    <td>${ds.anmerkungen.replace(/,/g, ",<br>")}</td>
+    <td>${ds.strecke}</td>
+    <td>${ds.zeit}</td>
+    <td>${ds.km}</td>
+    <td>
+      <button class="edit-btn" data-i="${i}" title="Bearbeiten">Bearbeiten</button>
+      <button class="delete-btn" data-i="${i}" title="Löschen">Löschen</button>
+      <button class="copy-btn" data-i="${i}" title="Kopieren">Kopieren</button>
+    </td>
 `;
+
         tableBody.appendChild(tr);
 
         totalZeit += ds.zeit || 0; 
@@ -561,9 +562,11 @@ if(type === "fahrtkostenabrechnung") filtered = filtered.filter(ds => ds.km && d
   const overlay = document.getElementById("modalOverlay");
 
   function openModal(modal) {
-    modal.style.display = "block";
-    overlay.classList.add("active");
-  }
+  if(modal.id === "exportDialogZeit") $('bereichslehrkraftZeit').value = $('name').value;
+  if(modal.id === "exportDialogKm") $('bereichslehrkraftKm').value = $('name').value;
+  modal.style.display = "block";
+  overlay.classList.add("active");
+}
 
   function closeModal(modal) {
     modal.style.display = "none";
