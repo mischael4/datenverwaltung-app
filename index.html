@@ -307,6 +307,20 @@ $('bereichslehrkraftZeit').value = $('bereichslehrkraftKm').value = savedName;
     $('datum').valueAsDate = new Date();
   };
 
+// Hilfsfunktion: prüft, ob ein Datensatz doppelt ist
+function isDuplicate(ds, index) {
+  return dataSets.some((other, i) => i !== index &&
+    ds.datum === other.datum &&
+    ds.name === other.name &&
+    ds.schule === other.schule &&
+    normalizeTaetigkeit(ds.tatigkeit).join(",") === normalizeTaetigkeit(other.tatigkeit).join(",") &&
+    ds.anmerkungen === other.anmerkungen &&
+    ds.strecke === other.strecke &&
+    ds.zeit === other.zeit &&
+    ds.km === other.km
+  );
+}
+
   // Tabelle aktualisieren
   function updateTable() {
     const tableBody = $("tableBody");
@@ -322,21 +336,23 @@ $('bereichslehrkraftZeit').value = $('bereichslehrkraftKm').value = savedName;
         if (search && !text.includes(search)) return;
 
         const tr = document.createElement("tr");
-        tr.innerHTML = `
-    <td>${formatDateGerman(ds.datum)}</td>
-    <td>${ds.name.replace(/,/g, ",<br>")}</td>
-    <td>${ds.schule.replace(/,/g, ",<br>")}</td>
-    <td class="tatigkeit-cell">${normalizeTaetigkeit(ds.tatigkeit).map(t => " • " + t).join("<br>")}</td>
-    <td>${ds.anmerkungen.replace(/,/g, ",<br>")}</td>
-    <td>${ds.strecke}</td>
-    <td>${ds.zeit}</td>
-    <td>${ds.km}</td>
-    <td>
-      <button class="edit-btn" data-i="${i}" title="Bearbeiten">Bearbeiten</button>
-      <button class="delete-btn" data-i="${i}" title="Löschen">Löschen</button>
-      <button class="copy-btn" data-i="${i}" title="Kopieren">Kopieren</button>
-    </td>
+        const duplicate = isDuplicate(ds, i);
+tr.innerHTML = `
+<td>${formatDateGerman(ds.datum)}</td>
+<td>${ds.name.replace(/,/g, ",<br>")}</td>
+<td>${ds.schule.replace(/,/g, ",<br>")}</td>
+<td class="tatigkeit-cell">${normalizeTaetigkeit(ds.tatigkeit).map(t => " • " + t).join("<br>")}</td>
+<td>${ds.anmerkungen.replace(/,/g, ",<br>")}</td>
+<td>${ds.strecke}</td>
+<td>${ds.zeit}</td>
+<td>${ds.km}</td>
+<td>
+  <button class="edit-btn" data-i="${i}" title="Bearbeiten">Bearbeiten</button>
+  <button class="delete-btn" data-i="${i}" title="Löschen">Löschen</button>
+  <button class="copy-btn" data-i="${i}" title="Kopieren">Kopieren</button>
+</td>
 `;
+if(duplicate) tr.style.backgroundColor = "#ffe6e6"; // hellrot für Duplikate
 
         tableBody.appendChild(tr);
 
