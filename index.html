@@ -392,14 +392,14 @@ if(duplicate) tr.style.backgroundColor = "#ffe6e6"; // hellrot für Duplikate
 
   function deleteRecord(i){ if(confirm("Diesen Datensatz wirklich löschen?")){ dataSets.splice(i,1); localStorage.setItem("dataSets",JSON.stringify(dataSets)); updateTable(); showMessage("Datensatz erfolgreich gelöscht!"); } }
   function copyRecord(i){
-    const copy = { ...dataSets[i], datum: new Date().toISOString().split("T")[0] };
-    dataSets.push(copy);
+    const copy = { ...dataSets[i] }; // Datum bleibt gleich
+    dataSets.push(copy);              // Kopie ans Ende der Liste
     localStorage.setItem("dataSets", JSON.stringify(dataSets));
-    updateTable();
+    updateTable();                    // Tabelle neu rendern
     const newIndex = dataSets.length - 1;
-    editRecord(newIndex);
+    editRecord(newIndex);             // Formular mit Kopie öffnen
     showMessage("Datensatz kopiert und zur Bearbeitung geöffnet.");
-  }
+}
 
   // PDF Export
   function exportPdf(type, month, date, teacher){
