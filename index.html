@@ -235,13 +235,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const getCurrentMonthYear = () => new Date().toLocaleString('de-DE', {month:'long', year:'numeric'});
 
   const today = new Date();
-  $('datum').valueAsDate = today;
-  $('monatZeit').value = $('monatKm').value = getCurrentMonthYear();
-  $('datumZeit').valueAsDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-$('datumKm').valueAsDate = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+$('datum').valueAsDate = today;
 
+// Exportdialog-Daten korrekt auf letzten Tag des aktuellen Monats setzen
+const lastDayCurrentMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+$('datumZeit').valueAsDate = lastDayCurrentMonth;
+$('datumKm').valueAsDate = lastDayCurrentMonth;
+
+$('monatZeit').value = $('monatKm').value = getCurrentMonthYear();
 $('bereichslehrkraftZeit').value = '';
 $('bereichslehrkraftKm').value = '';
+
 
   // Daten laden
   function loadData() {
@@ -395,8 +399,16 @@ function openModal(modal) {
       $('bereichslehrkraftZeit').value = $('name').value || '';
   if(modal.id === "exportDialogKm") 
       $('bereichslehrkraftKm').value = $('name').value || '';
-  modal.style.display = "block";
+  
+  modal.classList.add("active");
   overlay.classList.add("active");
+  modal.setAttribute("role", "dialog");
+  modal.setAttribute("aria-modal", "true");
+}
+
+function closeModal(modal) {
+  modal.classList.remove("active");
+  overlay.classList.remove("active");
 }
 
 // Beim Bearbeiten wird Name gesetzt
@@ -637,12 +649,12 @@ if(type === "fahrtkostenabrechnung") filtered = filtered.filter(ds => ds.km && d
   $('searchInput').addEventListener("input", updateTable);
 
   // Modal-Logik
-  const overlay = document.getElementById("modalOverlay");
+const overlay = document.getElementById("modalOverlay");
 
-  function closeModal(modal) {
-    modal.style.display = "none";
-    overlay.classList.remove("active");
-  }
+function closeModal(modal) {
+  modal.classList.remove("active");
+  overlay.classList.remove("active");
+}
 
   $('openExportDialogZeit').onclick = () => openModal($('exportDialogZeit'));
   $('cancelExportZeit').onclick = () => closeModal($('exportDialogZeit'));
