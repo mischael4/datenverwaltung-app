@@ -48,5 +48,14 @@ self.addEventListener("activate", event => {
   self.clients.claim(); // sofort Kontrolle übernehmen
 });
 
+// Nachricht vom Client empfangen – sofortige Aktivierung
+self.addEventListener('message', event => {
+  if (event.data && event.data.action === 'skipWaiting') {
+    self.skipWaiting();
+  }
+});
+
+
+
 
 
