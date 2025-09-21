@@ -156,6 +156,7 @@ tr:nth-child(even){ background:#fcfcfc; }
 <button id="backupBtn" class="data-btn">Datensätze sichern</button>
 <input type="file" id="restoreInput" style="display:none" />
 <button id="restoreBtn" class="data-btn">Datensätze laden</button>
+<button id="deleteAllBtn" class="cancel-btn">Alle Datensätze löschen</button>
 </div>
 
 <!-- Export Modals -->
@@ -271,6 +272,16 @@ $('bereichslehrkraftKm').value = '';
       reader.readAsText(file);
     }
   };
+
+// Alle Datensätze löschen
+$('deleteAllBtn').onclick = () => {
+  if (confirm("Alle Datensätze wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden!")) {
+    dataSets = []; // Array leeren
+    localStorage.removeItem("dataSets"); // LocalStorage löschen
+    updateTable(); // Tabelle neu rendern
+    showMessage("Alle Datensätze wurden gelöscht!");
+  }
+};
 
   // Form Submission
   $('dataForm').onsubmit = e => {
