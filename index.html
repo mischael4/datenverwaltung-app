@@ -658,12 +658,6 @@ if(type === "fahrtkostenabrechnung") filtered = filtered.filter(ds => ds.km && d
 });
 </script>
 
-<script>
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("service-worker.js");
-}
-</script>
-
 <style>
 /* ---- Handy-Optimierungen ---- */
 @media (max-width:480px) {
@@ -767,6 +761,26 @@ if ("serviceWorker" in navigator) {
   .tatigkeit-cell, td:nth-child(5) { white-space: normal; }
 
 </style>
+
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('service-worker.js')
+    .then(reg => {
+      reg.onupdatefound = () => {
+        const newWorker = reg.installing;
+        newWorker.onstatechange = () => {
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            newWorker.postMessage({ action: 'skipWaiting' });
+          }
+        };
+      };
+    });
+
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    window.location.reload();
+  });
+}
+</script>
 
 </body>
 </html>
