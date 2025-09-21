@@ -4,7 +4,6 @@ const urlsToCache = [
   "./",
   "./index.html",
   "./manifest.json",
-  "./favicon.ico",
   "./service-worker.js",
 
   // externe Bibliotheken (CDN)
@@ -48,5 +47,6 @@ self.addEventListener("activate", event => {
   );
   self.clients.claim(); // sofort Kontrolle übernehmen
 });
+
 
 
