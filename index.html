@@ -362,7 +362,10 @@ tr.innerHTML = `
   <button class="copy-btn" data-i="${i}" title="Kopieren">Kopieren</button>
 </td>
 `;
-if(duplicate) tr.style.backgroundColor = "#ffe6e6"; // hellrot für Duplikate
+if (duplicate) {
+  tr.style.backgroundColor = "#ffe6e6";
+  tr.title = "Möglicher doppelter Eintrag!";
+}
 
         tableBody.appendChild(tr);
 
@@ -775,23 +778,34 @@ function closeModal(modal) {
 </style>
 
 <script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('service-worker.js')
-    .then(reg => {
-      reg.onupdatefound = () => {
-        const newWorker = reg.installing;
-        newWorker.onstatechange = () => {
-          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-            newWorker.postMessage({ action: 'skipWaiting' });
-          }
-        };
-      };
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("service-worker.js").then(reg => {
+    // Lauschen auf neue Updates
+    reg.addEventListener("updatefound", () => {
+      const newWorker = reg.installing;
+      newWorker.addEventListener("statechange", () => {
+        if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
+          // Neue Version verfügbar
+          showUpdateToast(newWorker);
+        }
+      });
     });
+  });
 
-  navigator.serviceWorker.addEventListener('controllerchange', () => {
+  let refreshing;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (refreshing) return;
+    refreshing = true;
     window.location.reload();
   });
 }
+
+function showUpdateToast(worker) {
+  if (confirm("Eine neue Version von DatenPilot ist verfügbar. Jetzt aktualisieren?")) {
+    worker.postMessage("SKIP_WAITING");
+  }
+}
+
 </script>
 
 </body>
