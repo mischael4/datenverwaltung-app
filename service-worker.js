@@ -1,4 +1,4 @@
-const CACHE_NAME = "datenverwaltung-cache-v1";
+const CACHE_NAME = "datenverwaltung-cache-v2"; // neue Versionsnummer setzen!
 
 const urlsToCache = [
   "./",
@@ -13,26 +13,24 @@ const urlsToCache = [
   "https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"
 ];
 
-// Installationsphase: Cache füllen
+// Install: Cache füllen
 self.addEventListener("install", event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(urlsToCache);
-    })
+    caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
   );
-  self.skipWaiting(); // sofort aktiv werden
+  // ⚠️ self.skipWaiting(); entfernt, Update erfolgt nur nach Nutzerfreigabe
 });
 
-// Fetch: Versuche Cache, dann Netzwerk
+// Fetch: Cache-First, dann Netzwerk
 self.addEventListener("fetch", event => {
   event.respondWith(
-    caches.match(event.request).then(response => {
-      return response || fetch(event.request);
-    })
+    caches.match(event.request).then(response =>
+      response || fetch(event.request)
+    )
   );
 });
 
-// Activate: Alte Caches löschen, wenn Version geändert
+// Activate: Alte Caches löschen
 self.addEventListener("activate", event => {
   event.waitUntil(
     caches.keys().then(keys =>
@@ -45,17 +43,7 @@ self.addEventListener("activate", event => {
       )
     )
   );
-  self.clients.claim(); // sofort Kontrolle übernehmen
+  // ⚠️ self.clients.claim(); entfernt, Kontrolle erst nach Freigabe
 });
 
-// Nachricht vom Client empfangen – sofortige Aktivierung
-self.addEventListener('message', event => {
-  if (event.data && event.data.action === 'skipWaiting') {
-    self.skipWaiting();
-  }
-});
-
-
-
-
-
+// 👉 Nachric
