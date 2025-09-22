@@ -802,7 +802,7 @@ if ("serviceWorker" in navigator) {
 
 function showUpdateToast(worker) {
   if (confirm("Eine neue Version von DatenPilot ist verfügbar. Jetzt aktualisieren?")) {
-    worker.postMessage("SKIP_WAITING");
+    worker.postMessage({ action: "skipWaiting" });
   }
 }
 
