@@ -679,18 +679,18 @@ function closeModal(modal) {
   table {
     display: block;
     overflow-x: auto;
-    /* white-space: nowrap; */  /* <-- entfernen */
     table-layout: fixed; 
     width: 100%;
   }
 
   th, td {
     padding: 6px 4px;
-    font-size: 12px;
+    font-size: 12px;       /* Grundschriftgröße für die Tabelle */
     word-wrap: break-word;
-    white-space: normal; /* Text darf umbrechen */
+    white-space: normal;   /* Text darf umbrechen */
   }
 
+  /* Spaltenbreiten */
   table th:nth-child(1), td:nth-child(1) { width: 70px; }   /* Datum */
   table th:nth-child(2), td:nth-child(2) { width: auto; }   /* Name */
   table th:nth-child(3), td:nth-child(3) { 
@@ -700,6 +700,21 @@ function closeModal(modal) {
   } /* Ort schmal */
   table th:nth-child(4), td:nth-child(4),
   table th:nth-child(5), td:nth-child(5) { width: auto; }  /* Tätigkeiten + Anmerkungen flexibel */
+
+  /* Tätigkeits-Spalte kleiner auf Handy */
+  .tatigkeit-cell {
+    font-size: 11px !important;   /* kleiner als Standard 14px */
+    line-height: 1.2 !important;
+  }
+
+  /* Buttons in Tabelle klein */
+  .edit-btn, .delete-btn, .copy-btn {
+    font-size: 10px !important;
+    padding: 4px 6px !important;
+    margin-bottom: 2px !important;
+    width: 100%;
+    box-sizing: border-box;
+  }
 }
 
   /* Tätigkeiten + Anmerkungen flexibel */
