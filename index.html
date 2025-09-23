@@ -669,9 +669,10 @@ function closeModal(modal) {
 @media (max-width:480px) {
   table {
     display: block;
-    overflow-x: auto;
-    table-layout: fixed;  /* feste Spaltenbreiten */
-    width: max-content;   /* scrollbar, wenn zu breit */
+    overflow-x: auto;   /* Scrollbar aktiv */
+    white-space: nowrap;
+    table-layout: auto; /* flexible Spalten */
+    width: max-content; /* Tabelle so breit wie nötig */
   }
 
   th, td {
@@ -682,24 +683,24 @@ function closeModal(modal) {
     box-sizing: border-box;
   }
 
-  /* Spaltenbreiten anpassen */
+  /* Spaltenbreiten anpassen – Ort und Anmerkungen etwa 15% schmaler */
+  table th:nth-child(3), td:nth-child(3) { width: 162px; }    /* Ort vorher 190px */
+  table th:nth-child(5), td:nth-child(5) { width: 170px; }    /* Anmerkungen vorher 200px */
+
+  /* Restliche Spalten unverändert */
   table th:nth-child(1), td:nth-child(1) { width: 70px; }     /* Datum */
   table th:nth-child(2), td:nth-child(2) { width: 100px; }    /* Name */
-  table th:nth-child(3), td:nth-child(3) { width: 190px; }    /* Ort – jetzt breiter */
   table th:nth-child(4), td:nth-child(4) { width: 200px; }    /* Tätigkeiten */
-  table th:nth-child(5), td:nth-child(5) { width: 200px; }    /* Anmerkungen */
   table th:nth-child(6), td:nth-child(6) { width: 50px; }     /* Strecke */
   table th:nth-child(7), td:nth-child(7) { width: 50px; }     /* Zeit */
   table th:nth-child(8), td:nth-child(8) { width: 50px; }     /* Km */
   table th:nth-child(9), td:nth-child(9) { width: 120px; }    /* Aktion */
 
-  /* Tätigkeiten kompakter */
   .tatigkeit-cell {
     font-size: 11px !important;
     line-height: 1.2 !important;
   }
 
-  /* Buttons klein */
   .edit-btn, .delete-btn, .copy-btn {
     font-size: 10px !important;
     padding: 4px 6px !important;
