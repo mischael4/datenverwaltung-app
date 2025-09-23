@@ -670,44 +670,35 @@ function closeModal(modal) {
   table {
     display: block;
     overflow-x: auto;
-    white-space: nowrap;
-    table-layout: auto; /* flexiblere Spaltenverteilung */
-    width: 100%;
+    table-layout: fixed;  /* fixierte Spaltenbreiten, damit Breiten respektiert werden */
+    width: max-content;   /* scrollt, wenn zu breit */
   }
 
   th, td {
     padding: 6px 4px;
     font-size: 12px;
     word-wrap: break-word;
-    white-space: normal;
+    white-space: normal;  /* Zeilenumbruch innerhalb der Zelle */
+    vertical-align: top;
+    box-sizing: border-box;
   }
 
-  /* Spaltenbreiten */
-  table th:nth-child(1), td:nth-child(1) { width: 70px; }     /* Datum */
-  table th:nth-child(2), td:nth-child(2) { width: 100px; }    /* Name */
-  table th:nth-child(3), td:nth-child(3) { width: auto; }    /* Ort etwas breiter */
-  table th:nth-child(4), td:nth-child(4) { width: auto; }     /* Tätigkeiten */
-  table th:nth-child(5), td:nth-child(5) { width: auto; }     /* Anmerkungen */
+  /* Spaltenbreiten anpassen */
+  table th:nth-child(1), td:nth-child(1) { width: 70px; }    /* Datum */
+  table th:nth-child(2), td:nth-child(2) { width: 100px; }   /* Name */
+  table th:nth-child(3), td:nth-child(3) { width: 190px; }   /* Ort – breiter */
+  table th:nth-child(4), td:nth-child(4) { width: 200px; }   /* Tätigkeiten – flexibel */
+  table th:nth-child(5), td:nth-child(5) { width: 200px; }   /* Anmerkungen – flexibel */
+  table th:nth-child(6), td:nth-child(6) { width: 60px; }    /* Strecke */
+  table th:nth-child(7), td:nth-child(7) { width: 50px; }    /* Zeit */
+  table th:nth-child(8), td:nth-child(8) { width: 50px; }    /* Km */
+  table th:nth-child(9), td:nth-child(9) { width: 120px; }   /* Aktion */
 
   /* Tätigkeiten kleiner und kompakt */
   .tatigkeit-cell {
     font-size: 11px !important;
     line-height: 1.2 !important;
   }
-
-  /* Buttons in Tabelle klein */
-  .edit-btn, .delete-btn, .copy-btn {
-    font-size: 10px !important;
-    padding: 4px 6px !important;
-    margin-bottom: 2px !important;
-    width: 100%;
-    box-sizing: border-box;
-  }
-}
-
-  /* Tätigkeiten + Anmerkungen flexibel */
-  table th:nth-child(4), td:nth-child(4),
-  table th:nth-child(5), td:nth-child(5) { width: auto; }
 
   /* Buttons in Tabelle klein */
   .edit-btn, .delete-btn, .copy-btn {
