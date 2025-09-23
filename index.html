@@ -675,11 +675,13 @@ function closeModal(modal) {
 
 <style>
 /* ---- Handy-Optimierungen ---- */
+/* ---- Handy-Optimierungen ---- */
 @media (max-width:480px) {
   table {
     display: block;
     overflow-x: auto;
-    table-layout: fixed; 
+    white-space: nowrap;
+    table-layout: auto; /* flexiblere Spaltenverteilung */
     width: 100%;
   }
 
@@ -690,16 +692,16 @@ function closeModal(modal) {
     white-space: normal;
   }
 
-  /* Spaltenbreiten für Handy */
-  table th:nth-child(1), td:nth-child(1) { width: 70px; }    /* Datum */
-  table th:nth-child(2), td:nth-child(2) { width: 90px; }    /* Name etwas breiter */
-  table th:nth-child(3), td:nth-child(3) { width: 140px; }    /* Ort nicht zu schmal */
-  table th:nth-child(4), td:nth-child(4),
-  table th:nth-child(5), td:nth-child(5) { width: auto; }   /* Tätigkeiten + Anmerkungen flexibel */
+  /* Spaltenbreiten */
+  table th:nth-child(1), td:nth-child(1) { width: 70px; }     /* Datum */
+  table th:nth-child(2), td:nth-child(2) { width: 100px; }    /* Name */
+  table th:nth-child(3), td:nth-child(3) { width: 144px; }    /* Ort etwas breiter */
+  table th:nth-child(4), td:nth-child(4) { width: auto; }     /* Tätigkeiten */
+  table th:nth-child(5), td:nth-child(5) { width: auto; }     /* Anmerkungen */
 
-  /* Tätigkeits-Spalte kompakt */
+  /* Tätigkeiten kleiner und kompakt */
   .tatigkeit-cell {
-    font-size: 11px !important;  
+    font-size: 11px !important;
     line-height: 1.2 !important;
   }
 
