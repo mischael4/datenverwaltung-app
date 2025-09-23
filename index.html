@@ -670,37 +670,36 @@ function closeModal(modal) {
   table {
     display: block;
     overflow-x: auto;
-    table-layout: fixed;  /* fixierte Spaltenbreiten, damit Breiten respektiert werden */
-    width: max-content;   /* scrollt, wenn zu breit */
+    table-layout: fixed;  /* feste Spaltenbreiten */
+    width: max-content;   /* scrollbar, wenn zu breit */
   }
 
   th, td {
     padding: 6px 4px;
     font-size: 12px;
     word-wrap: break-word;
-    white-space: normal;  /* Zeilenumbruch innerhalb der Zelle */
-    vertical-align: top;
+    white-space: normal;
     box-sizing: border-box;
   }
 
   /* Spaltenbreiten anpassen */
-  table th:nth-child(1), td:nth-child(1) { width: 70px; }    /* Datum */
-  table th:nth-child(2), td:nth-child(2) { width: 100px; }   /* Name */
-  table th:nth-child(3), td:nth-child(3) { width: 190px; }   /* Ort – breiter */
-  table th:nth-child(4), td:nth-child(4) { width: 200px; }   /* Tätigkeiten – flexibel */
-  table th:nth-child(5), td:nth-child(5) { width: 200px; }   /* Anmerkungen – flexibel */
-  table th:nth-child(6), td:nth-child(6) { width: 60px; }    /* Strecke */
-  table th:nth-child(7), td:nth-child(7) { width: 50px; }    /* Zeit */
-  table th:nth-child(8), td:nth-child(8) { width: 50px; }    /* Km */
-  table th:nth-child(9), td:nth-child(9) { width: 120px; }   /* Aktion */
+  table th:nth-child(1), td:nth-child(1) { width: 70px; }     /* Datum */
+  table th:nth-child(2), td:nth-child(2) { width: 100px; }    /* Name */
+  table th:nth-child(3), td:nth-child(3) { width: 190px; }    /* Ort – jetzt breiter */
+  table th:nth-child(4), td:nth-child(4) { width: 200px; }    /* Tätigkeiten */
+  table th:nth-child(5), td:nth-child(5) { width: 200px; }    /* Anmerkungen */
+  table th:nth-child(6), td:nth-child(6) { width: 50px; }     /* Strecke */
+  table th:nth-child(7), td:nth-child(7) { width: 50px; }     /* Zeit */
+  table th:nth-child(8), td:nth-child(8) { width: 50px; }     /* Km */
+  table th:nth-child(9), td:nth-child(9) { width: 120px; }    /* Aktion */
 
-  /* Tätigkeiten kleiner und kompakt */
+  /* Tätigkeiten kompakter */
   .tatigkeit-cell {
     font-size: 11px !important;
     line-height: 1.2 !important;
   }
 
-  /* Buttons in Tabelle klein */
+  /* Buttons klein */
   .edit-btn, .delete-btn, .copy-btn {
     font-size: 10px !important;
     padding: 4px 6px !important;
