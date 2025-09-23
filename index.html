@@ -685,25 +685,21 @@ function closeModal(modal) {
 
   th, td {
     padding: 6px 4px;
-    font-size: 12px;       /* Grundschriftgröße für die Tabelle */
+    font-size: 12px;
     word-wrap: break-word;
-    white-space: normal;   /* Text darf umbrechen */
+    white-space: normal;
   }
 
-  /* Spaltenbreiten */
-  table th:nth-child(1), td:nth-child(1) { width: 70px; }   /* Datum */
-  table th:nth-child(2), td:nth-child(2) { width: auto; }   /* Name */
-  table th:nth-child(3), td:nth-child(3) { 
-    width: 60px !important; 
-    max-width: 60px;
-    overflow-wrap: break-word;
-  } /* Ort schmal */
+  /* Spaltenbreiten für Handy */
+  table th:nth-child(1), td:nth-child(1) { width: 70px; }    /* Datum */
+  table th:nth-child(2), td:nth-child(2) { width: 90px; }    /* Name etwas breiter */
+  table th:nth-child(3), td:nth-child(3) { width: 80px; }    /* Ort nicht zu schmal */
   table th:nth-child(4), td:nth-child(4),
-  table th:nth-child(5), td:nth-child(5) { width: auto; }  /* Tätigkeiten + Anmerkungen flexibel */
+  table th:nth-child(5), td:nth-child(5) { width: auto; }   /* Tätigkeiten + Anmerkungen flexibel */
 
-  /* Tätigkeits-Spalte kleiner auf Handy */
+  /* Tätigkeits-Spalte kompakt */
   .tatigkeit-cell {
-    font-size: 11px !important;   /* kleiner als Standard 14px */
+    font-size: 11px !important;  
     line-height: 1.2 !important;
   }
 
