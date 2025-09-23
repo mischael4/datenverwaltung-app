@@ -446,10 +446,12 @@ function editRecord(i){
 function exportPdf(type, month, date, teacher){
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({orientation:"landscape", unit:"mm", format:"a4"});
+
   const titles = {
     taetigkeitsbericht: "Berichtsdokument für Bereichslehrkräfte für reisende Kinder und Jugendliche",
     fahrtkostenabrechnung: "Bereichslehrkräfte für reisende Kinder und Jugendliche – Fahrtkostenabrechnung"
   };
+  
   doc.setFontSize(14);
   doc.text(titles[type], 10, 15);
   doc.setFontSize(12);
@@ -493,13 +495,13 @@ function exportPdf(type, month, date, teacher){
     theme: "grid",
     styles: { fontSize: 12 },
     columnStyles: {
-      0: { cellWidth: 20 },   // Datum
-      1: { cellWidth: 50 },   // Name – breiter
-      2: { cellWidth: 40 },   // Ort
-      3: { cellWidth: 55 },   // Unterstützungsmaßnahmen – schmaler
-      4: { cellWidth: 40 },   // Anmerkungen
-      5: { cellWidth: 20 },   // Strecke – schmaler
-      6: { cellWidth: 15 }    // Zeit oder Km
+      0: { cellWidth: 25 },  // Datum – etwas breiter
+      1: { cellWidth: 40 },  // Name – schmaler
+      2: { cellWidth: 40 },  // Ort
+      3: { cellWidth: 70 },  // Unterstützungsmaßnahmen – breit
+      4: { cellWidth: 50 },  // Anmerkungen – breit
+      5: { cellWidth: 25 },  // Strecke – schmal
+      6: { cellWidth: 18 }   // Zeit oder Km
     },
     didDrawPage: function(data){
       const pageNumber = doc.internal.getCurrentPageInfo().pageNumber;
