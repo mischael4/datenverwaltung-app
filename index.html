@@ -679,8 +679,8 @@ function closeModal(modal) {
   table {
     display: block;
     overflow-x: auto;
-    white-space: nowrap; /* Tabelle scrollt horizontal */
-    table-layout: fixed; /* feste Spalten */
+    /* white-space: nowrap; */  /* <-- entfernen */
+    table-layout: fixed; 
     width: 100%;
   }
 
@@ -691,18 +691,16 @@ function closeModal(modal) {
     white-space: normal; /* Text darf umbrechen */
   }
 
-  /* Datum bleibt wie bisher */
-  table th:nth-child(1), td:nth-child(1) { width: 70px; }
-
-  /* Name bleibt unverändert */
-  table th:nth-child(2), td:nth-child(2) { width: auto; }
-
-  /* Ort schmaler machen, Umbruch erzwingen */
+  table th:nth-child(1), td:nth-child(1) { width: 70px; }   /* Datum */
+  table th:nth-child(2), td:nth-child(2) { width: auto; }   /* Name */
   table th:nth-child(3), td:nth-child(3) { 
     width: 60px !important; 
     max-width: 60px;
     overflow-wrap: break-word;
-  }
+  } /* Ort schmal */
+  table th:nth-child(4), td:nth-child(4),
+  table th:nth-child(5), td:nth-child(5) { width: auto; }  /* Tätigkeiten + Anmerkungen flexibel */
+}
 
   /* Tätigkeiten + Anmerkungen flexibel */
   table th:nth-child(4), td:nth-child(4),
