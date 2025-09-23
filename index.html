@@ -676,38 +676,37 @@ function closeModal(modal) {
 <style>
 /* ---- Handy-Optimierungen ---- */
 @media (max-width:480px) {
-  /* Modals fullscreen und scrollbar */
-  .modal {
-    width: 95vw;
-    height: 95vh;
-    padding: 15px;
-    overflow-y: auto;
-  }
-
-  /* Buttons, Inputs, Selects größer für Touch */
-  button, select, input, textarea {
-    font-size: 16px !important;
-    padding: 14px 12px !important;
-  }
-
-  /* Tabelle scrollable & sticky header */
   table {
     display: block;
     overflow-x: auto;
     white-space: nowrap;
-  }
-  table thead th {
-    position: sticky;
-    top: 0;
-    background: #f1f1f1;
-    z-index: 10;
+    table-layout: fixed; /* wichtig für feste Spalten */
+    width: 100%;
   }
 
-  /* Edit/Delete/Copy Buttons kleiner */
-  .edit-btn, .delete-btn, .copy-btn {
-    font-size: 10px;
+  th, td {
     padding: 6px 4px;
+    font-size: 12px;
+    word-wrap: break-word;
+    white-space: normal;
   }
+
+  table th:nth-child(1), td:nth-child(1) { width: 70px; }   /* Datum */
+  table th:nth-child(2), td:nth-child(2) { width: 100px; }  /* Name */
+  table th:nth-child(3), td:nth-child(3) { width: 80px; }   /* Ort */
+  table th:nth-child(4), td:nth-child(4) { width: auto; }   /* Tätigkeiten */
+  table th:nth-child(5), td:nth-child(5) { width: auto; }   /* Anmerkungen */
+
+  /* Buttons in Tabelle klein */
+  .edit-btn, .delete-btn, .copy-btn {
+    font-size: 10px !important;
+    padding: 4px 6px !important;
+    margin-bottom: 2px !important;
+    width: 100%;
+    box-sizing: border-box;
+  }
+}
+
 }
 
 /* Collapsible Suche */
