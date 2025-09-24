@@ -65,9 +65,21 @@ tr:nth-child(even){ background:#fcfcfc; }
   .form-container, .table-container { padding:15px; }
   input,textarea,button { font-size:16px; }
   button { width:100%; padding:14px; font-size:18px; }
-  table { display:block; overflow-x:auto; white-space:nowrap; }
-  th,td { font-size:14px; padding:4px 6px; line-height:1.3; }
-  .tatigkeit-cell { font-size:14px !important; line-height:1.3 !important; }
+  /* mobile/tablet: Scroll-Wrapper nutzen */
+.table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch; /* iOS: smooth scroll */
+  padding-bottom: 2px;               /* verhindert abgeschnittenen Scrollbalken */
+  box-sizing: border-box;
+}
+.table-scroll table {
+  width: max-content;  /* so breit wie nötig (erzeugt horizontalen Scroll) */
+  min-width: 100%;     /* mindestens so breit wie der Container */
+  table-layout: auto;
+  border-collapse: collapse;
+}
+
 }
 @media (max-width:480px) {
   /* Kleine Buttons in der Tabelle – unbedingt !important */
@@ -141,15 +153,25 @@ tr:nth-child(even){ background:#fcfcfc; }
 <div class="table-container">
 <h2>Übersicht Tätigkeiten - Gespeicherte Datensätze</h2>
 <input type="text" id="searchInput" placeholder="Suche nach Text..." />
-<table>
-<thead>
-<tr>
-<th>Datum</th><th>Name</th><th>Ort</th><th>Unterstützungsmaßnahmen</th>
-<th>Anmerkungen</th><th>Strecke</th><th>Zeit</th><th>Km</th><th>Aktion</th>
-</tr>
-</thead>
-<tbody id="tableBody"></tbody>
-</table>
+<div class="table-scroll">
+  <table>
+    <thead>
+      <tr>
+        <th>Datum</th>
+        <th>Name</th>
+        <th>Ort</th>
+        <th>Unterstützungsmaßnahmen</th>
+        <th>Anmerkungen</th>
+        <th>Strecke</th>
+        <th>Zeit</th>
+        <th>Km</th>
+        <th>Aktion</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+  </table>
+</div>
+
 <div id="summenAnzeige" class="summary"></div>
 <button id="openExportDialogZeit">Exportieren (Tätigkeitsbericht)</button>
 <button id="openExportDialogKm">Exportieren (Fahrtkostenabrechnung)</button>
@@ -667,21 +689,20 @@ function closeModal(modal) {
 /* ---- Handy-Optimierungen ---- */
 /* ---- Handy-Optimierungen ---- */
 @media (max-width:480px) {
-  table {
-    display: block;
-    overflow-x: auto;   /* Scrollbar aktiv */
-    white-space: nowrap;
-    table-layout: auto; /* flexible Spalten */
-    width: max-content; /* Tabelle so breit wie nötig */
-  }
-
-  th, td {
-    padding: 6px 4px;
-    font-size: 12px;
-    word-wrap: break-word;
-    white-space: normal;
-    box-sizing: border-box;
-  }
+  /* Smartphone (hochformat): gleiche Scroll-Logik + 5px Reserve damit keine Spalte zu schmal wird */
+.table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 4px; /* verhindert abgeschnittenen Scrollbalken */
+  box-sizing: border-box;
+  padding-right: 6px;  /* kleine Reserve, verhindert dass Spalten 5px schmaler werden */
+}
+.table-scroll table {
+  width: max-content;
+  min-width: calc(100% + 5px); /* +5px Reserve für Hochformat (dein Wunsch) */
+  table-layout: auto;
+}
 
   /* Spaltenbreiten anpassen – Ort und Anmerkungen etwa 15% schmaler */
   table th:nth-child(3), td:nth-child(3) { width: 162px; }    /* Ort vorher 190px */
