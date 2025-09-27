@@ -157,7 +157,7 @@ tr:nth-child(even){ background:#fcfcfc; }
   <table>
     <thead>
       <tr>
-        <th>Datum</th>
+        <th id="sortDateHeader" style="cursor:pointer">Datum ↑</th>
         <th>Name</th>
         <th>Ort</th>
         <th>Unterstützungsmaßnahmen</th>
@@ -234,7 +234,24 @@ document.addEventListener('DOMContentLoaded', () => {
     return String(t).split(/[,;]+/).map(s => s.trim()).filter(Boolean);
   };
 
+// Prüft, ob ein Datensatz doppelt ist (Datum + Name + Schule + Tätigkeiten identisch)
+function isDuplicate(ds, originalIndex) {
+  return dataSets.some((other, idx) => {
+    if (idx === originalIndex) return false; // überspringe sich selbst
+    return ds.datum === other.datum &&
+           ds.name === other.name &&
+           ds.schule === other.schule &&
+           JSON.stringify(normalizeTaetigkeit(ds.tatigkeit)) === JSON.stringify(normalizeTaetigkeit(other.tatigkeit)) &&
+           ds.anmerkungen === other.anmerkungen &&
+           ds.strecke === other.strecke &&
+           ds.zeit === other.zeit &&
+           ds.km === other.km;
+  });
+}
+
   let dataSets = [];
+
+let sortAsc = true;
 
   const formatDateGerman = s => {
     if(!s) return '';
@@ -268,6 +285,12 @@ $('monatZeit').value = $('monatKm').value = getCurrentMonthYear();
 $('bereichslehrkraftZeit').value = '';
 $('bereichslehrkraftKm').value = '';
 
+// Klick auf Tabellenkopf "Datum" toggelt Sortierrichtung
+document.getElementById("sortDateHeader").onclick = () => {
+  sortAsc = !sortAsc;
+  document.getElementById("sortDateHeader").textContent = sortAsc ? "Datum ↑" : "Datum ↓";
+  updateTable(document.getElementById("searchInput").value);
+};
 
   // Daten laden
   function loadData() {
@@ -324,6 +347,16 @@ $('deleteAllBtn').onclick = () => {
     };
     localStorage.setItem('lehrkraftName', $('name').value);
 
+  // Dublettenerkennung einfügen
+  if (isDuplicate(
+        ds, 
+        e.target.dataset.editIndex !== undefined ? +e.target.dataset.editIndex : -1
+      )) {
+    if (!confirm("Achtung: Dieser Datensatz scheint ein Duplikat zu sein. Trotzdem speichern?")) {
+      return; // Speichern abbrechen
+    }
+  }
+
     if(e.target.dataset.editIndex!==undefined){
       dataSets[e.target.dataset.editIndex] = ds;
       delete e.target.dataset.editIndex;
@@ -340,83 +373,50 @@ $('deleteAllBtn').onclick = () => {
   };
 
 // Hilfsfunktion: prüft, ob ein Datensatz doppelt ist
-function isDuplicate(ds, index) {
-  return dataSets.some((other, i) => i !== index &&
-    ds.datum === other.datum &&
-    ds.name === other.name &&
-    ds.schule === other.schule &&
-    normalizeTaetigkeit(ds.tatigkeit).join(",") === normalizeTaetigkeit(other.tatigkeit).join(",") &&
-    ds.anmerkungen === other.anmerkungen &&
-    ds.strecke === other.strecke &&
-    ds.zeit === other.zeit &&
-    ds.km === other.km
-  );
-}
+function updateTable(filter="") {
+  const tbody = $("tableBody"); // tbody korrekt referenzieren
+  tbody.innerHTML = "";
 
-  // Tabelle aktualisieren
-  function updateTable() {
-    const tableBody = $("tableBody");
-    dataSets.sort((a, b) => new Date(a.datum) - new Date(b.datum));
-    tableBody.innerHTML = "";
-    const search = $("searchInput").value.toLowerCase();
-    let totalZeit = 0, totalKm = 0, filteredZeit = 0, filteredKm = 0;
-    const currentMonth = getCurrentMonthYear();
+  dataSets
+  .filter(ds => Object.values(ds).some(v => JSON.stringify(v).toLowerCase().includes(filter.toLowerCase())))
+  .sort((a, b) => sortAsc ? new Date(a.datum) - new Date(b.datum) : new Date(b.datum) - new Date(a.datum))
+  .forEach((ds, filteredIndex) => {
+    const tr = document.createElement("tr");
 
-    dataSets.forEach((ds, i) => {
-        const dsTatigkeit = normalizeTaetigkeit(ds.tatigkeit);
-        const text = [ds.datum, ds.name, ds.schule, dsTatigkeit.join(" "), ds.anmerkungen, ds.strecke, ds.zeit, ds.km].join(" ").toLowerCase();
-        if (search && !text.includes(search)) return;
+    // Originalindex im dataSets-Array finden
+    const originalIndex = dataSets.findIndex(d => d === ds);
 
-        const tr = document.createElement("tr");
-        const duplicate = isDuplicate(ds, i);
-tr.innerHTML = `
-<td>${formatDateGerman(ds.datum)}</td>
-<td>${ds.name.replace(/,/g, ",<br>")}</td>
-<td>${ds.schule.replace(/,/g, ",<br>")}</td>
-<td class="tatigkeit-cell">${normalizeTaetigkeit(ds.tatigkeit).map(t => " • " + t).join("<br>")}</td>
-<td>${ds.anmerkungen.replace(/,/g, ",<br>")}</td>
-<td>${ds.strecke}</td>
-<td>${ds.zeit}</td>
-<td>${ds.km}</td>
-<td>
-  <button class="edit-btn" data-i="${i}" title="Bearbeiten">Bearbeiten</button>
-  <button class="delete-btn" data-i="${i}" title="Löschen">Löschen</button>
-  <button class="copy-btn" data-i="${i}" title="Kopieren">Kopieren</button>
-</td>
-`;
-if (duplicate) {
-  tr.style.backgroundColor = "#ffe6e6";
-  tr.title = "Möglicher doppelter Eintrag!";
-}
+    if (isDuplicate(ds, originalIndex)) {
+      tr.style.backgroundColor = "#ffe6e6";
+      tr.title = "Möglicher doppelter Eintrag!";
+    }
 
-        tableBody.appendChild(tr);
+      tr.innerHTML = `
+        <td>${formatDateGerman(ds.datum)}</td>
+        <td>${ds.name}</td>
+        <td>${ds.schule}</td>
+        <td>${Array.isArray(ds.tatigkeit) ? ds.tatigkeit.join(", ") : ds.tatigkeit}</td>
+        <td>${ds.anmerkungen}</td>
+        <td>${ds.strecke}</td>
+        <td>${ds.zeit}</td>
+        <td>${ds.km}</td>
+        <td>
+          <button class="edit-btn" data-index="${originalIndex}">Bearbeiten</button>
+<button class="copy-btn" data-index="${originalIndex}">Kopieren</button>
+<button class="delete-btn" data-index="${originalIndex}">Löschen</button>
+        </td>
+      `;
 
-        totalZeit += ds.zeit || 0; 
-        totalKm += ds.km || 0;
-        const d = new Date(ds.datum);
-        if (d.toLocaleString("de-DE", {month:"long", year:"numeric"}) === currentMonth) {
-            filteredZeit += ds.zeit || 0; 
-            filteredKm += ds.km || 0;
-        }
+      tbody.appendChild(tr);
     });
 
-    const formatNumber = n => {
-  const str = n.toFixed(2);     // immer 2 Nachkommastellen
-  return str.endsWith("00") ? str.slice(0,-3) : str; // .00 entfernen
-};
+  // Events erneut zuweisen
+  document.querySelectorAll(".editBtn").forEach(btn => btn.onclick = () => editRecord(btn.dataset.index));
+  document.querySelectorAll(".copyBtn").forEach(btn => btn.onclick = () => copyRecord(btn.dataset.index));
+  document.querySelectorAll(".deleteBtn").forEach(btn => btn.onclick = () => deleteRecord(btn.dataset.index));
 
-$("summenAnzeige").innerHTML = 
-    `Gesamtzeit: ${formatNumber(totalZeit)} h | Gesamtkm: ${formatNumber(totalKm)} km<br>` +
-    `${currentMonth}: ${formatNumber(filteredZeit)} h | ${formatNumber(filteredKm)} km`;
-
-    document.querySelectorAll('.edit-btn').forEach(btn => { btn.onclick = () => editRecord(btn.dataset.i); });
-    document.querySelectorAll('.delete-btn').forEach(btn => { btn.onclick = () => deleteRecord(btn.dataset.i); });
-    document.querySelectorAll('.copy-btn').forEach(btn => { btn.onclick = () => copyRecord(btn.dataset.i); });
-  }
-
-// ENTFERNE diese Zeilen
-// const savedName = localStorage.getItem('lehrkraftName');
-// if(savedName) $('name').value = savedName;
+  updateSummary();
+}
 
 // Modal-Logik: Name übernehmen, nur wenn vorhanden
 function openModal(modal) {
@@ -665,11 +665,6 @@ if(type === "fahrtkostenabrechnung") filtered = filtered.filter(ds => ds.km && d
 
   // Modal-Logik
 const overlay = document.getElementById("modalOverlay");
-
-function closeModal(modal) {
-  modal.classList.remove("active");
-  overlay.classList.remove("active");
-}
 
   $('openExportDialogZeit').onclick = () => openModal($('exportDialogZeit'));
   $('cancelExportZeit').onclick = () => closeModal($('exportDialogZeit'));
