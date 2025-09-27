@@ -374,23 +374,25 @@ $('deleteAllBtn').onclick = () => {
 
 // Hilfsfunktion: prüft, ob ein Datensatz doppelt ist
 function updateTable(filter="") {
-  const tbody = $("tableBody"); // tbody korrekt referenzieren
+  const tbody = $("tableBody");
   tbody.innerHTML = "";
 
   dataSets
-  .filter(ds => Object.values(ds).some(v => JSON.stringify(v).toLowerCase().includes(filter.toLowerCase())))
-  .sort((a, b) => sortAsc ? new Date(a.datum) - new Date(b.datum) : new Date(b.datum) - new Date(a.datum))
-  .forEach((ds, filteredIndex) => {
-    const tr = document.createElement("tr");
+    .filter(ds => Object.values(ds).some(v => JSON.stringify(v).toLowerCase().includes(filter.toLowerCase())))
+    .sort((a, b) => sortAsc ? new Date(a.datum) - new Date(b.datum) : new Date(b.datum) - new Date(a.datum))
+    .forEach(ds => {
+      const tr = document.createElement("tr");
 
-    // Originalindex im dataSets-Array finden
-    const originalIndex = dataSets.findIndex(d => d === ds);
+      // Originalindex im dataSets-Array
+      const originalIndex = dataSets.findIndex(d => d === ds);
 
-    if (isDuplicate(ds, originalIndex)) {
-      tr.style.backgroundColor = "#ffe6e6";
-      tr.title = "Möglicher doppelter Eintrag!";
-    }
+      // Duplikat markieren
+      if (isDuplicate(ds, originalIndex)) {
+        tr.style.backgroundColor = "#ffe6e6";
+        tr.title = "Möglicher doppelter Eintrag!";
+      }
 
+      // Tabellenzeile
       tr.innerHTML = `
         <td>${formatDateGerman(ds.datum)}</td>
         <td>${ds.name}</td>
@@ -402,18 +404,24 @@ function updateTable(filter="") {
         <td>${ds.km}</td>
         <td>
           <button class="edit-btn" data-index="${originalIndex}">Bearbeiten</button>
-<button class="copy-btn" data-index="${originalIndex}">Kopieren</button>
-<button class="delete-btn" data-index="${originalIndex}">Löschen</button>
+          <button class="copy-btn" data-index="${originalIndex}">Kopieren</button>
+          <button class="delete-btn" data-index="${originalIndex}">Löschen</button>
         </td>
       `;
 
       tbody.appendChild(tr);
     });
 
-  // Events erneut zuweisen
-  document.querySelectorAll(".editBtn").forEach(btn => btn.onclick = () => editRecord(btn.dataset.index));
-  document.querySelectorAll(".copyBtn").forEach(btn => btn.onclick = () => copyRecord(btn.dataset.index));
-  document.querySelectorAll(".deleteBtn").forEach(btn => btn.onclick = () => deleteRecord(btn.dataset.index));
+  // Buttons wieder korrekt zuweisen
+  document.querySelectorAll(".edit-btn").forEach(btn => {
+    btn.onclick = () => editRecord(parseInt(btn.dataset.index));
+  });
+  document.querySelectorAll(".copy-btn").forEach(btn => {
+    btn.onclick = () => copyRecord(parseInt(btn.dataset.index));
+  });
+  document.querySelectorAll(".delete-btn").forEach(btn => {
+    btn.onclick = () => deleteRecord(parseInt(btn.dataset.index));
+  });
 
   updateSummary();
 }
