@@ -333,8 +333,9 @@ $('deleteAllBtn').onclick = () => {
 };
 
   // Form Submission
-  $('dataForm').onsubmit = e => {
+$('dataForm').onsubmit = e => {
     e.preventDefault();
+
     const ds = {
       datum: $('datum').value,
       name: $('name').value,
@@ -345,32 +346,31 @@ $('deleteAllBtn').onclick = () => {
       zeit: parseFloat($('zeit').value)||0,
       km: parseFloat($('km').value)||0
     };
-    localStorage.setItem('lehrkraftName', $('name').value);
 
-  // Dublettenerkennung einfügen
-  if (isDuplicate(
-        ds, 
-        e.target.dataset.editIndex !== undefined ? +e.target.dataset.editIndex : -1
-      )) {
-    if (!confirm("Achtung: Dieser Datensatz scheint ein Duplikat zu sein. Trotzdem speichern?")) {
-      return; // Speichern abbrechen
+    // Dublettenerkennung
+    if (isDuplicate(ds, e.target.dataset.editIndex !== undefined ? +e.target.dataset.editIndex : -1)) {
+      if (!confirm("Achtung: Dieser Datensatz scheint ein Duplikat zu sein. Trotzdem speichern?")) {
+        return;
+      }
     }
-  }
 
-    if(e.target.dataset.editIndex!==undefined){
+    if (e.target.dataset.editIndex !== undefined) {
       dataSets[e.target.dataset.editIndex] = ds;
-      delete e.target.dataset.editIndex;
-      $('submitBtn').textContent="Datensatz hinzufügen";
       showMessage("Datensatz erfolgreich bearbeitet!");
     } else {
       dataSets.push(ds);
       showMessage("Datensatz erfolgreich hinzugefügt!");
     }
-    localStorage.setItem("dataSets",JSON.stringify(dataSets));
+
+    localStorage.setItem("dataSets", JSON.stringify(dataSets));
     updateTable();
-    e.target.reset();
-    $('datum').valueAsDate = new Date();
-  };
+
+    // **Formular jetzt sauber zurücksetzen**
+    delete e.target.dataset.editIndex; // Bearbeitungsmodus beenden **vor** reset
+    e.target.reset();                  // Felder leeren
+    $('datum').valueAsDate = new Date(); // Datum auf heute
+    $('submitBtn').textContent = "Datensatz hinzufügen"; // Button zurücksetzen
+};
 
 // Hilfsfunktion: prüft, ob ein Datensatz doppelt ist
 function updateTable(filter="") {
