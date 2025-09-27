@@ -837,25 +837,25 @@ const overlay = document.getElementById("modalOverlay");
 </style>
 
 <script>
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("service-worker.js").then(reg => {
-    // Lauschen auf neue Updates
-    reg.addEventListener("updatefound", () => {
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/service-worker.js').then(reg => {
+
+    reg.addEventListener('updatefound', () => {
       const newWorker = reg.installing;
-      newWorker.addEventListener("statechange", () => {
-        if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
-          // Neue Version verfügbar
-          showUpdateToast(newWorker);
+      newWorker.addEventListener('statechange', () => {
+        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+          // Automatisch neue Version aktivieren
+          newWorker.postMessage({ action: 'skipWaiting' });
         }
       });
     });
   });
 
   let refreshing;
-  navigator.serviceWorker.addEventListener("controllerchange", () => {
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
     if (refreshing) return;
     refreshing = true;
-    window.location.reload();
+    window.location.reload(); // Seite sofort neu laden
   });
 }
 
