@@ -427,31 +427,38 @@ function updateTable(filter="") {
 }
 
 // --- Neue Funktion: Summen unter der Tabelle anzeigen ---
+// --- Neue Funktion: Summen unter der Tabelle anzeigen ---
 function updateSummary() {
     const totalZeit = dataSets.reduce((sum, ds) => sum + (+ds.zeit || 0), 0);
     const totalKm = dataSets.reduce((sum, ds) => sum + (+ds.km || 0), 0);
 
-    const now = new Date();
-    const month = now.getMonth();
-    const year = now.getFullYear();
+    let lastMonthKey = "";
+    let monthlyZeit = 0;
+    let monthlyKm = 0;
 
-    const monthlyZeit = dataSets
-        .filter(ds => {
+    if (dataSets.length > 0) {
+        // Sortiere Datensätze nach Datum absteigend
+        const sortedByDate = [...dataSets].sort((a, b) => new Date(b.datum) - new Date(a.datum));
+        const lastDate = new Date(sortedByDate[0].datum);
+        const month = lastDate.getMonth();
+        const year = lastDate.getFullYear();
+
+        // Monat/Jahr als deutscher Name
+        lastMonthKey = lastDate.toLocaleString('de-DE', { month: 'long', year: 'numeric' });
+
+        // Daten für diesen Monat filtern
+        const monthlyData = dataSets.filter(ds => {
             const d = new Date(ds.datum);
             return d.getMonth() === month && d.getFullYear() === year;
-        })
-        .reduce((sum, ds) => sum + (+ds.zeit || 0), 0);
+        });
 
-    const monthlyKm = dataSets
-        .filter(ds => {
-            const d = new Date(ds.datum);
-            return d.getMonth() === month && d.getFullYear() === year;
-        })
-        .reduce((sum, ds) => sum + (+ds.km || 0), 0);
+        monthlyZeit = monthlyData.reduce((sum, ds) => sum + (+ds.zeit || 0), 0);
+        monthlyKm = monthlyData.reduce((sum, ds) => sum + (+ds.km || 0), 0);
+    }
 
     $('summenAnzeige').textContent =
-        `Gesamtzeit: ${totalZeit.toFixed(2)} h, Gesamtkilometer: ${totalKm.toFixed(2)} km | `
-        + `Summe ${lastMonthKey}: ${monthlyZeit.toFixed(2)} h, ${monthlyKm.toFixed(2)} km`;
+        `Gesamtzeit: ${totalZeit.toFixed(2)} h, Gesamtkilometer: ${totalKm.toFixed(2)} km` +
+        (lastMonthKey ? ` | Summe ${lastMonthKey}: ${monthlyZeit.toFixed(2)} h, ${monthlyKm.toFixed(2)} km` : '');
 }
 
 // Modal-Logik: Name übernehmen, nur wenn vorhanden
