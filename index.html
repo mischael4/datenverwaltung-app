@@ -270,7 +270,6 @@ const filterByMonth = (data, monthText) => {
 
   if (!monthText) return [];
 
-  // Monat und Jahr extrahieren
   const parts = monthText.trim().toLowerCase().split(/\s+/);
   if (parts.length < 2) return [];
 
@@ -279,11 +278,17 @@ const filterByMonth = (data, monthText) => {
 
   if (monthNum === undefined || isNaN(yearNum)) return [];
 
-  // Direkt aus dem Datum-String YYYY-MM-DD parsen, ohne new Date()
   return data.filter(ds => {
     if (!ds.datum) return false;
-    const [y, m] = ds.datum.split('-'); // YYYY-MM-DD
-    return parseInt(y, 10) === yearNum && parseInt(m, 10) - 1 === monthNum;
+
+    // YYYY-MM-DD oder ISO-String
+    const match = ds.datum.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (!match) return false;
+
+    const y = parseInt(match[1], 10);
+    const m = parseInt(match[2], 10) - 1; // JS-Monat 0-basiert
+
+    return y === yearNum && m === monthNum;
   });
 };
 
