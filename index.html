@@ -279,12 +279,13 @@ const filterByMonth = (data, monthText) => {
 
   if (monthNum === undefined || isNaN(yearNum)) return [];
 
+  // Direkt aus dem Datum-String YYYY-MM-DD parsen, ohne new Date()
   return data.filter(ds => {
-    const d = new Date(ds.datum); // YYYY-MM-DD
-    return d.getMonth() === monthNum && d.getFullYear() === yearNum;
+    if (!ds.datum) return false;
+    const [y, m] = ds.datum.split('-'); // YYYY-MM-DD
+    return parseInt(y, 10) === yearNum && parseInt(m, 10) - 1 === monthNum;
   });
 };
-
 
   const getCurrentMonthYear = () => new Date().toLocaleString('de-DE', {month:'long', year:'numeric'});
 
