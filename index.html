@@ -556,7 +556,7 @@ function exportPdf(type, month, date, teacher){
       formatDateGerman(ds.datum),
       ds.name,
       ds.schule,
-      normalizeTaetigkeit(ds.tatigkeit).map(t => "• "+t).join("\n"),
+      normalizeTaetigkeit(ds.tatigkeit).map(t => "• "+t).join("\n") || "• keine Tätigkeit",
       ds.anmerkungen,
       ds.strecke,
       ds.zeit.toFixed(2).replace(/\.00$/, '')
@@ -567,7 +567,7 @@ function exportPdf(type, month, date, teacher){
       formatDateGerman(ds.datum),
       ds.name,
       ds.schule,
-      normalizeTaetigkeit(ds.tatigkeit).map(t => "• "+t).join("\n"),
+      normalizeTaetigkeit(ds.tatigkeit).map(t => "• "+t).join("\n") || "• keine Tätigkeit",
       ds.anmerkungen,
       ds.strecke,
       ds.km.toFixed(2).replace(/\.00$/, '')
