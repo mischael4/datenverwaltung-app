@@ -471,13 +471,19 @@ function updateSummary() {
         (lastMonthKey ? ` | Summe ${lastMonthKey}: ${monthlyZeit.toFixed(2)} h, ${monthlyKm.toFixed(2)} km` : '');
 }
 
-// Modal-Logik: Name übernehmen, nur wenn vorhanden
+// Modal-Logik: Name übernehmen, Monat automatisch auf aktuellen setzen
 function openModal(modal) {
-  if(modal.id === "exportDialogZeit") 
+  if(modal.id === "exportDialogZeit") {
       $('bereichslehrkraftZeit').value = $('name').value || '';
-  if(modal.id === "exportDialogKm") 
+      // Monat automatisch auf aktuellen setzen
+      $('monatZeit').value = getCurrentMonthYear();
+  }
+  if(modal.id === "exportDialogKm") {
       $('bereichslehrkraftKm').value = $('name').value || '';
-  
+      // Monat automatisch auf aktuellen setzen
+      $('monatKm').value = getCurrentMonthYear();
+  }
+
   modal.classList.add("active");
   overlay.classList.add("active");
   modal.setAttribute("role", "dialog");
