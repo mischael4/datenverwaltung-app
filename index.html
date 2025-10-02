@@ -262,14 +262,21 @@ let sortAsc = true;
   const sumByKey = (data, key) => data.reduce((a, ds) => a + (+ds[key]||0), 0);
 
   const filterByMonth = (data, monthText) => {
-    const [monthName, yearText] = monthText.trim().split(/\s+/);
-    const monthNum = new Date(`${monthName} 1, ${yearText}`).getMonth();
-    const yearNum = parseInt(yearText, 10);
-    return data.filter(ds => {
-      const d = new Date(ds.datum);
-      return d.getMonth() === monthNum && d.getFullYear() === yearNum;
-    });
+  const germanMonths = {
+    "januar": 0, "februar": 1, "märz": 2, "april": 3,
+    "mai": 4, "juni": 5, "juli": 6, "august": 7,
+    "september": 8, "oktober": 9, "november": 10, "dezember": 11
   };
+
+  const [monthName, yearText] = monthText.trim().split(/\s+/);
+  const monthNum = germanMonths[monthName.toLowerCase()];
+  const yearNum = parseInt(yearText, 10);
+
+  return data.filter(ds => {
+    const d = new Date(ds.datum);
+    return d.getMonth() === monthNum && d.getFullYear() === yearNum;
+  });
+};
 
   const getCurrentMonthYear = () => new Date().toLocaleString('de-DE', {month:'long', year:'numeric'});
 
@@ -523,7 +530,7 @@ function exportPdf(type, month, date, teacher){
   doc.text(`Monat: ${month}`, 10, 30);
   doc.text(`Datum: ${formatDateGerman(date)}`, 10, 40);
   doc.text(`Bereichslehrkraft: ${teacher}`, 10, 50);
-  doc.text("Unterschrift:", 150, 50);
+  doc.text(`Unterschrift: gez. ${teacher}`, 150, 50);
 
   let filtered = filterByMonth(dataSets, month);
   if(type === "fahrtkostenabrechnung") filtered = filtered.filter(ds => ds.km && ds.km > 0);
