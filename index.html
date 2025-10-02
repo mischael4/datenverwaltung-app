@@ -477,20 +477,20 @@ function updateSummary() {
 }
 
 // Modal-Logik: Name übernehmen, Monat automatisch auf aktuellen setzen
+const overlay = document.getElementById("modalOverlay");
+
 function openModal(modal) {
   if(modal.id === "exportDialogZeit") {
       $('bereichslehrkraftZeit').value = $('name').value || '';
-      // Monat automatisch auf aktuellen setzen
       $('monatZeit').value = getCurrentMonthYear();
   }
   if(modal.id === "exportDialogKm") {
       $('bereichslehrkraftKm').value = $('name').value || '';
-      // Monat automatisch auf aktuellen setzen
       $('monatKm').value = getCurrentMonthYear();
   }
 
   modal.classList.add("active");
-  overlay.classList.add("active");
+  overlay.classList.add("active");  // jetzt definiert
   modal.setAttribute("role", "dialog");
   modal.setAttribute("aria-modal", "true");
 }
