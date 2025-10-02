@@ -263,28 +263,20 @@ let sortAsc = true;
 
   const filterByMonth = (data, monthText) => {
   const germanMonths = {
-    "januar": 0, "februar": 1, "märz": 2, "maerz": 2, "april": 3,
+    "januar": 0, "februar": 1, "märz": 2, "april": 3,
     "mai": 4, "juni": 5, "juli": 6, "august": 7,
     "september": 8, "oktober": 9, "november": 10, "dezember": 11
   };
 
   if (!monthText) return [];
 
-  // alles kleinschreiben + Umlaute vereinfachen
   let [monthName, yearText] = monthText.trim().split(/\s+/);
-  monthName = monthName.toLowerCase()
-    .replace("ä","ae")
-    .replace("ö","oe")
-    .replace("ü","ue")
-    .replace("ß","ss");
-
-  const monthNum = germanMonths[monthName];
+  const monthNum = germanMonths[monthName.toLowerCase()];
   const yearNum = parseInt(yearText, 10);
-
   if (monthNum === undefined || isNaN(yearNum)) return [];
 
   return data.filter(ds => {
-    const d = new Date(ds.datum);
+    const d = new Date(ds.datum); // <- YYYY-MM-DD direkt
     return d.getMonth() === monthNum && d.getFullYear() === yearNum;
   });
 };
