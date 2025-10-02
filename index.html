@@ -261,36 +261,15 @@ let sortAsc = true;
 
   const sumByKey = (data, key) => data.reduce((a, ds) => a + (+ds[key]||0), 0);
 
-const filterByMonth = (data, monthText) => {
-  const germanMonths = {
-    "januar": 0, "februar": 1, "märz": 2, "april": 3,
-    "mai": 4, "juni": 5, "juli": 6, "august": 7,
-    "september": 8, "oktober": 9, "november": 10, "dezember": 11
+  const filterByMonth = (data, monthText) => {
+    const [monthName, yearText] = monthText.trim().split(/\s+/);
+    const monthNum = new Date(`${monthName} 1, ${yearText}`).getMonth();
+    const yearNum = parseInt(yearText, 10);
+    return data.filter(ds => {
+      const d = new Date(ds.datum);
+      return d.getMonth() === monthNum && d.getFullYear() === yearNum;
+    });
   };
-
-  if (!monthText) return [];
-
-  const parts = monthText.trim().toLowerCase().split(/\s+/);
-  if (parts.length < 2) return [];
-
-  const monthNum = germanMonths[parts[0]];
-  const yearNum = parseInt(parts[1], 10);
-
-  if (monthNum === undefined || isNaN(yearNum)) return [];
-
-  return data.filter(ds => {
-    if (!ds.datum) return false;
-
-    // YYYY-MM-DD oder ISO-String
-    const match = ds.datum.match(/^(\d{4})-(\d{2})-(\d{2})/);
-    if (!match) return false;
-
-    const y = parseInt(match[1], 10);
-    const m = parseInt(match[2], 10) - 1; // JS-Monat 0-basiert
-
-    return y === yearNum && m === monthNum;
-  });
-};
 
   const getCurrentMonthYear = () => new Date().toLocaleString('de-DE', {month:'long', year:'numeric'});
 
@@ -482,19 +461,13 @@ function updateSummary() {
         (lastMonthKey ? ` | Summe ${lastMonthKey}: ${monthlyZeit.toFixed(2)} h, ${monthlyKm.toFixed(2)} km` : '');
 }
 
-// --- Modal & Export robust ---
-const overlay = document.getElementById("modalOverlay");
-
+// Modal-Logik: Name übernehmen, nur wenn vorhanden
 function openModal(modal) {
-  if(modal.id === "exportDialogZeit") {
+  if(modal.id === "exportDialogZeit") 
       $('bereichslehrkraftZeit').value = $('name').value || '';
-      $('monatZeit').value = getCurrentMonthYear().trim();
-  }
-  if(modal.id === "exportDialogKm") {
+  if(modal.id === "exportDialogKm") 
       $('bereichslehrkraftKm').value = $('name').value || '';
-      $('monatKm').value = getCurrentMonthYear().trim();
-  }
-
+  
   modal.classList.add("active");
   overlay.classList.add("active");
   modal.setAttribute("role", "dialog");
@@ -504,33 +477,6 @@ function openModal(modal) {
 function closeModal(modal) {
   modal.classList.remove("active");
   overlay.classList.remove("active");
-}
-
-// Robust: filterByMonth für beliebige Monate
-function filterByMonth(data, monthText) {
-  const germanMonths = {
-    "januar": 0, "februar": 1, "märz": 2, "april": 3,
-    "mai": 4, "juni": 5, "juli": 6, "august": 7,
-    "september": 8, "oktober": 9, "november": 10, "dezember": 11
-  };
-
-  if (!monthText) return [];
-
-  const parts = monthText.trim().toLowerCase().split(/\s+/);
-  if (parts.length < 2) return [];
-
-  const monthNum = germanMonths[parts[0]];
-  const yearNum = parseInt(parts[1], 10);
-  if (monthNum === undefined || isNaN(yearNum)) return [];
-
-  return data.filter(ds => {
-    if (!ds.datum) return false;
-    const match = ds.datum.match(/^(\d{4})-(\d{2})-(\d{2})/);
-    if (!match) return false;
-    const y = parseInt(match[1], 10);
-    const m = parseInt(match[2], 10) - 1;
-    return y === yearNum && m === monthNum;
-  });
 }
 
 // Beim Bearbeiten wird Name gesetzt
@@ -589,7 +535,7 @@ function exportPdf(type, month, date, teacher){
       formatDateGerman(ds.datum),
       ds.name,
       ds.schule,
-      normalizeTaetigkeit(ds.tatigkeit).map(t => "• "+t).join("\n") || "• keine Tätigkeit",
+      normalizeTaetigkeit(ds.tatigkeit).map(t => "• "+t).join("\n"),
       ds.anmerkungen,
       ds.strecke,
       ds.zeit.toFixed(2).replace(/\.00$/, '')
@@ -600,7 +546,7 @@ function exportPdf(type, month, date, teacher){
       formatDateGerman(ds.datum),
       ds.name,
       ds.schule,
-      normalizeTaetigkeit(ds.tatigkeit).map(t => "• "+t).join("\n") || "• keine Tätigkeit",
+      normalizeTaetigkeit(ds.tatigkeit).map(t => "• "+t).join("\n"),
       ds.anmerkungen,
       ds.strecke,
       ds.km.toFixed(2).replace(/\.00$/, '')
