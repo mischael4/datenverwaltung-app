@@ -261,15 +261,22 @@ let sortAsc = true;
 
   const sumByKey = (data, key) => data.reduce((a, ds) => a + (+ds[key]||0), 0);
 
-  const filterByMonth = (data, monthText) => {
-    const [monthName, yearText] = monthText.trim().split(/\s+/);
-    const monthNum = new Date(`${monthName} 1, ${yearText}`).getMonth();
-    const yearNum = parseInt(yearText, 10);
-    return data.filter(ds => {
-      const d = new Date(ds.datum);
-      return d.getMonth() === monthNum && d.getFullYear() === yearNum;
-    });
-  };
+const monthMap = {
+  "Januar":0, "Februar":1, "März":2, "April":3,
+  "Mai":4, "Juni":5, "Juli":6, "August":7,
+  "September":8, "Oktober":9, "November":10, "Dezember":11
+};
+
+const filterByMonth = (data, monthText) => {
+  const [monthName, yearText] = monthText.trim().split(/\s+/);
+  const monthNum = monthMap[monthName];
+  const yearNum = parseInt(yearText, 10);
+  if(monthNum === undefined || isNaN(yearNum)) return [];
+  return data.filter(ds => {
+    const d = new Date(ds.datum);
+    return d.getMonth() === monthNum && d.getFullYear() === yearNum;
+  });
+};
 
   const getCurrentMonthYear = () => new Date().toLocaleString('de-DE', {month:'long', year:'numeric'});
 
