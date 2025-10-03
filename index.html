@@ -514,7 +514,7 @@ function editRecord(i){
     showMessage("Datensatz kopiert und zur Bearbeitung geöffnet.");
 }
 
-  // PDF Export
+// PDF Export
 function exportPdf(type, month, date, teacher){
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({orientation:"landscape", unit:"mm", format:"a4"});
@@ -534,6 +534,8 @@ function exportPdf(type, month, date, teacher){
 
   let filtered = filterByMonth(dataSets, month);
   if(type === "fahrtkostenabrechnung") filtered = filtered.filter(ds => ds.km && ds.km > 0);
+  // 👉 Nach Datum sortieren
+  filtered = filtered.sort((a, b) => new Date(a.datum) - new Date(b.datum));
 
   let head, body;
   if(type === "taetigkeitsbericht"){
@@ -596,41 +598,43 @@ function exportPdf(type, month, date, teacher){
   doc.save(`${type}_${month}_${teacher}.pdf`.replace(/\s+/g,"_"));
 }
 
-  // CSV / Excel Export
-  function exportTable(type, month, date, teacher, format){
-    let filtered = filterByMonth(dataSets, month);
-if(type === "fahrtkostenabrechnung") filtered = filtered.filter(ds => ds.km && ds.km > 0);
+// CSV / Excel Export
+function exportTable(type, month, date, teacher, format){
+  let filtered = filterByMonth(dataSets, month);
+  if(type === "fahrtkostenabrechnung") filtered = filtered.filter(ds => ds.km && ds.km > 0);
+  // 👉 Nach Datum sortieren
+  filtered = filtered.sort((a, b) => new Date(a.datum) - new Date(b.datum));
 
-    const headerLines = [
-      [`${type==="taetigkeitsbericht" ? 
-         "Berichtsdokument für Bereichslehrkräfte für reisende Kinder und Jugendliche" :
-         "Bereichslehrkräfte für reisende Kinder und Jugendliche – Fahrtkostenabrechnung"}`],
-      [`Monat: ${month}`],
-      [`Datum: ${formatDateGerman(date)}`],
-      [`Bereichslehrkraft: ${teacher}`],
-      []
+  const headerLines = [
+    [`${type==="taetigkeitsbericht" ? 
+       "Berichtsdokument für Bereichslehrkräfte für reisende Kinder und Jugendliche" :
+       "Bereichslehrkräfte für reisende Kinder und Jugendliche – Fahrtkostenabrechnung"}`],
+    [`Monat: ${month}`],
+    [`Datum: ${formatDateGerman(date)}`],
+    [`Bereichslehrkraft: ${teacher}`],
+    []
+  ];
+
+  const rows = filtered.map(ds => {
+    const base = [
+      formatDateGerman(ds.datum),
+      ds.name,
+      ds.schule,
+      normalizeTaetigkeit(ds.tatigkeit).map(t=>"• "+t).join("\n"),
+      ds.anmerkungen,
+      ds.strecke
     ];
+    if(type==="taetigkeitsbericht") base.push(ds.zeit);
+    else base.push(ds.km);
+    return base;
+  });
 
-    const rows = filtered.map(ds => {
-      const base = [
-        formatDateGerman(ds.datum),
-        ds.name,
-        ds.schule,
-        normalizeTaetigkeit(ds.tatigkeit).map(t=>"• "+t).join("\n"),
-        ds.anmerkungen,
-        ds.strecke
-      ];
-      if(type==="taetigkeitsbericht") base.push(ds.zeit);
-      else base.push(ds.km);
-      return base;
-    });
+  const head = ["Datum","Name","Ort","Unterstützungsmaßnahmen","Anmerkungen","Strecke"];
+  if(type==="taetigkeitsbericht") head.push("Zeit");
+  else head.push("Km");
 
-    const head = ["Datum","Name","Ort","Unterstützungsmaßnahmen","Anmerkungen","Strecke"];
-    if(type==="taetigkeitsbericht") head.push("Zeit");
-    else head.push("Km");
-
-    const sumValue = type==="taetigkeitsbericht" ? sumByKey(filtered,"zeit") : sumByKey(filtered,"km");
-    const sumRow = head.map(h => {
+  const sumValue = type==="taetigkeitsbericht" ? sumByKey(filtered,"zeit") : sumByKey(filtered,"km");
+  const sumRow = head.map(h => {
     let sumValue = 0;
     if(h==="Zeit" && type==="taetigkeitsbericht") sumValue = sumByKey(filtered,"zeit");
     if(h==="Km" && type==="fahrtkostenabrechnung") sumValue = sumByKey(filtered,"km");
@@ -640,59 +644,58 @@ if(type === "fahrtkostenabrechnung") filtered = filtered.filter(ds => ds.km && d
         return val;
     }
     return "";
-});
-
-    if(format === "csv"){
-  let csvContent = "\uFEFF";
-  headerLines.forEach(line=>{
-    csvContent += line.map(cell => `"${String(cell).replace(/"/g,'""')}"`).join(";") + "\n";
   });
-  csvContent += head.map(cell => `"${cell}"`).join(";") + "\n";
-  rows.forEach(row => {
-    csvContent += row.map((cell, index) => {
-      // Wenn es die Zeit- oder Km-Spalte ist, Dezimalpunkt in Komma ändern
-      if((type === "taetigkeitsbericht" && head[index] === "Zeit") ||
-   (type === "fahrtkostenabrechnung" && head[index] === "Km")) {
-    if(cell != null && cell !== "") {
-        let val = Number(cell).toFixed(2);        // 2 Dezimalstellen
-        if(val.endsWith("00")) val = val.slice(0,-3); // .00 entfernen
-        return `"${val.replace(".", ",")}"`;
-    }
-    return '""';
-}
 
-      return `"${String(cell).replace(/"/g,'""')}"`;
-    }).join(";") + "\n";
-  });
-  csvContent += sumRow.map(cell=>`"${cell}"`).join(";") + "\n";
+  if(format === "csv"){
+    let csvContent = "\uFEFF";
+    headerLines.forEach(line=>{
+      csvContent += line.map(cell => `"${String(cell).replace(/"/g,'""')}"`).join(";") + "\n";
+    });
+    csvContent += head.map(cell => `"${cell}"`).join(";") + "\n";
+    rows.forEach(row => {
+      csvContent += row.map((cell, index) => {
+        // Wenn es die Zeit- oder Km-Spalte ist, Dezimalpunkt in Komma ändern
+        if((type === "taetigkeitsbericht" && head[index] === "Zeit") ||
+           (type === "fahrtkostenabrechnung" && head[index] === "Km")) {
+          if(cell != null && cell !== "") {
+              let val = Number(cell).toFixed(2);        // 2 Dezimalstellen
+              if(val.endsWith("00")) val = val.slice(0,-3); // .00 entfernen
+              return `"${val.replace(".", ",")}"`;
+          }
+          return '""';
+        }
+        return `"${String(cell).replace(/"/g,'""')}"`;
+      }).join(";") + "\n";
+    });
+    csvContent += sumRow.map(cell=>`"${cell}"`).join(";") + "\n";
 
-  const blob = new Blob([csvContent], {type:'text/csv;charset=utf-8;'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `${type}_${month}_${teacher}.csv`.replace(/\s+/g,"_");
-  a.click();
-}
-
-    else if(format==="xls"){
-      const wb = XLSX.utils.book_new();
-      const ws_data = headerLines.concat([head]).concat(rows);
-      ws_data.push(sumRow);
-
-      const ws = XLSX.utils.aoa_to_sheet(ws_data);
-      ws['!cols'] = [
-        {wch:12},
-        {wch:20},
-        {wch:25},
-        {wch:40},
-        {wch:20},
-        {wch:20},
-        {wch:10}
-      ];
-
-      XLSX.utils.book_append_sheet(wb, ws, "Export");
-      XLSX.writeFile(wb, `${type}_${month}_${teacher}.xlsx`.replace(/\s+/g,"_"));
-    }
+    const blob = new Blob([csvContent], {type:'text/csv;charset=utf-8;'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `${type}_${month}_${teacher}.csv`.replace(/\s+/g,"_");
+    a.click();
   }
+
+  else if(format==="xls"){
+    const wb = XLSX.utils.book_new();
+    const ws_data = headerLines.concat([head]).concat(rows);
+    ws_data.push(sumRow);
+
+    const ws = XLSX.utils.aoa_to_sheet(ws_data);
+    ws['!cols'] = [
+      {wch:12},
+      {wch:20},
+      {wch:25},
+      {wch:40},
+      {wch:20},
+      {wch:20},
+      {wch:10}
+    ];
+
+    XLSX.utils.book_append_sheet(wb, ws, "Export");
+    XLSX.writeFile(wb, `${type}_${month}_${teacher}.xlsx`.replace(/\s+/g,"_"));
+  }
+}
 
   // Event Handler Export, Backup, Search
   $('exportPdfZeit').onclick = () => { exportPdf("taetigkeitsbericht",$('monatZeit').value,$('datumZeit').value,$('bereichslehrkraftZeit').value); };
