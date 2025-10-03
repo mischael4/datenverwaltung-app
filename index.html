@@ -47,49 +47,19 @@ tr:nth-child(even){ background:#fcfcfc; }
 .copy-btn { background:#2980b9; padding:4px 6px; font-size:12px; width:99%; }
 .copy-btn:hover { background:#21618c; }
 .modal { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; padding:25px; border:1px solid #ccc; border-radius:12px; z-index:1000; width:min(700px,90vw); max-height:90vh; overflow:auto; box-shadow:0 10px 30px rgba(0,0,0,0.1); }
-.modal-overlay {
-  display: none;
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: rgba(0,0,0,0.3);
-  z-index: 900;
-}
-.modal.active,
-.modal-overlay.active {
-  display: block;
-}
+.modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); z-index: 900; }
+.modal.active, .modal-overlay.active { display: block; }
 
 @media (max-width:768px) {
   body { margin:10px; font-size:16px; }
   .form-container, .table-container { padding:15px; }
   input,textarea,button { font-size:16px; }
   button { width:100%; padding:14px; font-size:18px; }
-  /* mobile/tablet: Scroll-Wrapper nutzen */
-.table-scroll {
-  width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch; /* iOS: smooth scroll */
-  padding-bottom: 2px;               /* verhindert abgeschnittenen Scrollbalken */
-  box-sizing: border-box;
-}
-.table-scroll table {
-  width: max-content;  /* so breit wie nötig (erzeugt horizontalen Scroll) */
-  min-width: 100%;     /* mindestens so breit wie der Container */
-  table-layout: auto;
-  border-collapse: collapse;
-}
-
+  .table-scroll { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 2px; box-sizing: border-box; }
+  .table-scroll table { width: max-content; min-width: 100%; table-layout: auto; border-collapse: collapse; }
 }
 @media (max-width:480px) {
-  /* Kleine Buttons in der Tabelle – unbedingt !important */
-  .edit-btn, .delete-btn, .copy-btn {
-    font-size: 10px !important;
-    padding: 4px 6px !important;
-    margin-bottom: 2px !important;
-    width: 100%;
-    box-sizing: border-box;
-  }
+  .edit-btn, .delete-btn, .copy-btn { font-size: 10px !important; padding: 4px 6px !important; margin-bottom: 2px !important; width: 100%; box-sizing: border-box; }
 }
 
 #tatigkeit { height:180px; font-size:13px; line-height:1.4; padding:6px; border-radius:6px; }
@@ -100,7 +70,6 @@ tr:nth-child(even){ background:#fcfcfc; }
 </head>
 <body>
 <div id="modalOverlay" class="modal-overlay"></div>
-
 <div class="container">
 <h2>DatenPilot - BLK</h2>
 
@@ -211,7 +180,6 @@ tr:nth-child(even){ background:#fcfcfc; }
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   const $ = id => document.getElementById(id);
-
   const showMessage = msg => { 
     const el = document.createElement('div'); 
     el.textContent = msg; 
@@ -234,10 +202,9 @@ document.addEventListener('DOMContentLoaded', () => {
     return String(t).split(/[,;]+/).map(s => s.trim()).filter(Boolean);
   };
 
-// Prüft, ob ein Datensatz doppelt ist (Datum + Name + Schule + Tätigkeiten identisch)
 function isDuplicate(ds, originalIndex) {
   return dataSets.some((other, idx) => {
-    if (idx === originalIndex) return false; // überspringe sich selbst
+    if (idx === originalIndex) return false;
     return ds.datum === other.datum &&
            ds.name === other.name &&
            ds.schule === other.schule &&
@@ -250,49 +217,22 @@ function isDuplicate(ds, originalIndex) {
 }
 
   let dataSets = [];
-
-let sortAsc = true;
-
-  const formatDateGerman = s => {
-    if(!s) return '';
-    const d = new Date(s);
-    return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`;
-  };
-
+  let sortAsc = true;
+  const formatDateGerman = s => { if(!s) return ''; const d = new Date(s); return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`; };
   const sumByKey = (data, key) => data.reduce((a, ds) => a + (+ds[key]||0), 0);
 
-const monthMap = {
-  "Januar":0, "Februar":1, "März":2, "April":3,
-  "Mai":4, "Juni":5, "Juli":6, "August":7,
-  "September":8, "Oktober":9, "November":10, "Dezember":11
-};
-
-const filterByMonth = (data, monthText) => {
-  const [monthName, yearText] = monthText.trim().split(/\s+/);
-  const monthNum = monthMap[monthName];
-  const yearNum = parseInt(yearText, 10);
-  if(monthNum === undefined || isNaN(yearNum)) return [];
-  return data.filter(ds => {
-    const d = new Date(ds.datum);
-    return d.getMonth() === monthNum && d.getFullYear() === yearNum;
-  });
-};
-
-  const getCurrentMonthYear = () => new Date().toLocaleString('de-DE', {month:'long', year:'numeric'});
-
-  const today = new Date();
+const monthMap = { "Januar":0, "Februar":1, "März":2, "April":3, "Mai":4, "Juni":5, "Juli":6, "August":7, "September":8, "Oktober":9, "November":10, "Dezember":11 };
+const filterByMonth = (data, monthText) => { const [monthName, yearText] = monthText.trim().split(/\s+/); const monthNum = monthMap[monthName]; const yearNum = parseInt(yearText, 10); if(monthNum === undefined || isNaN(yearNum)) return []; return data.filter(ds => { const d = new Date(ds.datum); return d.getMonth() === monthNum && d.getFullYear() === yearNum; }); };
+const getCurrentMonthYear = () => new Date().toLocaleString('de-DE', {month:'long', year:'numeric'});
+const today = new Date();
 $('datum').valueAsDate = today;
-
-// Exportdialog-Daten korrekt auf letzten Tag des aktuellen Monats setzen
 const lastDayCurrentMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 $('datumZeit').valueAsDate = lastDayCurrentMonth;
 $('datumKm').valueAsDate = lastDayCurrentMonth;
-
 $('monatZeit').value = $('monatKm').value = getCurrentMonthYear();
 $('bereichslehrkraftZeit').value = '';
 $('bereichslehrkraftKm').value = '';
 
-// Klick auf Tabellenkopf "Datum" toggelt Sortierrichtung
 document.getElementById("sortDateHeader").onclick = () => {
   sortAsc = !sortAsc;
   document.getElementById("sortDateHeader").textContent = sortAsc ? "Datum ↑" : "Datum ↓";
