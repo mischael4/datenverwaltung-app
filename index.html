@@ -868,33 +868,29 @@ function scrollToSection(id) {
 
 <script>
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/service-worker.js').then(reg => {
-
-    reg.addEventListener('updatefound', () => {
-      const newWorker = reg.installing;
-      newWorker.addEventListener('statechange', () => {
-        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-          // Automatisch neue Version aktivieren
-          newWorker.postMessage({ action: 'skipWaiting' });
-        }
+  navigator.serviceWorker.register('/datenverwaltung-app/service-worker.js')
+    .then(reg => {
+      // Prüfen, ob neuer Service Worker installiert wird
+      reg.addEventListener('updatefound', () => {
+        const newWorker = reg.installing;
+        newWorker.addEventListener('statechange', () => {
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            // Neue Version verfügbar – Seite im Hintergrund aktualisieren
+            newWorker.postMessage({ action: 'skipWaiting' });
+          }
+        });
       });
     });
-  });
 
-  let refreshing;
+  // Service Worker hat skipWaiting ausgeführt → Seite reload
+  let refreshing = false;
   navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (refreshing) return;
-    refreshing = true;
-    window.location.reload(); // Seite sofort neu laden
+    if (!refreshing) {
+      window.location.reload();
+      refreshing = true;
+    }
   });
 }
-
-function showUpdateToast(worker) {
-  if (confirm("Eine neue Version von DatenPilot ist verfügbar. Jetzt aktualisieren?")) {
-    worker.postMessage({ action: "skipWaiting" });
-  }
-}
-
 </script>
 
 </body>
