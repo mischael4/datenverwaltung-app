@@ -177,9 +177,9 @@ tr:nth-child(even){ background:#fcfcfc; }
 <div class="form-group"><label>Monat:</label><input type="text" id="monatZeit" required></div>
 <div class="form-group"><label>Datum:</label><input type="date" id="datumZeit" required></div>
 <div class="form-group"><label>Bereichslehrkraft:</label><input type="text" id="bereichslehrkraftZeit" required></div>
-<button type="button" id="exportPdfZeit">Als PDF</button>
-<button type="button" id="exportCsvZeit">Als CSV</button>
-<button type="button" id="exportXlsZeit">Als Excel</button>
+<button type="button" id="exportPdfZeit">Speichern als PDF</button>
+<button type="button" id="exportCsvZeit">Speichern als CSV</button>
+<button type="button" id="exportXlsZeit">Speichern als Excel</button>
 <button type="button" id="cancelExportZeit" class="cancel-btn">Abbrechen</button>
 </form>
 </div>
@@ -190,9 +190,9 @@ tr:nth-child(even){ background:#fcfcfc; }
 <div class="form-group"><label>Monat:</label><input type="text" id="monatKm" required></div>
 <div class="form-group"><label>Datum:</label><input type="date" id="datumKm" required></div>
 <div class="form-group"><label>Bereichslehrkraft:</label><input type="text" id="bereichslehrkraftKm" required></div>
-<button type="button" id="exportPdfKm">Als PDF</button>
-<button type="button" id="exportCsvKm">Als CSV</button>
-<button type="button" id="exportXlsKm">Als Excel</button>
+<button type="button" id="exportPdfKm">Speichern als PDF</button>
+<button type="button" id="exportCsvKm">Speichern als CSV</button>
+<button type="button" id="exportXlsKm">Speichern als Excel</button>
 <button type="button" id="cancelExportKm" class="cancel-btn">Abbrechen</button>
 </form>
 </div>
@@ -494,7 +494,7 @@ function exportPdf(type, month, date, teacher){
 
   let filtered = filterByMonth(dataSets, month);
   if(type === "fahrtkostenabrechnung") filtered = filtered.filter(ds => ds.km && ds.km > 0);
-  // 👉 Nach Datum sortieren
+  // Nach Datum sortieren
   filtered = filtered.sort((a, b) => new Date(a.datum) - new Date(b.datum));
 
   let head, body;
@@ -562,7 +562,7 @@ function exportPdf(type, month, date, teacher){
 function exportTable(type, month, date, teacher, format){
   let filtered = filterByMonth(dataSets, month);
   if(type === "fahrtkostenabrechnung") filtered = filtered.filter(ds => ds.km && ds.km > 0);
-  // 👉 Nach Datum sortieren
+  // Nach Datum sortieren
   filtered = filtered.sort((a, b) => new Date(a.datum) - new Date(b.datum));
 
   const headerLines = [
