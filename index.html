@@ -870,31 +870,28 @@ function scrollToSection(id) {
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/datenverwaltung-app/service-worker.js')
     .then(reg => {
-      // Prüfen, ob ein neuer Service Worker verfügbar ist
       reg.addEventListener('updatefound', () => {
         const newWorker = reg.installing;
 
         newWorker.addEventListener('statechange', () => {
           if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-            // Neue Version verfügbar – Benutzer informieren
+            // Neue Version verfügbar
             showUpdateNotification(newWorker);
           }
         });
       });
     });
 
-  // Controller-Change Listener: Reload nur einmal
   let refreshing = false;
   navigator.serviceWorker.addEventListener('controllerchange', () => {
     if (!refreshing) {
       refreshing = true;
-      // Optional: Backup vor Reload
       backupDataSets().finally(() => window.location.reload());
     }
   });
 }
 
-// --- Meldung für neue Version ---
+// Anzeige für neue Version
 function showUpdateNotification(worker) {
   const div = document.createElement('div');
   div.style.position = 'fixed';
@@ -918,7 +915,7 @@ function showUpdateNotification(worker) {
   document.body.appendChild(div);
 }
 
-// --- Optional: Backup in IndexedDB ---
+// Optional: Backup vor Reload
 async function backupDataSets() {
   const data = localStorage.getItem('dataSets');
   if (!data) return;
