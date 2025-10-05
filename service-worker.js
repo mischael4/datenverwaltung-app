@@ -4,8 +4,6 @@ const urlsToCache = [
   "/datenverwaltung-app/index.html",
   "/datenverwaltung-app/manifest.json",
   "/datenverwaltung-app/service-worker.js",
-  // externe Libraries unverändert
-];
 
   // externe Bibliotheken (CDN)
   "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js",
@@ -47,5 +45,6 @@ self.addEventListener('message', event => {
     self.skipWaiting();
   }
 });
+
 
 
