@@ -10,12 +10,15 @@ const urlsToCache = [
   "https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"
 ];
 
+// Install: Cache füllen
 self.addEventListener("install", event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
   );
+  // self.skipWaiting(); // NICHT automatisch ausführen
 });
 
+// Activate: alte Caches löschen
 self.addEventListener("activate", event => {
   event.waitUntil(
     caches.keys().then(keys =>
@@ -27,8 +30,16 @@ self.addEventListener("activate", event => {
   self.clients.claim();
 });
 
+// Fetch: Cache-First-Strategie
 self.addEventListener("fetch", event => {
   event.respondWith(
     caches.match(event.request).then(cached => cached || fetch(event.request))
   );
+});
+
+// Nachricht vom Client empfangen (für manuelles skipWaiting)
+self.addEventListener('message', event => {
+  if (event.data && event.data.action === 'skipWaiting') {
+    self.skipWaiting();
+  }
 });
