@@ -1,4 +1,4 @@
-const CACHE_NAME = "datenverwaltung-cache-v3"; // neue Versionsnummer
+const CACHE_NAME = "datenverwaltung-cache-v3";
 const urlsToCache = [
   "/datenverwaltung-app/",
   "/datenverwaltung-app/index.html",
@@ -10,15 +10,12 @@ const urlsToCache = [
   "https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"
 ];
 
-// Install: Cache füllen
 self.addEventListener("install", event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
   );
-  self.skipWaiting();
 });
 
-// Activate: alte Caches löschen
 self.addEventListener("activate", event => {
   event.waitUntil(
     caches.keys().then(keys =>
@@ -30,7 +27,6 @@ self.addEventListener("activate", event => {
   self.clients.claim();
 });
 
-// Fetch: Cache First
 self.addEventListener("fetch", event => {
   event.respondWith(
     caches.match(event.request).then(cached => cached || fetch(event.request))
