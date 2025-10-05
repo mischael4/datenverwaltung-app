@@ -1,5 +1,5 @@
 const CACHE_NAME = "datenverwaltung-cache-v3"; // neue Versionsnummer
-  const urlsToCache = [
+const urlsToCache = [
   "/datenverwaltung-app/",
   "/datenverwaltung-app/index.html",
   "/datenverwaltung-app/manifest.json",
@@ -47,4 +47,5 @@ self.addEventListener('message', event => {
     self.skipWaiting();
   }
 });
+
 
