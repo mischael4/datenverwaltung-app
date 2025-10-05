@@ -2,7 +2,7 @@
   "name": "DatenPilot - BLK – Tätigkeiten & Fahrten einfach verwalten",
   "short_name": "BLK Köln",
   "description": "Verwalte deine Tätigkeiten, Fahrtzeiten und Berichte als Bereichslehrkraft.",
-  "start_url": "./index.html",
+  "start_url": "start_url": "/datenverwaltung-app/index.html",
   "display": "standalone",
   "background_color": "#f9f9f9",
   "theme_color": "#27ae60",
@@ -19,6 +19,7 @@
     }
   ]
 }
+
 
 
 
