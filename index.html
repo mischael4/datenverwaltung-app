@@ -870,25 +870,76 @@ function scrollToSection(id) {
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('/datenverwaltung-app/service-worker.js')
     .then(reg => {
-      // Prüfen, ob neuer Service Worker installiert wird
+      // Prüfen, ob ein neuer Service Worker verfügbar ist
       reg.addEventListener('updatefound', () => {
         const newWorker = reg.installing;
+
         newWorker.addEventListener('statechange', () => {
           if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-            // Neue Version verfügbar – Seite im Hintergrund aktualisieren
-            newWorker.postMessage({ action: 'skipWaiting' });
+            // Neue Version verfügbar – Benutzer informieren
+            showUpdateNotification(newWorker);
           }
         });
       });
     });
 
-  // Service Worker hat skipWaiting ausgeführt → Seite reload
+  // Controller-Change Listener: Reload nur einmal
   let refreshing = false;
   navigator.serviceWorker.addEventListener('controllerchange', () => {
     if (!refreshing) {
-      window.location.reload();
       refreshing = true;
+      // Optional: Backup vor Reload
+      backupDataSets().finally(() => window.location.reload());
     }
+  });
+}
+
+// --- Meldung für neue Version ---
+function showUpdateNotification(worker) {
+  const div = document.createElement('div');
+  div.style.position = 'fixed';
+  div.style.bottom = '20px';
+  div.style.left = '50%';
+  div.style.transform = 'translateX(-50%)';
+  div.style.background = '#27ae60';
+  div.style.color = 'white';
+  div.style.padding = '12px 20px';
+  div.style.borderRadius = '8px';
+  div.style.zIndex = 3000;
+  div.style.boxShadow = '0 4px 12px rgba(0,0,0,0.2)';
+  div.style.cursor = 'pointer';
+  div.textContent = 'Neue Version verfügbar – klicken zum Aktualisieren';
+  
+  div.onclick = () => {
+    worker.postMessage({ action: 'skipWaiting' });
+    div.remove();
+  };
+  
+  document.body.appendChild(div);
+}
+
+// --- Optional: Backup in IndexedDB ---
+async function backupDataSets() {
+  const data = localStorage.getItem('dataSets');
+  if (!data) return;
+
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open('AppBackupDB', 1);
+    request.onupgradeneeded = e => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains('backup')) {
+        db.createObjectStore('backup');
+      }
+    };
+    request.onsuccess = e => {
+      const db = e.target.result;
+      const tx = db.transaction('backup', 'readwrite');
+      const store = tx.objectStore('backup');
+      store.put(data, 'dataSets');
+      tx.oncomplete = () => resolve();
+      tx.onerror = err => reject(err);
+    };
+    request.onerror = err => reject(err);
   });
 }
 </script>
