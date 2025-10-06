@@ -241,17 +241,32 @@ function isDuplicate(ds, originalIndex) {
   const formatDateGerman = s => { if(!s) return ''; const d = new Date(s); return `${String(d.getDate()).padStart(2,'0')}.${String(d.getMonth()+1).padStart(2,'0')}.${d.getFullYear()}`; };
   const sumByKey = (data, key) => data.reduce((a, ds) => a + (+ds[key]||0), 0);
 
-const monthMap = { "Januar":0, "Februar":1, "März":2, "April":3, "Mai":4, "Juni":5, "Juli":6, "August":7, "September":8, "Oktober":9, "November":10, "Dezember":11 };
-const filterByMonth = (data, monthText) => { const [monthName, yearText] = monthText.trim().split(/\s+/); const monthNum = monthMap[monthName]; const yearNum = parseInt(yearText, 10); if(monthNum === undefined || isNaN(yearNum)) return []; return data.filter(ds => { const d = new Date(ds.datum); return d.getMonth() === monthNum && d.getFullYear() === yearNum; }); };
-const getCurrentMonthYear = () => new Date().toLocaleString('de-DE', {month:'long', year:'numeric'});
-const today = new Date();
-$('datum').valueAsDate = today;
-const lastDayCurrentMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-$('datumZeit').valueAsDate = lastDayCurrentMonth;
-$('datumKm').valueAsDate = lastDayCurrentMonth;
-$('monatZeit').value = $('monatKm').value = getCurrentMonthYear();
-$('bereichslehrkraftZeit').value = '';
-$('bereichslehrkraftKm').value = '';
+// Statt:
+// const monthMap = { "Januar":0, "Februar":1, "März":2, "April":3, "Mai":4, "Juni":5, "Juli":6, "August":7, "September":8, "Oktober":9, "November":10, "Dezember":11 };
+
+// Verwenden wir ein Array für konsistente Monatsnamen
+const monthNames = [
+  "Januar","Februar","März","April","Mai","Juni",
+  "Juli","August","September","Oktober","November","Dezember"
+];
+
+const monthMap = monthNames.reduce((acc, name, idx) => { acc[name] = idx; return acc; }, {});
+
+const filterByMonth = (data, monthText) => { 
+  const [monthName, yearText] = monthText.trim().split(/\s+/); 
+  const monthNum = monthMap[monthName]; 
+  const yearNum = parseInt(yearText, 10); 
+  if(monthNum === undefined || isNaN(yearNum)) return []; 
+  return data.filter(ds => { 
+    const d = new Date(ds.datum); 
+    return d.getMonth() === monthNum && d.getFullYear() === yearNum; 
+  }); 
+};
+
+const getCurrentMonthYear = () => {
+  const today = new Date();
+  return `${monthNames[today.getMonth()]} ${today.getFullYear()}`;
+};
 
 document.getElementById("sortDateHeader").onclick = () => {
   sortAsc = !sortAsc;
@@ -402,7 +417,8 @@ function updateSummary() {
     const monthGroups = {};
     dataSets.forEach(ds => {
         const d = new Date(ds.datum);
-        const key = d.toLocaleString('de-DE', { month: 'long', year: 'numeric' });
+        const key = `${monthNames[d.getMonth()]} ${d.getFullYear()}`;
+
         if (!monthGroups[key]) monthGroups[key] = { entries: [], firstDate: d }; // erstes Datum merken
         monthGroups[key].entries.push(ds);
         if (d < monthGroups[key].firstDate) monthGroups[key].firstDate = d; // frühestes Datum für Sortierung
