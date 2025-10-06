@@ -403,16 +403,20 @@ function updateSummary() {
     dataSets.forEach(ds => {
         const d = new Date(ds.datum);
         const key = d.toLocaleString('de-DE', { month: 'long', year: 'numeric' });
-        if (!monthGroups[key]) monthGroups[key] = [];
-        monthGroups[key].push(ds);
+        if (!monthGroups[key]) monthGroups[key] = { entries: [], firstDate: d }; // erstes Datum merken
+        monthGroups[key].entries.push(ds);
+        if (d < monthGroups[key].firstDate) monthGroups[key].firstDate = d; // frühestes Datum für Sortierung
     });
 
+    // Monate nach Datum absteigend sortieren
+    const sortedMonths = Object.entries(monthGroups).sort((a, b) => b[1].firstDate - a[1].firstDate);
+
     let monthSummaryText = '';
-    for (const [monthName, entries] of Object.entries(monthGroups)) {
-        const sumZeit = entries.reduce((sum, ds) => sum + (+ds.zeit || 0), 0);
-        const sumKm = entries.reduce((sum, ds) => sum + (+ds.km || 0), 0);
+    sortedMonths.forEach(([monthName, data]) => {
+        const sumZeit = data.entries.reduce((sum, ds) => sum + (+ds.zeit || 0), 0);
+        const sumKm = data.entries.reduce((sum, ds) => sum + (+ds.km || 0), 0);
         monthSummaryText += `${monthName}: ${sumZeit.toFixed(2)} h, ${sumKm.toFixed(2)} km\n`;
-    }
+    });
 
     // Gesamtsumme + Monatsübersicht
     $('summenAnzeige').innerHTML =
