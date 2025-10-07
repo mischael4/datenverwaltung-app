@@ -38,9 +38,11 @@ self.addEventListener("fetch", event => {
 });
 
 // Nachricht vom Client empfangen (für manuelles skipWaiting)
-self.addEventListener('message', event => {
-  if (event.data && event.data.action === 'skipWaiting') {
-    self.skipWaiting();
-  }
+// Install: Cache füllen
+self.addEventListener("install", event => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
+      .then(() => self.skipWaiting())  // <- HIER
+  );
+  // self.skipWaiting(); // NICHT automatisch ausführen
 });
-
