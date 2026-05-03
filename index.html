@@ -687,6 +687,10 @@ function exportTable(type, month, date, teacher, format){
 
   $('searchInput').addEventListener("input", updateTable);
 
+  document.getElementById("monthFilter").addEventListener("change", () => {
+  updateTable(document.getElementById("searchInput").value);
+});
+  
   // Modal-Logik
 const overlay = document.getElementById("modalOverlay");
 
