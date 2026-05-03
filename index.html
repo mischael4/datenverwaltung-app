@@ -256,25 +256,27 @@ const filterByMonth = (data, monthText) => { const [monthName, yearText] = month
 const getCurrentMonthYear = () => new Date().toLocaleString('de-DE', {month:'long', year:'numeric'});
 const today = new Date();
 $('datum').valueAsDate = today;
-  function fillMonthFilter() {
+function fillMonthFilter() {
   const select = document.getElementById("monthFilter");
 
-  const months = new Set();
+  const monthNames = [
+    "Januar","Februar","März","April","Mai","Juni",
+    "Juli","August","September","Oktober","November","Dezember"
+  ];
 
-  dataSets.forEach(ds => {
-    if (!ds.datum) return;
-    months.add(ds.datum.slice(0, 7));
-  });
+  const currentYear = new Date().getFullYear();
 
-  select.innerHTML = `<option value="">Alle Monate</option>` +
-    [...months].sort().map(m => {
-      const [y, mo] = m.split("-");
-      const date = new Date(y, mo - 1);
+  select.innerHTML = `<option value="">Alle Monate</option>`;
 
-      return `<option value="${m}">
-        ${date.toLocaleString("de-DE", { month: "long", year: "numeric" })}
-      </option>`;
-    }).join("");
+  // z.B. 2024–2027 (anpassbar)
+  for (let year = currentYear - 1; year <= currentYear + 1; year++) {
+    monthNames.forEach((name, index) => {
+      const value = `${year}-${String(index + 1).padStart(2, "0")}`;
+      const label = `${name} ${year}`;
+
+      select.innerHTML += `<option value="${value}">${label}</option>`;
+    });
+  }
 }
 const lastDayCurrentMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 $('datumZeit').valueAsDate = lastDayCurrentMonth;
