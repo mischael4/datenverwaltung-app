@@ -377,31 +377,21 @@ function updateTable(filter="") {
   tbody.innerHTML = "";
 
   dataSets
-.filter(ds => {
-  const textMatch = Object.values(ds).some(v =>
-    JSON.stringify(v).toLowerCase().includes(filter.toLowerCase())
-  );
+    .filter(ds => {
+      const textMatch = Object.values(ds).some(v =>
+        JSON.stringify(v).toLowerCase().includes(filter.toLowerCase())
+      );
 
-  const selectedMonth = document.getElementById("monthFilter").value;
+      const selectedMonth = document.getElementById("monthFilter").value;
+      const monthMatch = !selectedMonth || ds.datum.startsWith(selectedMonth);
 
-  const monthMatch = !selectedMonth || ds.datum.startsWith(selectedMonth);
-
-  return textMatch && monthMatch;
-})
+      return textMatch && monthMatch;
+    })
     .sort((a, b) => sortAsc ? new Date(a.datum) - new Date(b.datum) : new Date(b.datum) - new Date(a.datum))
     .forEach(ds => {
       const tr = document.createElement("tr");
-
-      // Originalindex im dataSets-Array
       const originalIndex = dataSets.findIndex(d => d === ds);
 
-      // Duplikat markieren
-      if (isDuplicate(ds, originalIndex)) {
-        tr.style.backgroundColor = "#ffe6e6";
-        tr.title = "Möglicher doppelter Eintrag!";
-      }
-
-      // Tabellenzeile
       tr.innerHTML = `
         <td>${formatDateGerman(ds.datum)}</td>
         <td>${ds.name}</td>
@@ -421,7 +411,6 @@ function updateTable(filter="") {
       tbody.appendChild(tr);
     });
 
-  // Buttons wieder korrekt zuweisen
   document.querySelectorAll(".edit-btn").forEach(btn => {
     btn.onclick = () => editRecord(parseInt(btn.dataset.index));
   });
@@ -433,6 +422,9 @@ function updateTable(filter="") {
   });
 
   updateSummary();
+
+  // 🔥 WICHTIG: Monatsauswahl neu aufbauen
+  fillMonthFilter();
 }
 
 // --- Neue Funktion: Summen unter der Tabelle anzeigen ---
