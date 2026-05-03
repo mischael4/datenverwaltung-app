@@ -256,6 +256,26 @@ const filterByMonth = (data, monthText) => { const [monthName, yearText] = month
 const getCurrentMonthYear = () => new Date().toLocaleString('de-DE', {month:'long', year:'numeric'});
 const today = new Date();
 $('datum').valueAsDate = today;
+  function fillMonthFilter() {
+  const select = document.getElementById("monthFilter");
+
+  const months = new Set();
+
+  dataSets.forEach(ds => {
+    if (!ds.datum) return;
+    months.add(ds.datum.slice(0, 7));
+  });
+
+  select.innerHTML = `<option value="">Alle Monate</option>` +
+    [...months].sort().map(m => {
+      const [y, mo] = m.split("-");
+      const date = new Date(y, mo - 1);
+
+      return `<option value="${m}">
+        ${date.toLocaleString("de-DE", { month: "long", year: "numeric" })}
+      </option>`;
+    }).join("");
+}
 const lastDayCurrentMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 $('datumZeit').valueAsDate = lastDayCurrentMonth;
 $('datumKm').valueAsDate = lastDayCurrentMonth;
