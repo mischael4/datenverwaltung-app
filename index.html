@@ -362,9 +362,7 @@ function updateTable(filter="") {
 
   const selectedMonth = document.getElementById("monthFilter").value;
 
-  if (!selectedMonth) return textMatch;
-
-  return ds.datum.startsWith(selectedMonth);
+if (selectedMonth && !ds.datum.startsWith(selectedMonth)) return false;
 })
     .sort((a, b) => sortAsc ? new Date(a.datum) - new Date(b.datum) : new Date(b.datum) - new Date(a.datum))
     .forEach(ds => {
