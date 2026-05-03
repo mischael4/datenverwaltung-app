@@ -271,13 +271,15 @@ document.getElementById("sortDateHeader").onclick = () => {
 
   // Daten laden
   function loadData() {
-    const saved = localStorage.getItem('dataSets');
-    if(saved) { 
-      dataSets = JSON.parse(saved); 
-      dataSets.forEach(ds => ds.tatigkeit = normalizeTaetigkeit(ds.tatigkeit));
-      updateTable(); 
-    }
+  const saved = localStorage.getItem('dataSets');
+  if (saved) { 
+    dataSets = JSON.parse(saved); 
+    dataSets.forEach(ds => ds.tatigkeit = normalizeTaetigkeit(ds.tatigkeit));
   }
+
+  updateTable();
+  fillMonthFilter();
+}
 
   // Backup/Restore
   $('restoreBtn').onclick = () => $('restoreInput').click();
