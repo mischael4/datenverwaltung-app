@@ -353,7 +353,17 @@ function updateTable(filter="") {
   tbody.innerHTML = "";
 
   dataSets
-    .filter(ds => Object.values(ds).some(v => JSON.stringify(v).toLowerCase().includes(filter.toLowerCase())))
+    .filter(ds => {
+  const textMatch = Object.values(ds).some(v =>
+    JSON.stringify(v).toLowerCase().includes(filter.toLowerCase())
+  );
+
+  const selectedMonth = document.getElementById("monthFilter").value;
+
+  if (!selectedMonth) return textMatch;
+
+  return ds.datum.startsWith(selectedMonth);
+})
     .sort((a, b) => sortAsc ? new Date(a.datum) - new Date(b.datum) : new Date(b.datum) - new Date(a.datum))
     .forEach(ds => {
       const tr = document.createElement("tr");
