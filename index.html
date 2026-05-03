@@ -68,8 +68,8 @@ tr:nth-child(even){ background:#fcfcfc; }
   .edit-btn, .delete-btn, .copy-btn { font-size: 10px !important; padding: 4px 6px !important; margin-bottom: 2px !important; width: 100%; box-sizing: border-box; }
 }
 
-#tatigkeit { height: auto; max-height: 250px; font-size: 14px; line-height: 1.6; padding: 6px; border-radius:6px; }
-#tatigkeit option { white-space: normal; padding:4px 6px; border-bottom:1px solid #eee; }
+#tatigkeit { height:180px; font-size:13px; line-height:1.4; padding:6px; border-radius:6px; }
+#tatigkeit option { padding:4px 6px; border-bottom:1px solid #eee; }
 #tatigkeit option:last-child { border-bottom:none; }
 #searchInput { margin-top:10px; padding:8px; border:1px solid #ccc; border-radius:6px; }
 
@@ -147,10 +147,8 @@ tr:nth-child(even){ background:#fcfcfc; }
 
 <div class="table-container">
 <h2 id="daten">Übersicht Tätigkeiten - Gespeicherte Datensätze</h2>
-<select id="monthFilter">
-  <option value="">Alle Monate</option>
-</select>
-  <div class="table-scroll">
+<input type="text" id="searchInput" placeholder="Suche nach Text..." />
+<div class="table-scroll">
   <table>
     <thead>
       <tr>
@@ -255,28 +253,6 @@ const filterByMonth = (data, monthText) => { const [monthName, yearText] = month
 const getCurrentMonthYear = () => new Date().toLocaleString('de-DE', {month:'long', year:'numeric'});
 const today = new Date();
 $('datum').valueAsDate = today;
-function fillMonthFilter() {
-  const select = document.getElementById("monthFilter");
-
-  const monthNames = [
-    "Januar","Februar","März","April","Mai","Juni",
-    "Juli","August","September","Oktober","November","Dezember"
-  ];
-
-  const currentYear = new Date().getFullYear();
-
-  select.innerHTML = `<option value="">Alle Monate</option>`;
-
-  // z.B. 2024–2027 (anpassbar)
-  for (let year = currentYear - 1; year <= currentYear + 1; year++) {
-    monthNames.forEach((name, index) => {
-      const value = `${year}-${String(index + 1).padStart(2, "0")}`;
-      const label = `${name} ${year}`;
-
-      select.innerHTML += `<option value="${value}">${label}</option>`;
-    });
-  }
-}
 const lastDayCurrentMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
 $('datumZeit').valueAsDate = lastDayCurrentMonth;
 $('datumKm').valueAsDate = lastDayCurrentMonth;
@@ -292,15 +268,13 @@ document.getElementById("sortDateHeader").onclick = () => {
 
   // Daten laden
   function loadData() {
-  const saved = localStorage.getItem('dataSets');
-  if (saved) { 
-    dataSets = JSON.parse(saved); 
-    dataSets.forEach(ds => ds.tatigkeit = normalizeTaetigkeit(ds.tatigkeit));
+    const saved = localStorage.getItem('dataSets');
+    if(saved) { 
+      dataSets = JSON.parse(saved); 
+      dataSets.forEach(ds => ds.tatigkeit = normalizeTaetigkeit(ds.tatigkeit));
+      updateTable(); 
+    }
   }
-
-  updateTable();
-  fillMonthFilter();
-}
 
   // Backup/Restore
   $('restoreBtn').onclick = () => $('restoreInput').click();
@@ -378,21 +352,21 @@ function updateTable(filter="") {
   tbody.innerHTML = "";
 
   dataSets
-    .filter(ds => {
-      const textMatch = Object.values(ds).some(v =>
-        JSON.stringify(v).toLowerCase().includes(filter.toLowerCase())
-      );
-
-      const selectedMonth = document.getElementById("monthFilter").value;
-      const monthMatch = !selectedMonth || ds.datum.startsWith(selectedMonth);
-
-      return textMatch && monthMatch;
-    })
+    .filter(ds => Object.values(ds).some(v => JSON.stringify(v).toLowerCase().includes(filter.toLowerCase())))
     .sort((a, b) => sortAsc ? new Date(a.datum) - new Date(b.datum) : new Date(b.datum) - new Date(a.datum))
     .forEach(ds => {
       const tr = document.createElement("tr");
+
+      // Originalindex im dataSets-Array
       const originalIndex = dataSets.findIndex(d => d === ds);
 
+      // Duplikat markieren
+      if (isDuplicate(ds, originalIndex)) {
+        tr.style.backgroundColor = "#ffe6e6";
+        tr.title = "Möglicher doppelter Eintrag!";
+      }
+
+      // Tabellenzeile
       tr.innerHTML = `
         <td>${formatDateGerman(ds.datum)}</td>
         <td>${ds.name}</td>
@@ -412,6 +386,7 @@ function updateTable(filter="") {
       tbody.appendChild(tr);
     });
 
+  // Buttons wieder korrekt zuweisen
   document.querySelectorAll(".edit-btn").forEach(btn => {
     btn.onclick = () => editRecord(parseInt(btn.dataset.index));
   });
@@ -423,9 +398,6 @@ function updateTable(filter="") {
   });
 
   updateSummary();
-
-  // 🔥 WICHTIG: Monatsauswahl neu aufbauen
-  fillMonthFilter();
 }
 
 // --- Neue Funktion: Summen unter der Tabelle anzeigen ---
@@ -714,10 +686,6 @@ function exportTable(type, month, date, teacher, format){
 
   $('searchInput').addEventListener("input", updateTable);
 
-  document.getElementById("monthFilter").addEventListener("change", () => {
-  updateTable(document.getElementById("searchInput").value);
-});
-  
   // Modal-Logik
 const overlay = document.getElementById("modalOverlay");
 
