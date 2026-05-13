@@ -26,7 +26,7 @@ body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin:20px
 h2 { font-size:22px; color:var(--brand); margin-bottom:10px; }
 h4 { font-size:16px; color:#333; margin-bottom:15px; }
 .container { display:flex; flex-direction:column; gap:20px; max-width:1200px; margin:auto; }
-.form-container, .table-container { background:white; border:1px solid #ddd; padding:20px; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.05); }
+.form-container, .table-container { background:white; border:1px solid #ddd; padding:20px; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.05); overflow-x: hidden;}
 .form-group { margin-bottom:15px; }
 label { display:block; margin-bottom:5px; font-weight:600; color:#555; }
 label .hint { font-size:12px; font-weight:normal; color:#999; display:block; margin-top:2px; }
@@ -72,6 +72,15 @@ tr:nth-child(even){ background:#fcfcfc; }
 #tatigkeit option { padding:4px 6px; border-bottom:1px solid #eee; }
 #tatigkeit option:last-child { border-bottom:none; }
 #searchInput { margin-top:10px; padding:8px; border:1px solid #ccc; border-radius:6px; }
+
+#monthFilter {
+  margin-top: 10px;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  width: 100%;
+  background: white;
+}
 
 /* Spezieller Stil für den "Datensatz hinzufügen"-Button */
 #submitBtn {
@@ -148,6 +157,9 @@ tr:nth-child(even){ background:#fcfcfc; }
 <div class="table-container">
 <h2 id="daten">Übersicht Tätigkeiten - Gespeicherte Datensätze</h2>
 <input type="text" id="searchInput" placeholder="Suche nach Text..." />
+<select id="monthFilter">
+  <option value="">Alle Monate</option>
+</select>
 <div class="table-scroll">
   <table>
     <thead>
@@ -207,7 +219,7 @@ tr:nth-child(even){ background:#fcfcfc; }
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   const $ = id => document.getElementById(id);
-  const showMessage = msg => { 
+  window.showMessage = msg => { 
     const el = document.createElement('div'); 
     el.textContent = msg; 
     el.style.position = 'fixed'; 
@@ -251,6 +263,51 @@ function isDuplicate(ds, originalIndex) {
 const monthMap = { "Januar":0, "Februar":1, "März":2, "April":3, "Mai":4, "Juni":5, "Juli":6, "August":7, "September":8, "Oktober":9, "November":10, "Dezember":11 };
 const filterByMonth = (data, monthText) => { const [monthName, yearText] = monthText.trim().split(/\s+/); const monthNum = monthMap[monthName]; const yearNum = parseInt(yearText, 10); if(monthNum === undefined || isNaN(yearNum)) return []; return data.filter(ds => { const d = new Date(ds.datum); return d.getMonth() === monthNum && d.getFullYear() === yearNum; }); };
 const getCurrentMonthYear = () => new Date().toLocaleString('de-DE', {month:'long', year:'numeric'});
+
+function populateMonthFilter() {
+  const select = $('monthFilter');
+
+  // aktuelle Auswahl merken
+  const currentValue = select.value;
+
+  // Reset
+  select.innerHTML = '<option value="">Alle Monate</option>';
+
+  // Monate sammeln
+  const months = [...new Set(
+    dataSets.map(ds => {
+      const d = new Date(ds.datum);
+
+      return d.toLocaleString('de-DE', {
+        month: 'long',
+        year: 'numeric'
+      });
+    })
+  )];
+
+  // chronologisch sortieren
+  months.sort((a,b) => {
+    const [monthA, yearA] = a.split(' ');
+    const [monthB, yearB] = b.split(' ');
+
+    const dateA = new Date(parseInt(yearA), monthMap[monthA]);
+    const dateB = new Date(parseInt(yearB), monthMap[monthB]);
+
+    return dateB - dateA;
+  });
+
+  // Optionen erzeugen
+  months.forEach(month => {
+    const option = document.createElement('option');
+    option.value = month;
+    option.textContent = month;
+    select.appendChild(option);
+  });
+
+  // alte Auswahl wiederherstellen
+  select.value = currentValue;
+}
+
 const today = new Date();
 $('datum').valueAsDate = today;
 const lastDayCurrentMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
@@ -348,17 +405,44 @@ $('dataForm').onsubmit = e => {
 
 // Hilfsfunktion: prüft, ob ein Datensatz doppelt ist
 function updateTable(filter="") {
+
+  populateMonthFilter();
+
+  const selectedMonth = $('monthFilter').value;
+
   const tbody = $("tableBody");
   tbody.innerHTML = "";
 
   dataSets
-    .filter(ds => Object.values(ds).some(v => JSON.stringify(v).toLowerCase().includes(filter.toLowerCase())))
+    .filter(ds => {
+
+  // Textfilter
+  const matchesText =
+    Object.values(ds).some(v =>
+      JSON.stringify(v).toLowerCase().includes(filter.toLowerCase())
+    );
+
+  // Monatsfilter
+  let matchesMonth = true;
+
+  if (selectedMonth) {
+    const d = new Date(ds.datum);
+
+    const monthText = d.toLocaleString('de-DE', {
+      month: 'long',
+      year: 'numeric'
+    });
+
+    matchesMonth = monthText === selectedMonth;
+  }
+
+  return matchesText && matchesMonth;
+})
     .sort((a, b) => sortAsc ? new Date(a.datum) - new Date(b.datum) : new Date(b.datum) - new Date(a.datum))
     .forEach(ds => {
-      const tr = document.createElement("tr");
 
-      // Originalindex im dataSets-Array
-      const originalIndex = dataSets.findIndex(d => d === ds);
+  const originalIndex = dataSets.indexOf(ds);
+      const tr = document.createElement("tr");
 
       // Duplikat markieren
       if (isDuplicate(ds, originalIndex)) {
@@ -402,40 +486,34 @@ function updateTable(filter="") {
 
 // --- Neue Funktion: Summen unter der Tabelle anzeigen ---
 function updateSummary() {
-    // Gesamtsummen über alle Datensätze
-    const totalZeit = dataSets.reduce((sum, ds) => sum + (+ds.zeit || 0), 0);
-    const totalKm = dataSets.reduce((sum, ds) => sum + (+ds.km || 0), 0);
+const selectedMonth = $('monthFilter').value;
 
-    // Monatsgruppen bilden (alle vorhandenen Monate)
-    const monthlySums = {};
-    dataSets.forEach(ds => {
+// dieselben Datensätze wie in der Tabelle verwenden
+const filteredData = dataSets.filter(ds => {
+
+    let matchesMonth = true;
+
+    if (selectedMonth) {
         const d = new Date(ds.datum);
-        const monthKey = d.toLocaleString('de-DE', { month: 'long', year: 'numeric' });
-        if (!monthlySums[monthKey]) monthlySums[monthKey] = { zeit: 0, km: 0 };
-        monthlySums[monthKey].zeit += +ds.zeit || 0;
-        monthlySums[monthKey].km += +ds.km || 0;
-    });
 
-    // Monatsübersicht sortiert nach Datum
-    const monthKeysSorted = Object.keys(monthlySums).sort((a,b) => {
-        const [monthA, yearA] = a.split(' ');
-        const [monthB, yearB] = b.split(' ');
-        const dateA = new Date(`${monthA} 1, ${yearA}`);
-        const dateB = new Date(`${monthB} 1, ${yearB}`);
-        return dateA - dateB;
-    });
+        const monthText = d.toLocaleString('de-DE', {
+            month: 'long',
+            year: 'numeric'
+        });
 
-    // Monatsanzeige zusammenbauen
-    let monthlyText = '';
-    monthKeysSorted.forEach(monthKey => {
-        const sums = monthlySums[monthKey];
-        monthlyText += ` | ${monthKey}: ${sums.zeit.toFixed(2)} h, ${sums.km.toFixed(2)} km`;
-    });
+        matchesMonth = monthText === selectedMonth;
+    }
 
-    // Gesamtsummen + Monatsübersicht anzeigen
-    $('summenAnzeige').textContent =
-        `Gesamtzeit: ${totalZeit.toFixed(2)} h, Gesamtkilometer: ${totalKm.toFixed(2)} km` +
-        monthlyText;
+    return matchesMonth;
+});
+
+// Summen nur für gefilterte Datensätze
+const totalZeit = filteredData.reduce((sum, ds) => sum + (+ds.zeit || 0), 0);
+const totalKm = filteredData.reduce((sum, ds) => sum + (+ds.km || 0), 0);
+
+$('summenAnzeige').textContent =
+    `Gesamtzeit: ${totalZeit.toFixed(2)} h, Gesamtkilometer: ${totalKm.toFixed(2)} km`;
+
 }
 
 // Modal-Logik: Name übernehmen, nur wenn vorhanden
@@ -685,7 +763,9 @@ function exportTable(type, month, date, teacher, format){
   };
 
   $('searchInput').addEventListener("input", updateTable);
-
+$('monthFilter').addEventListener("change", () => {
+  updateTable($('searchInput').value);
+});
   // Modal-Logik
 const overlay = document.getElementById("modalOverlay");
 
@@ -796,20 +876,6 @@ const overlay = document.getElementById("modalOverlay");
   table th:nth-child(7), td:nth-child(7),
   table th:nth-child(8), td:nth-child(8),
   table th:nth-child(9), td:nth-child(9) { width: auto; }
-}
-
-/* Desktop-Optimierung: Tätigkeits-Spalte kompakt, Zeilen umbrechen */
-@media (min-width: 769px) {
-  table { table-layout: fixed; width: 100%; }
-  table th:nth-child(1), table td:nth-child(1) { width: 80px; }   /* Datum */
-  table th:nth-child(2), table td:nth-child(2) { width: 140px; }  /* Name */
-  table th:nth-child(3), table td:nth-child(3) { width: 130px; }  /* Ort */
-  table th:nth-child(4), table td:nth-child(4) { width: 250px; }  /* Tätigkeiten */
-  table th:nth-child(5), table td:nth-child(5) { width: 150px; }  /* Anmerkungen */
-  table th:nth-child(6), table td:nth-child(6) { width: 80px; }   /* Strecke */
-  table th:nth-child(7), table td:nth-child(7) { width: 60px; }   /* Zeit */
-  table th:nth-child(8), table td:nth-child(8) { width: 60px; }   /* Km */
-  table th:nth-child(9), table td:nth-child(9) { width: 120px; }  /* Aktion */
 }
 
   .tatigkeit-cell, td:nth-child(5) { white-space: normal; }
